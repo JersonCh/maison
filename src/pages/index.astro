@@ -1,0 +1,177 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import Button from "@/components/ui/Button.astro";
+import ProductCard from "@/components/product/ProductCard.astro";
+import Icon from "@/components/ui/Icon";
+import {
+  heroImage,
+  categoryImages,
+  getFeaturedProducts,
+  getRecentProducts,
+} from "@/data/products";
+import type { Gender } from "@/types/product";
+
+const featuredProducts = getFeaturedProducts();
+const recentProducts = getRecentProducts();
+const categories: Gender[] = ["Hombre", "Mujer", "Unisex"];
+---
+
+<Layout
+  title="Maison des Parfums | Alta Perfumería en Perú"
+  description="Descubre aromas que trascienden el tiempo. Selección de perfumes originales para hombre, mujer y unisex con atención y pedidos por WhatsApp."
+>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <img
+        src={heroImage}
+        alt="Perfume de lujo en una composición editorial oscura"
+        loading="eager"
+      />
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow">Fragancias originales · Curaduría excepcional</p>
+        <h1>
+          Encuentra una fragancia<br />que hable por ti
+        </h1>
+        <p>
+          Descubre aromas que trascienden el tiempo y convierten tu esencia en una firma inolvidable.
+        </p>
+        <Button href="/perfumes">
+          Explorar perfumes <Icon name="arrow" />
+        </Button>
+      </div>
+      <div class="hero-index">
+        <span>01</span>
+        <i></i>
+        <span>03</span>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="category-section">
+      <SectionTitle
+        eyebrow="Encuentra tu esencia"
+        title="Una fragancia para cada historia"
+        copy="Colecciones elegidas para acompañar tu estilo, tu energía y cada uno de tus momentos."
+      />
+      <div class="category-grid">
+        {
+          categories.map((gender) => (
+            <a
+              class="category-card"
+              href={`/perfumes?genero=${gender}`}
+            >
+              <img
+                src={categoryImages[gender]}
+                alt={`Perfumes para ${gender.toLowerCase()}`}
+                loading="lazy"
+              />
+              <span>
+                <small>Colección</small>
+                <strong>{gender}</strong>
+                <i>
+                  Descubrir <Icon name="arrow" size={16} />
+                </i>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="products-section">
+      <div class="section-heading-row">
+        <SectionTitle
+          eyebrow="Selección Maison"
+          title="Fragancias destacadas"
+        />
+        <a href="/perfumes">
+          Ver toda la colección <Icon name="arrow" />
+        </a>
+      </div>
+      <div class="product-grid">
+        {featuredProducts.map((product) => <ProductCard product={product} />)}
+      </div>
+    </section>
+
+    <!-- Promo Banner Section -->
+    <section class="promo">
+      <div class="promo-copy">
+        <p>El arte de elegir bien</p>
+        <h2>
+          Tu aroma habla<br />antes que tú
+        </h2>
+        <span>
+          Recibe asesoría personalizada y encuentra esa fragancia que realmente se siente tuya.
+        </span>
+        <Button href="/contacto" variant="outline">
+          Hablar con un asesor <Icon name="arrow" />
+        </Button>
+      </div>
+      <div class="promo-image">
+        <img
+          src={categoryImages.Unisex}
+          alt="Selección de perfumería nicho"
+          loading="lazy"
+        />
+      </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section class="products-section new-section">
+      <div class="section-heading-row">
+        <SectionTitle
+          eyebrow="Recién llegados"
+          title="Nuevos ingresos"
+        />
+        <a href="/perfumes">
+          Ver novedades <Icon name="arrow" />
+        </a>
+      </div>
+      <div class="product-grid four">
+        {recentProducts.map((product) => <ProductCard product={product} />)}
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits">
+      <article>
+        <span>01</span>
+        <h3>Atención personalizada</h3>
+        <p>Te escuchamos para recomendarte una fragancia según tu estilo y ocasión.</p>
+      </article>
+      <article>
+        <span>02</span>
+        <h3>Compra por WhatsApp</h3>
+        <p>Coordina tu pedido de forma directa, cercana y completamente segura.</p>
+      </article>
+      <article>
+        <span>03</span>
+        <h3>Curaduría experta</h3>
+        <p>Una selección de casas icónicas y perfumes con carácter excepcional.</p>
+      </article>
+    </section>
+
+    <!-- Brand Story Section -->
+    <section class="brand-story">
+      <div class="story-monogram">M</div>
+      <div>
+        <p class="eyebrow">Nuestra maison</p>
+        <h2>
+          El perfume como<br />forma de expresión
+        </h2>
+      </div>
+      <div>
+        <p>
+          Creemos que una fragancia no solo se lleva: se recuerda. En Maison des Parfums reunimos aromas con identidad para ayudarte a encontrar aquel que cuente tu historia.
+        </p>
+        <a href="/nosotros" class="btn btn-outline" style="border-color: var(--gold); color: var(--gold-light);">
+          Conoce nuestra historia <Icon name="arrow" />
+        </a>
+      </div>
+    </section>
+  </main>
+</Layout>

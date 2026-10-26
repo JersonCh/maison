@@ -4,12 +4,19 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "astro dev --port 8443",
+    "start": "astro dev --port 8443",
+    "build": "astro build",
+    "preview": "astro preview --port 8443",
+    "astro": "astro",
+    "typecheck": "tsc --noEmit",
     "format": "oxfmt"
   },
   "dependencies": {
+    "@astrojs/react": "4.2.1",
+    "@nanostores/react": "^2.0.1",
+    "astro": "5.18.2",
+    "nanostores": "^1.5.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

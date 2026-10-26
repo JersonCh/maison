@@ -1,0 +1,59 @@
+---
+import {
+  CartButton,
+  SearchButton,
+  MobileMenuButton,
+} from "@/features/cart/CartBadge";
+import Icon from "@/components/ui/Icon";
+
+interface Props {
+  currentPath?: string;
+  currentGender?: string;
+}
+
+const { currentPath = "/", currentGender = "" } = Astro.props;
+
+const navItems = [
+  { label: "Inicio", href: "/" },
+  { label: "Perfumes", href: "/perfumes" },
+  { label: "Hombre", href: "/perfumes?genero=Hombre", gender: "Hombre" },
+  { label: "Mujer", href: "/perfumes?genero=Mujer", gender: "Mujer" },
+  { label: "Unisex", href: "/perfumes?genero=Unisex", gender: "Unisex" },
+  { label: "Nosotros", href: "/nosotros" },
+  { label: "Contacto", href: "/contacto" },
+];
+---
+
+<header class="site-header">
+  <MobileMenuButton client:load />
+
+  <a href="/" class="logo-button" aria-label="Ir al inicio de Maison des Parfums">
+    <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+  </a>
+
+  <nav>
+    {
+      navItems.map((item) => {
+        const isActive =
+          (item.gender && currentGender === item.gender) ||
+          (!item.gender && currentPath === item.href);
+        return (
+          <a
+            href={item.href}
+            class={isActive ? "active" : ""}
+          >
+            {item.label}
+          </a>
+        );
+      })
+    }
+  </nav>
+
+  <div class="header-actions">
+    <SearchButton client:load />
+    <a href="/admin" class="user-action" aria-label="Panel administrativo">
+      <Icon name="user" />
+    </a>
+    <CartButton client:load />
+  </div>
+</header>
