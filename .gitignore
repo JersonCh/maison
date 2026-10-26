@@ -1,0 +1,36 @@
+
+# Dependencias
+node_modules/
+
+# Compilación
+dist/
+build/
+.output/
+
+# Cachés
+.cache/
+.vite/
+.astro/
+
+# Variables de entorno y secretos
+.env*
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*-debug.log*
+logs/
+*.log
+
+# Archivos temporales
+.claude-replay.*
+.tmp-*
+
+# Figma
+/.figma/design-context/
+
+# Herramientas y agentes del entorno
+.plugins/
+.opencode-skills/

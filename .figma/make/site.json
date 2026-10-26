@@ -1,0 +1,10 @@
+{
+  "description": "Provides a simple and friendly interface for users to send and receive greetings, enhancing casual communication and social interaction.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
