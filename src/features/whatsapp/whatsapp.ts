@@ -1,55 +1,66 @@
-import type { CartLine } from "@/types/cart";
-import type { Product } from "@/types/product";
-import { formatPrice } from "@/lib/formatters";
+import type { LineaCarrito } from "@/types/carrito";
+import type { Producto } from "@/types/producto";
+import { formatearPrecio } from "@/lib/formateadores";
 
-export const DEFAULT_WHATSAPP_NUMBER = "51999999999";
+export const NUMERO_WHATSAPP_POR_DEFECTO = "51999999999";
+export const DEFAULT_WHATSAPP_NUMBER = NUMERO_WHATSAPP_POR_DEFECTO;
 
 /**
- * Returns the configured WhatsApp commercial number.
+ * Obtiene el número comercial configurado para atención y pedidos.
  */
-export function getStorePhone(): string {
+export function obtenerTelefonoTienda(): string {
   if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("maison-whatsapp");
-    if (saved && saved.trim().length >= 8) {
-      return saved.trim().replace(/\D/g, "");
+    const guardado = localStorage.getItem("maison-whatsapp");
+    if (guardado && guardado.trim().length >= 8) {
+      return guardado.trim().replace(/\D/g, "");
     }
   }
-  return DEFAULT_WHATSAPP_NUMBER;
+  return NUMERO_WHATSAPP_POR_DEFECTO;
 }
 
 /**
- * Formats cart order message.
+ * Construye el mensaje legible del pedido con el desglose de productos y total.
  */
-export function buildCartMessage(lines: CartLine[], total: number): string {
-  const itemsText = lines
+export function construirMensajeCarrito(lineas: LineaCarrito[], total: number): string {
+  const detalleProductos = lineas
     .map(
-      (line) =>
-        `• ${line.product.name} — ${line.size} x${line.qty} — ${formatPrice(line.price * line.qty)}`,
+      (linea) =>
+        `• ${linea.producto.name} — ${linea.size} x${linea.qty} — ${formatearPrecio(linea.precio * linea.qty)}`,
     )
     .join("\n");
 
-  return `Hola Maison des Parfums, deseo solicitar:\n${itemsText}\n\nTotal: ${formatPrice(total)}`;
+  return `Hola Maison des Parfums, deseo solicitar:\n${detalleProductos}\n\nTotal: ${formatearPrecio(total)}`;
 }
 
 /**
- * Builds the URL to open WhatsApp with the cart contents.
+ * Genera el enlace directo a WhatsApp (wa.me) con el pedido preformateado.
  */
-export function buildCartWhatsAppUrl(lines: CartLine[], total: number, phone?: string): string {
-  const targetPhone = phone || getStorePhone();
-  const rawMessage = buildCartMessage(lines, total);
-  return `https://wa.me/${targetPhone}?text=${encodeURIComponent(rawMessage)}`;
-}
-
-/**
- * Builds the URL to consult about a specific perfume and size.
- */
-export function buildProductInquiryWhatsAppUrl(
-  product: Product,
-  size?: string,
-  phone?: string,
+export function construirUrlWhatsAppCarrito(
+  lineas: LineaCarrito[],
+  total: number,
+  telefono?: string,
 ): string {
-  const targetPhone = phone || getStorePhone();
-  const sizeText = size ? ` ${size}` : "";
-  const rawMessage = `Hola Maison des Parfums, deseo consultar por el perfume ${product.brand} - ${product.name}${sizeText}. ¿Tienen disponibilidad?`;
-  return `https://wa.me/${targetPhone}?text=${encodeURIComponent(rawMessage)}`;
+  const telefonoDestino = telefono || obtenerTelefonoTienda();
+  const mensaje = construirMensajeCarrito(lineas, total);
+  return `https://wa.me/${telefonoDestino}?text=${encodeURIComponent(mensaje)}`;
 }
+
+/**
+ * Genera el enlace a WhatsApp para consultar por un perfume en específico.
+ */
+export function construirUrlWhatsAppConsultaProducto(
+  producto: Producto,
+  tamano?: string,
+  telefono?: string,
+): string {
+  const telefonoDestino = telefono || obtenerTelefonoTienda();
+  const textoTamano = tamano ? ` ${tamano}` : "";
+  const mensaje = `Hola Maison des Parfums, deseo consultar por el perfume ${producto.brand} - ${producto.name}${textoTamano}. ¿Tienen disponibilidad?`;
+  return `https://wa.me/${telefonoDestino}?text=${encodeURIComponent(mensaje)}`;
+}
+
+// Alias de retrocompatibilidad
+export const getStorePhone = obtenerTelefonoTienda;
+export const buildCartMessage = construirMensajeCarrito;
+export const buildCartWhatsAppUrl = construirUrlWhatsAppCarrito;
+export const buildProductInquiryWhatsAppUrl = construirUrlWhatsAppConsultaProducto;

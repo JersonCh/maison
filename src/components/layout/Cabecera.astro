@@ -1,0 +1,69 @@
+---
+import {
+  BotonCarrito,
+  BotonBuscador,
+  BotonMenuMovil,
+} from "@/features/carrito/BotonesCabecera";
+import Icono from "@/components/ui/Icono";
+
+interface Props {
+  rutaActual?: string;
+  generoActual?: string;
+  currentPath?: string;
+  currentGender?: string;
+}
+
+const {
+  rutaActual,
+  generoActual,
+  currentPath = "/",
+  currentGender = "",
+} = Astro.props;
+
+const ruta = rutaActual || currentPath;
+const genero = generoActual || currentGender;
+
+const enlacesNavegacion = [
+  { etiqueta: "Inicio", enlace: "/" },
+  { etiqueta: "Perfumes", enlace: "/perfumes" },
+  { etiqueta: "Hombre", enlace: "/perfumes?genero=Hombre", genero: "Hombre" },
+  { etiqueta: "Mujer", enlace: "/perfumes?genero=Mujer", genero: "Mujer" },
+  { etiqueta: "Unisex", enlace: "/perfumes?genero=Unisex", genero: "Unisex" },
+  { etiqueta: "Nosotros", enlace: "/nosotros" },
+  { etiqueta: "Contacto", enlace: "/contacto" },
+];
+---
+
+<header class="site-header">
+  <BotonMenuMovil client:load />
+
+  <a href="/" class="logo-button" aria-label="Ir al inicio de Maison des Parfums">
+    <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+  </a>
+
+  <nav>
+    {
+      enlacesNavegacion.map((item) => {
+        const estaActivo =
+          (item.genero && genero === item.genero) ||
+          (!item.genero && ruta === item.enlace);
+        return (
+          <a
+            href={item.enlace}
+            class={estaActivo ? "active" : ""}
+          >
+            {item.etiqueta}
+          </a>
+        );
+      })
+    }
+  </nav>
+
+  <div class="header-actions">
+    <BotonBuscador client:load />
+    <a href="/admin" class="user-action" aria-label="Panel administrativo">
+      <Icono name="user" />
+    </a>
+    <BotonCarrito client:load />
+  </div>
+</header>

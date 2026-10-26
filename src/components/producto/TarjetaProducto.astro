@@ -1,0 +1,55 @@
+---
+import type { Producto } from "@/types/producto";
+import { formatearPrecio, formatearDescuento } from "@/lib/formateadores";
+import BotonAgregarRapido from "./BotonAgregarRapido";
+import Icono from "@/components/ui/Icono";
+
+interface Props {
+  producto?: Producto;
+  product?: Producto;
+}
+
+const { producto, product } = Astro.props;
+const p = producto || product!;
+const varianteDefecto = p.variants[0];
+const precio = varianteDefecto.price;
+const descuento = formatearDescuento(precio, p.oldPrice);
+const urlProducto = `/perfumes/${p.slug}`;
+---
+
+<article class="product-card">
+  <div class="product-photo">
+    {descuento && <span class="sale-badge">{descuento}</span>}
+    {p.recent && <span class="new-badge">Nuevo</span>}
+    <button class="heart-btn" aria-label="Agregar a favoritos" type="button">
+      <Icono name="heart" />
+    </button>
+    <a href={urlProducto} aria-label={`Ver detalles de ${p.brand} ${p.name}`}>
+      <img
+        src={p.image}
+        alt={`${p.brand} ${p.name}`}
+        loading="lazy"
+      />
+    </a>
+    <BotonAgregarRapido
+      client:visible
+      idProducto={p.id}
+      tamano={varianteDefecto.size}
+    />
+  </div>
+
+  <div class="product-copy">
+    <p class="brand">{p.brand}</p>
+    <h3>
+      <a href={urlProducto}>{p.name}</a>
+    </h3>
+    <p class="meta">{p.gender} · {varianteDefecto.size}</p>
+    <div class="price-row">
+      <strong>{formatearPrecio(precio)}</strong>
+      {p.oldPrice && <s>{formatearPrecio(p.oldPrice)}</s>}
+    </div>
+    <a class="detail-link" href={urlProducto}>
+      Ver detalles <Icono name="arrow" size={16} />
+    </a>
+  </div>
+</article>
