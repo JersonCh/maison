@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Product, Gender } from "@/types/product";
 import Icon from "@/components/ui/Icon";
 
@@ -467,20 +467,72 @@ function Stat({
 }
 
 function SettingsSection() {
-  const [phone, setPhone] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("maison-whatsapp") || "";
+  const [phone, setPhone] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [horario, setHorario] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+
+  // Cargar configuración real desde Cloudflare D1 al montar
+  useEffect(() => {
+    async function cargarConfiguracion() {
+      try {
+        const respuesta = await fetch("/api/config");
+        if (respuesta.ok) {
+          const datos = await respuesta.json();
+          if (datos.whatsapp_pedidos) setPhone(datos.whatsapp_pedidos);
+          if (datos.instagram_url) setInstagram(datos.instagram_url);
+          if (datos.facebook_url) setFacebook(datos.facebook_url);
+          if (datos.horario_comercial) setHorario(datos.horario_comercial);
+        }
+      } catch (error) {
+        console.error("Error al cargar configuración de D1:", error);
+      }
     }
-    return "";
-  });
+    cargarConfiguracion();
+  }, []);
+
+  const guardarCambios = async () => {
+    setGuardando(true);
+    setMensaje("");
+    try {
+      const cargaUtil = {
+        whatsapp_pedidos: phone,
+        instagram_url: instagram,
+        facebook_url: facebook,
+        horario_comercial: horario,
+      };
+
+      const respuesta = await fetch("/api/config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cargaUtil),
+      });
+
+      if (respuesta.ok) {
+        // También guardar en localStorage para respaldo instantáneo en el navegador
+        localStorage.setItem("maison-whatsapp", phone);
+        setMensaje("✓ Configuración guardada correctamente en Cloudflare D1.");
+      } else {
+        setMensaje("⚠ Error al guardar en la base de datos.");
+      }
+    } catch (error) {
+      setMensaje("⚠ Error de conexión con el servidor.");
+    } finally {
+      setGuardando(false);
+      setTimeout(() => setMensaje(""), 3500);
+    }
+  };
 
   return (
     <div className="settings-card">
       <header>
         <small className="eyebrow">Canales de atención</small>
         <h2>Configuración comercial</h2>
-        <p>Configura el número oficial de WhatsApp para la recepción de pedidos.</p>
+        <p>Configura el número oficial de WhatsApp y canales de la tienda (Persistido en D1).</p>
       </header>
+
       <label>
         Número de WhatsApp
         <input
@@ -489,28 +541,48 @@ function SettingsSection() {
           placeholder="Ej. 51999999999"
         />
       </label>
+
       <label>
         Instagram
-        <input placeholder="@usuario" />
+        <input
+          value={instagram}
+          onChange={(e) => setInstagram(e.target.value)}
+          placeholder="URL o @usuario de Instagram"
+        />
       </label>
+
       <label>
         Facebook
-        <input placeholder="URL del perfil" />
+        <input
+          value={facebook}
+          onChange={(e) => setFacebook(e.target.value)}
+          placeholder="URL del perfil de Facebook"
+        />
       </label>
+
       <label>
         Horario comercial
-        <input placeholder="Ej. Lunes a sábado..." />
+        <input
+          value={horario}
+          onChange={(e) => setHorario(e.target.value)}
+          placeholder="Ej. Lunes a sábado · 10:00 am - 8:00 pm"
+        />
       </label>
+
       <button
         type="button"
         className="btn btn-gold"
-        onClick={() => {
-          localStorage.setItem("maison-whatsapp", phone);
-          window.alert("Configuración comercial guardada correctamente.");
-        }}
+        onClick={guardarCambios}
+        disabled={guardando}
       >
-        Guardar configuración
+        {guardando ? "Guardando en D1..." : "Guardar configuración"}
       </button>
+
+      {mensaje && (
+        <p style={{ marginTop: "1rem", color: "var(--gold)", fontWeight: 500 }}>
+          {mensaje}
+        </p>
+      )}
     </div>
   );
 }
