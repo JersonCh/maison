@@ -469,12 +469,8 @@ export async function obtenerProductosParaAdmin(
     const v100 = vars.find((v) => Math.round(v.tamano_ml) === 100) || vars[1] || vars[0];
 
     const imgs = mapaImagenes.get(p.id) || [];
-    // Regla estricta de negocio: exactamente 3 fotos
-    const tresFotos: [string, string, string] = [
-      imgs[0] || imagenPorDefecto,
-      imgs[1] || imgs[0] || imagenPorDefecto,
-      imgs[2] || imgs[0] || imagenPorDefecto,
-    ];
+    // Fotos registradas (al menos 1 portada, hasta 3 fotos)
+    const fotosRegistradas = imgs.length > 0 ? imgs : [imagenPorDefecto];
 
     return {
       id: p.id,
@@ -497,7 +493,7 @@ export async function obtenerProductosParaAdmin(
       precio_referencia_50ml: v50?.precio_referencia_centimos
         ? Math.round(v50.precio_referencia_centimos / 100)
         : null,
-      imagenes: tresFotos,
+      imagenes: fotosRegistradas,
       stock: 12, // Stock estimado referencial
     };
   });
@@ -705,42 +701,24 @@ export async function crearNuevoProductoEnDb(
 
   await db.batch(sentenciasVariantes);
 
-  // 4. Insertar exactamente las 3 imágenes reglamentarias
-  const [fotoPortada, fotoCaja, fotoDetalle] = datos.fotos;
-  const imagenDefecto = "/assets/maison-logo.jpeg";
+  // 4. Insertar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
+  const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
+  if (fotosFiltradas.length === 0) {
+    fotosFiltradas.push("/assets/maison-logo.jpeg");
+  }
 
-  const sentenciasImagenes = [
-    db
+  const sentenciasImagenes = fotosFiltradas.map((url, indice) => {
+    let textoAlt = `${datos.nombre} - Frasco y portada principal`;
+    if (indice === 1) textoAlt = `${datos.nombre} - Empaque y caja oficial`;
+    if (indice === 2) textoAlt = `${datos.nombre} - Detalle editorial`;
+
+    return db
       .prepare(
         `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
-         VALUES (?, ?, ?, 0, 1)`,
+         VALUES (?, ?, ?, ?, ?)`,
       )
-      .bind(
-        productoId,
-        fotoPortada?.trim() || imagenDefecto,
-        `${datos.nombre} - Frasco y portada principal`,
-      ),
-    db
-      .prepare(
-        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
-         VALUES (?, ?, ?, 1, 0)`,
-      )
-      .bind(
-        productoId,
-        fotoCaja?.trim() || fotoPortada?.trim() || imagenDefecto,
-        `${datos.nombre} - Empaque y caja oficial`,
-      ),
-    db
-      .prepare(
-        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
-         VALUES (?, ?, ?, 2, 0)`,
-      )
-      .bind(
-        productoId,
-        fotoDetalle?.trim() || fotoPortada?.trim() || imagenDefecto,
-        `${datos.nombre} - Detalle editorial`,
-      ),
-  ];
+      .bind(productoId, url, textoAlt, indice, indice === 0 ? 1 : 0);
+  });
 
   await db.batch(sentenciasImagenes);
 
@@ -854,47 +832,29 @@ export async function actualizarProductoEnDb(
       .run();
   }
 
-  // 4. Actualizar exactamente las 3 imágenes
+  // 4. Actualizar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
   await db
     .prepare("DELETE FROM imagenes_producto WHERE producto_id = ?")
     .bind(productoId)
     .run();
 
-  const [fotoPortada, fotoCaja, fotoDetalle] = datos.fotos;
-  const imagenDefecto = "/assets/maison-logo.jpeg";
+  const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
+  if (fotosFiltradas.length === 0) {
+    fotosFiltradas.push("/assets/maison-logo.jpeg");
+  }
 
-  const sentenciasImagenes = [
-    db
+  const sentenciasImagenes = fotosFiltradas.map((url, indice) => {
+    let textoAlt = `${datos.nombre} - Frasco y portada principal`;
+    if (indice === 1) textoAlt = `${datos.nombre} - Empaque y caja oficial`;
+    if (indice === 2) textoAlt = `${datos.nombre} - Detalle editorial`;
+
+    return db
       .prepare(
         `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
-         VALUES (?, ?, ?, 0, 1)`,
+         VALUES (?, ?, ?, ?, ?)`,
       )
-      .bind(
-        productoId,
-        fotoPortada?.trim() || imagenDefecto,
-        `${datos.nombre} - Frasco y portada principal`,
-      ),
-    db
-      .prepare(
-        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
-         VALUES (?, ?, ?, 1, 0)`,
-      )
-      .bind(
-        productoId,
-        fotoCaja?.trim() || fotoPortada?.trim() || imagenDefecto,
-        `${datos.nombre} - Empaque y caja oficial`,
-      ),
-    db
-      .prepare(
-        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
-         VALUES (?, ?, ?, 2, 0)`,
-      )
-      .bind(
-        productoId,
-        fotoDetalle?.trim() || fotoPortada?.trim() || imagenDefecto,
-        `${datos.nombre} - Detalle editorial`,
-      ),
-  ];
+      .bind(productoId, url, textoAlt, indice, indice === 0 ? 1 : 0);
+  });
 
   await db.batch(sentenciasImagenes);
 

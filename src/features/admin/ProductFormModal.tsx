@@ -67,19 +67,13 @@ export default function ProductFormModal({
     initialProduct?.precio_referencia_50ml ?? "",
   );
 
-  // Regla estricta de negocio: exactamente 3 fotos
+  // Fotos: Portada obligatoria, caja y detalle opcionales
   const [fotoPortada, setFotoPortada] = useState(
     initialProduct?.imagenes[0] ||
       "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=900&q=85",
   );
-  const [fotoCaja, setFotoCaja] = useState(
-    initialProduct?.imagenes[1] ||
-      "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?auto=format&fit=crop&w=900&q=85",
-  );
-  const [fotoDetalle, setFotoDetalle] = useState(
-    initialProduct?.imagenes[2] ||
-      "https://images.unsplash.com/photo-1594125311687-3b1b3eafa9f4?auto=format&fit=crop&w=900&q=85",
-  );
+  const [fotoCaja, setFotoCaja] = useState(initialProduct?.imagenes[1] || "");
+  const [fotoDetalle, setFotoDetalle] = useState(initialProduct?.imagenes[2] || "");
 
   const [esDestacado, setEsDestacado] = useState(initialProduct?.es_destacado ?? false);
   const [activo, setActivo] = useState(initialProduct?.activo ?? true);
@@ -103,8 +97,8 @@ export default function ProductFormModal({
       setErrorValidacion("El precio para la presentación de 100 ml debe ser mayor a 0.");
       return;
     }
-    if (!fotoPortada.trim() || !fotoCaja.trim() || !fotoDetalle.trim()) {
-      setErrorValidacion("Las 3 fotos reglamentarias (Portada, Empaque y Detalle) son obligatorias.");
+    if (!fotoPortada.trim()) {
+      setErrorValidacion("La foto de portada (Frasco principal) es obligatoria.");
       return;
     }
 
@@ -127,7 +121,7 @@ export default function ProductFormModal({
         precio_referencia_50ml: precioRef50ml !== "" ? Number(precioRef50ml) : null,
         es_destacado: esDestacado,
         activo,
-        fotos: [fotoPortada.trim(), fotoCaja.trim(), fotoDetalle.trim()],
+        fotos: [fotoPortada.trim(), fotoCaja.trim(), fotoDetalle.trim()].filter(Boolean),
       };
 
       if (esEdicion && initialProduct?.id) {
@@ -391,25 +385,25 @@ export default function ProductFormModal({
           </div>
         </fieldset>
 
-        {/* 3. SECCIÓN: REGLA DE NEGOCIO DE EXACTAMENTE 3 FOTOS */}
+        {/* 3. SECCIÓN: GALERÍA DE FRAGANCIA */}
         <fieldset className="admin-fieldset">
           <legend className="admin-fieldset-legend">
             <span>Paso 3 · Curaduría Visual</span>
-            Galería Oficial (Exactamente 3 Fotos Reglamentarias)
+            Galería de Fragancia (Portada obligatoria · Secundarias opcionales)
           </legend>
 
           <p style={{ margin: "0 0 10px 0", fontSize: "9px", color: "var(--muted)" }}>
-            Cada fragancia de Maison des Parfums cuenta con 3 tomas exclusivas: la
-            portada del frasco, la caja oficial con sello de autenticidad, y el detalle
-            editorial de textura o atomizador.
+            La foto de portada es indispensable para la boutique y el catálogo. La caja
+            oficial y el detalle editorial son opcionales y pueden añadirse ahora o más
+            adelante.
           </p>
 
           <div className="photo-slots-grid">
-            {/* Foto 1: Portada */}
+            {/* Foto 1: Portada (Obligatoria) */}
             <div className="photo-slot-card">
               <div className="photo-slot-header">
-                <span className="photo-slot-title">1. Portada / Frasco</span>
-                <span className="photo-slot-badge principal">Principal</span>
+                <span className="photo-slot-title">1. Portada / Frasco *</span>
+                <span className="photo-slot-badge principal">Obligatoria</span>
               </div>
               <div className="photo-slot-preview">
                 {fotoPortada ? (
@@ -427,18 +421,18 @@ export default function ProductFormModal({
               <div className="photo-slot-input">
                 <input
                   required
-                  placeholder="URL imagen portada..."
+                  placeholder="URL imagen portada (obligatoria)..."
                   value={fotoPortada}
                   onChange={(e) => setFotoPortada(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Foto 2: Caja y Empaque */}
+            {/* Foto 2: Caja y Empaque (Opcional) */}
             <div className="photo-slot-card">
               <div className="photo-slot-header">
                 <span className="photo-slot-title">2. Caja / Empaque</span>
-                <span className="photo-slot-badge">Garantía</span>
+                <span className="photo-slot-badge">Opcional</span>
               </div>
               <div className="photo-slot-preview">
                 {fotoCaja ? (
@@ -450,24 +444,23 @@ export default function ProductFormModal({
                     }}
                   />
                 ) : (
-                  <span className="photo-slot-empty">Sin imagen</span>
+                  <span className="photo-slot-empty">Opcional (sin foto)</span>
                 )}
               </div>
               <div className="photo-slot-input">
                 <input
-                  required
-                  placeholder="URL imagen empaque..."
+                  placeholder="URL imagen empaque (opcional)..."
                   value={fotoCaja}
                   onChange={(e) => setFotoCaja(e.target.value)}
                 />
               </div>
             </div>
 
-            {/* Foto 3: Detalle y Contexto */}
+            {/* Foto 3: Detalle y Contexto (Opcional) */}
             <div className="photo-slot-card">
               <div className="photo-slot-header">
                 <span className="photo-slot-title">3. Detalle / Contexto</span>
-                <span className="photo-slot-badge">Editorial</span>
+                <span className="photo-slot-badge">Opcional</span>
               </div>
               <div className="photo-slot-preview">
                 {fotoDetalle ? (
@@ -479,13 +472,12 @@ export default function ProductFormModal({
                     }}
                   />
                 ) : (
-                  <span className="photo-slot-empty">Sin imagen</span>
+                  <span className="photo-slot-empty">Opcional (sin foto)</span>
                 )}
               </div>
               <div className="photo-slot-input">
                 <input
-                  required
-                  placeholder="URL imagen detalle..."
+                  placeholder="URL imagen detalle (opcional)..."
                   value={fotoDetalle}
                   onChange={(e) => setFotoDetalle(e.target.value)}
                 />

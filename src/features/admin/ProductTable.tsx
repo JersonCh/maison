@@ -125,7 +125,7 @@ export default function ProductTable({
               </span>
 
               <span style={{ fontSize: "8px", color: "var(--gold)" }}>
-                3 tomas registradas
+                {p.imagenes.length} {p.imagenes.length === 1 ? "foto" : "fotos"}
               </span>
 
               <span>

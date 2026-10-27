@@ -81,13 +81,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Regla estricta: exactamente 3 fotos
-    if (!Array.isArray(datos.fotos) || datos.fotos.length < 3) {
+    // Regla de imágenes: Foto 1 (portada) obligatoria, fotos secundarias opcionales
+    const fotosValidas = Array.isArray(datos.fotos)
+      ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
+      : [];
+
+    if (fotosValidas.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Se requieren exactamente 3 imágenes (Portada, Caja y Detalle)." }),
+        JSON.stringify({ error: "La foto de portada (Foto 1) es obligatoria." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
+
+    datos.fotos = fotosValidas;
 
     const nuevoId = await crearNuevoProductoEnDb(db, datos);
 
@@ -141,12 +147,19 @@ export const PUT: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    if (!Array.isArray(datos.fotos) || datos.fotos.length < 3) {
+    // Regla de imágenes: Foto 1 (portada) obligatoria, fotos secundarias opcionales
+    const fotosValidas = Array.isArray(datos.fotos)
+      ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
+      : [];
+
+    if (fotosValidas.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Se requieren exactamente 3 imágenes (Portada, Caja y Detalle)." }),
+        JSON.stringify({ error: "La foto de portada (Foto 1) es obligatoria." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
+
+    datos.fotos = fotosValidas;
 
     await actualizarProductoEnDb(db, id, datos);
 

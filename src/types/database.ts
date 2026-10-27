@@ -124,13 +124,13 @@ export interface ProductoAdminItem {
   precio_50ml: number; // En Soles
   precio_100ml: number; // En Soles
   precio_referencia_50ml: number | null; // En Soles
-  imagenes: [string, string, string]; // Exactamente 3 fotos: [Portada/Frasco, Caja/Empaque, Detalle/Contexto]
+  imagenes: string[]; // 1 a 3 fotos (portada obligatoria, caja y detalle opcionales)
   stock: number;
 }
 
 /**
  * Carga útil para crear o actualizar un perfume en Cloudflare D1.
- * Asegura la regla de negocio de exactamente 3 imágenes y presentaciones de 50ml y 100ml.
+ * Admite de 1 a 3 fotos (Portada obligatoria, empaque y detalle opcionales).
  */
 export interface DatosFormularioProducto {
   nombre: string;
@@ -148,6 +148,6 @@ export interface DatosFormularioProducto {
   precio_referencia_50ml?: number | null; // En Soles
   es_destacado: boolean;
   activo: boolean;
-  fotos: [string, string, string]; // [Foto 1: Portada, Foto 2: Caja, Foto 3: Detalle]
+  fotos: string[]; // [Foto 1: Portada obligatoria, Foto 2?: Caja opcional, Foto 3?: Detalle opcional]
   stock?: number;
 }
