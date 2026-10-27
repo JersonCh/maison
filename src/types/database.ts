@@ -85,3 +85,69 @@ export interface BannerSlide {
   imagen_mobile: string | null;
   orden: number;
 }
+
+// =============================================================================
+// METADATOS Y FORMULARIO ADMINISTRATIVO
+// =============================================================================
+
+export interface MarcaItem {
+  id: number;
+  nombre: string;
+  slug: string;
+}
+
+export interface FamiliaOlfativaItem {
+  id: number;
+  nombre: string;
+  slug: string;
+}
+
+/**
+ * Representación completa de un producto para la tabla y edición en el panel administrativo.
+ */
+export interface ProductoAdminItem {
+  id: number;
+  nombre: string;
+  slug: string;
+  marca_id: number;
+  marca: string;
+  genero: Gender;
+  concentracion: string;
+  familia_olfativa_id: number | null;
+  familia_olfativa: string;
+  descripcion: string;
+  pais_origen: string | null;
+  ocasion_uso: string | null;
+  es_destacado: boolean;
+  activo: boolean;
+  estado: "borrador" | "publicado" | "archivado";
+  precio_50ml: number; // En Soles
+  precio_100ml: number; // En Soles
+  precio_referencia_50ml: number | null; // En Soles
+  imagenes: [string, string, string]; // Exactamente 3 fotos: [Portada/Frasco, Caja/Empaque, Detalle/Contexto]
+  stock: number;
+}
+
+/**
+ * Carga útil para crear o actualizar un perfume en Cloudflare D1.
+ * Asegura la regla de negocio de exactamente 3 imágenes y presentaciones de 50ml y 100ml.
+ */
+export interface DatosFormularioProducto {
+  nombre: string;
+  marca_id?: number;
+  nueva_marca?: string;
+  genero: Gender;
+  concentracion: string;
+  familia_olfativa_id?: number | null;
+  nueva_familia?: string;
+  descripcion: string;
+  pais_origen?: string;
+  ocasion_uso?: string;
+  precio_50ml: number; // En Soles (se persiste multiplicado por 100 en céntimos)
+  precio_100ml: number; // En Soles
+  precio_referencia_50ml?: number | null; // En Soles
+  es_destacado: boolean;
+  activo: boolean;
+  fotos: [string, string, string]; // [Foto 1: Portada, Foto 2: Caja, Foto 3: Detalle]
+  stock?: number;
+}

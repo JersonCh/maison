@@ -1,9 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import AdminDashboard from "@/features/admin/AdminDashboard";
-import { getAllProducts } from "@/data/products";
 
-const allProducts = getAllProducts();
+export const prerender = false;
 ---
 
 <Layout
@@ -11,5 +10,5 @@ const allProducts = getAllProducts();
   noindex={true}
   hideChrome={true}
 >
-  <AdminDashboard client:only="react" initialProducts={allProducts} />
+  <AdminDashboard client:only="react" />
 </Layout>

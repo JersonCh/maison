@@ -3,6 +3,10 @@ import type {
   ProductoDetalleCompleto,
   BannerSlide,
   PiramideOlfativa,
+  MarcaItem,
+  FamiliaOlfativaItem,
+  ProductoAdminItem,
+  DatosFormularioProducto,
 } from "@/types/database";
 import type { Gender } from "@/types/product";
 
@@ -341,4 +345,607 @@ export async function obtenerBannersPorUbicacion(
     .all<BannerSlide>();
 
   return results;
+}
+
+// =============================================================================
+// 5. GESTIÓN ADMINISTRATIVA DE PRODUCTOS (CRUD EN CLOUDFLARE D1)
+// =============================================================================
+
+/**
+ * Función utilitaria interna para normalizar títulos y generar slugs legibles.
+ */
+function normalizarTextoParaSlug(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Obtiene la lista completa de marcas activas ordenadas alfabéticamente.
+ */
+export async function obtenerMarcasDisponibles(
+  db: D1Database,
+): Promise<MarcaItem[]> {
+  const { results } = await db
+    .prepare("SELECT id, nombre, slug FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
+    .all<MarcaItem>();
+  return results;
+}
+
+/**
+ * Obtiene la lista completa de familias olfativas registradas.
+ */
+export async function obtenerFamiliasOlfativasDisponibles(
+  db: D1Database,
+): Promise<FamiliaOlfativaItem[]> {
+  const { results } = await db
+    .prepare("SELECT id, nombre, slug FROM familias_olfativas ORDER BY nombre ASC")
+    .all<FamiliaOlfativaItem>();
+  return results;
+}
+
+/**
+ * Obtiene la lista de todos los productos para la tabla administrativa,
+ * incluyendo sus 2 variantes (50ml y 100ml) y sus exactamente 3 imágenes.
+ */
+export async function obtenerProductosParaAdmin(
+  db: D1Database,
+): Promise<ProductoAdminItem[]> {
+  // 1. Obtener productos principales que no estén archivados
+  const { results: productos } = await db
+    .prepare(
+      `SELECT 
+        p.id,
+        p.nombre,
+        p.slug,
+        p.marca_id,
+        m.nombre AS marca,
+        p.genero,
+        p.concentracion,
+        pf.familia_olfativa_id,
+        COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
+        COALESCE(p.descripcion, '') AS descripcion,
+        p.pais_origen,
+        p.ocasion_uso,
+        p.es_destacado,
+        p.estado
+      FROM productos p
+      JOIN marcas m ON p.marca_id = m.id
+      LEFT JOIN producto_familias_olfativas pf ON p.id = pf.producto_id
+      LEFT JOIN familias_olfativas f ON pf.familia_olfativa_id = f.id
+      WHERE p.estado != 'archivado'
+      ORDER BY p.id DESC`,
+    )
+    .all<any>();
+
+  if (!productos.length) return [];
+
+  // 2. Obtener variantes de todos los productos en una sola consulta
+  const { results: variantes } = await db
+    .prepare(
+      `SELECT producto_id, tamano_ml, precio_centimos, precio_referencia_centimos
+       FROM variantes_producto
+       WHERE activo = 1`,
+    )
+    .all<{
+      producto_id: number;
+      tamano_ml: number;
+      precio_centimos: number;
+      precio_referencia_centimos: number | null;
+    }>();
+
+  // 3. Obtener imágenes de todos los productos en una sola consulta
+  const { results: imagenes } = await db
+    .prepare(
+      `SELECT producto_id, clave_archivo, orden
+       FROM imagenes_producto
+       ORDER BY orden ASC`,
+    )
+    .all<{ producto_id: number; clave_archivo: string; orden: number }>();
+
+  // Agrupar variantes e imágenes por producto_id
+  const mapaVariantes = new Map<number, typeof variantes>();
+  for (const v of variantes) {
+    const lista = mapaVariantes.get(v.producto_id) || [];
+    lista.push(v);
+    mapaVariantes.set(v.producto_id, lista);
+  }
+
+  const mapaImagenes = new Map<number, string[]>();
+  for (const img of imagenes) {
+    const lista = mapaImagenes.get(img.producto_id) || [];
+    lista.push(img.clave_archivo);
+    mapaImagenes.set(img.producto_id, lista);
+  }
+
+  const imagenPorDefecto = "/assets/maison-logo.jpeg";
+
+  return productos.map((p) => {
+    const vars = mapaVariantes.get(p.id) || [];
+    const v50 = vars.find((v) => Math.round(v.tamano_ml) === 50) || vars[0];
+    const v100 = vars.find((v) => Math.round(v.tamano_ml) === 100) || vars[1] || vars[0];
+
+    const imgs = mapaImagenes.get(p.id) || [];
+    // Regla estricta de negocio: exactamente 3 fotos
+    const tresFotos: [string, string, string] = [
+      imgs[0] || imagenPorDefecto,
+      imgs[1] || imgs[0] || imagenPorDefecto,
+      imgs[2] || imgs[0] || imagenPorDefecto,
+    ];
+
+    return {
+      id: p.id,
+      nombre: p.nombre,
+      slug: p.slug,
+      marca_id: p.marca_id,
+      marca: p.marca,
+      genero: p.genero as Gender,
+      concentracion: p.concentracion,
+      familia_olfativa_id: p.familia_olfativa_id,
+      familia_olfativa: p.familia_olfativa,
+      descripcion: p.descripcion,
+      pais_origen: p.pais_origen,
+      ocasion_uso: p.ocasion_uso,
+      es_destacado: Boolean(p.es_destacado),
+      activo: p.estado === "publicado",
+      estado: p.estado,
+      precio_50ml: v50 ? Math.round(v50.precio_centimos / 100) : 0,
+      precio_100ml: v100 ? Math.round(v100.precio_centimos / 100) : 0,
+      precio_referencia_50ml: v50?.precio_referencia_centimos
+        ? Math.round(v50.precio_referencia_centimos / 100)
+        : null,
+      imagenes: tresFotos,
+      stock: 12, // Stock estimado referencial
+    };
+  });
+}
+
+/**
+ * Garantiza que la marca exista en la base de datos.
+ * Si el usuario escribió una nueva marca en el formulario, se crea y se retorna su ID generado.
+ */
+export async function asegurarMarca(
+  db: D1Database,
+  marcaId?: number,
+  nuevaMarcaNombre?: string,
+): Promise<number> {
+  if (nuevaMarcaNombre && nuevaMarcaNombre.trim()) {
+    const nombreLimpio = nuevaMarcaNombre.trim();
+    const slug = normalizarTextoParaSlug(nombreLimpio);
+
+    // Verificar si ya existe por nombre o slug
+    const existente = await db
+      .prepare("SELECT id FROM marcas WHERE LOWER(nombre) = LOWER(?) OR slug = ? LIMIT 1")
+      .bind(nombreLimpio, slug)
+      .first<{ id: number }>();
+
+    if (existente) return existente.id;
+
+    // Crear la nueva marca
+    await db
+      .prepare("INSERT INTO marcas (nombre, slug, activo) VALUES (?, ?, 1)")
+      .bind(nombreLimpio, slug)
+      .run();
+
+    const nueva = await db
+      .prepare("SELECT last_insert_rowid() AS id")
+      .first<{ id: number }>();
+
+    return nueva?.id || 1;
+  }
+
+  return marcaId || 1;
+}
+
+/**
+ * Garantiza que la familia olfativa exista o se cree dinámicamente si es nueva.
+ */
+export async function asegurarFamiliaOlfativa(
+  db: D1Database,
+  familiaId?: number | null,
+  nuevaFamiliaNombre?: string,
+): Promise<number | null> {
+  if (nuevaFamiliaNombre && nuevaFamiliaNombre.trim()) {
+    const nombreLimpio = nuevaFamiliaNombre.trim();
+    const slug = normalizarTextoParaSlug(nombreLimpio);
+
+    const existente = await db
+      .prepare("SELECT id FROM familias_olfativas WHERE LOWER(nombre) = LOWER(?) OR slug = ? LIMIT 1")
+      .bind(nombreLimpio, slug)
+      .first<{ id: number }>();
+
+    if (existente) return existente.id;
+
+    await db
+      .prepare("INSERT INTO familias_olfativas (nombre, slug) VALUES (?, ?)")
+      .bind(nombreLimpio, slug)
+      .run();
+
+    const nueva = await db
+      .prepare("SELECT last_insert_rowid() AS id")
+      .first<{ id: number }>();
+
+    return nueva?.id || null;
+  }
+
+  return familiaId || null;
+}
+
+/**
+ * Genera un slug único para el perfume evitando colisiones en la base de datos.
+ */
+export async function generarSlugUnico(
+  db: D1Database,
+  baseNombre: string,
+  idExcluir?: number,
+): Promise<string> {
+  const slugBase = normalizarTextoParaSlug(baseNombre) || "perfume";
+  let slugCandidato = slugBase;
+  let contador = 1;
+
+  while (true) {
+    let consulta = "SELECT id FROM productos WHERE slug = ?";
+    const params: (string | number)[] = [slugCandidato];
+
+    if (idExcluir) {
+      consulta += " AND id != ?";
+      params.push(idExcluir);
+    }
+
+    consulta += " LIMIT 1";
+
+    const existe = await db.prepare(consulta).bind(...params).first();
+    if (!existe) return slugCandidato;
+
+    contador++;
+    slugCandidato = `${slugBase}-${contador}`;
+  }
+}
+
+/**
+ * Crea un nuevo perfume en Cloudflare D1 garantizando:
+ * 1. Ficha del producto en `productos`
+ * 2. Asociación de familia olfativa en `producto_familias_olfativas`
+ * 3. Exactamente 2 variantes: 50ml (predeterminada) y 100ml, con precios en céntimos
+ * 4. Exactamente 3 imágenes en `imagenes_producto` (Portada, Caja, Detalle)
+ */
+export async function crearNuevoProductoEnDb(
+  db: D1Database,
+  datos: DatosFormularioProducto,
+): Promise<number> {
+  const marcaIdFinal = await asegurarMarca(db, datos.marca_id, datos.nueva_marca);
+  const familiaIdFinal = await asegurarFamiliaOlfativa(
+    db,
+    datos.familia_olfativa_id,
+    datos.nueva_familia,
+  );
+  const slugFinal = await generarSlugUnico(db, datos.nombre);
+  const estadoFinal = datos.activo ? "publicado" : "borrador";
+  const esDestacado = datos.es_destacado ? 1 : 0;
+
+  // 1. Insertar producto principal
+  await db
+    .prepare(
+      `INSERT INTO productos (
+        marca_id, nombre, slug, descripcion, genero, concentracion, 
+        pais_origen, ocasion_uso, estado, es_destacado, publicado_en
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+    )
+    .bind(
+      marcaIdFinal,
+      datos.nombre.trim(),
+      slugFinal,
+      datos.descripcion.trim(),
+      datos.genero,
+      datos.concentracion,
+      datos.pais_origen?.trim() || "Francia",
+      datos.ocasion_uso?.trim() || "Ocasiones especiales y uso distinguido",
+      estadoFinal,
+      esDestacado,
+    )
+    .run();
+
+  const productoFila = await db
+    .prepare("SELECT last_insert_rowid() AS id")
+    .first<{ id: number }>();
+
+  if (!productoFila?.id) {
+    throw new Error("No se pudo obtener el identificador del producto creado en D1");
+  }
+
+  const productoId = productoFila.id;
+
+  // 2. Asociar familia olfativa si existe
+  if (familiaIdFinal) {
+    await db
+      .prepare(
+        "INSERT INTO producto_familias_olfativas (producto_id, familia_olfativa_id) VALUES (?, ?)",
+      )
+      .bind(productoId, familiaIdFinal)
+      .run();
+  }
+
+  // 3. Crear las 2 variantes estándar: 50 ml y 100 ml con precios en céntimos
+  const precio50Centimos = Math.round(Number(datos.precio_50ml || 0) * 100);
+  const precio100Centimos = Math.round(Number(datos.precio_100ml || 0) * 100);
+  const precioRef50Centimos = datos.precio_referencia_50ml
+    ? Math.round(Number(datos.precio_referencia_50ml) * 100)
+    : null;
+
+  const sentenciasVariantes = [
+    db
+      .prepare(
+        `INSERT INTO variantes_producto (
+          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 1)`,
+      )
+      .bind(
+        productoId,
+        `MDP-${productoId}-50ML`,
+        precio50Centimos,
+        precioRef50Centimos,
+      ),
+    db
+      .prepare(
+        `INSERT INTO variantes_producto (
+          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 1)`,
+      )
+      .bind(
+        productoId,
+        `MDP-${productoId}-100ML`,
+        precio100Centimos,
+      ),
+  ];
+
+  await db.batch(sentenciasVariantes);
+
+  // 4. Insertar exactamente las 3 imágenes reglamentarias
+  const [fotoPortada, fotoCaja, fotoDetalle] = datos.fotos;
+  const imagenDefecto = "/assets/maison-logo.jpeg";
+
+  const sentenciasImagenes = [
+    db
+      .prepare(
+        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+         VALUES (?, ?, ?, 0, 1)`,
+      )
+      .bind(
+        productoId,
+        fotoPortada?.trim() || imagenDefecto,
+        `${datos.nombre} - Frasco y portada principal`,
+      ),
+    db
+      .prepare(
+        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+         VALUES (?, ?, ?, 1, 0)`,
+      )
+      .bind(
+        productoId,
+        fotoCaja?.trim() || fotoPortada?.trim() || imagenDefecto,
+        `${datos.nombre} - Empaque y caja oficial`,
+      ),
+    db
+      .prepare(
+        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+         VALUES (?, ?, ?, 2, 0)`,
+      )
+      .bind(
+        productoId,
+        fotoDetalle?.trim() || fotoPortada?.trim() || imagenDefecto,
+        `${datos.nombre} - Detalle editorial`,
+      ),
+  ];
+
+  await db.batch(sentenciasImagenes);
+
+  return productoId;
+}
+
+/**
+ * Actualiza un perfume existente en Cloudflare D1 con sus variantes e imágenes.
+ */
+export async function actualizarProductoEnDb(
+  db: D1Database,
+  productoId: number,
+  datos: DatosFormularioProducto,
+): Promise<boolean> {
+  const marcaIdFinal = await asegurarMarca(db, datos.marca_id, datos.nueva_marca);
+  const familiaIdFinal = await asegurarFamiliaOlfativa(
+    db,
+    datos.familia_olfativa_id,
+    datos.nueva_familia,
+  );
+  const slugFinal = await generarSlugUnico(db, datos.nombre, productoId);
+  const estadoFinal = datos.activo ? "publicado" : "borrador";
+  const esDestacado = datos.es_destacado ? 1 : 0;
+
+  // 1. Actualizar tabla productos
+  await db
+    .prepare(
+      `UPDATE productos 
+       SET marca_id = ?, nombre = ?, slug = ?, descripcion = ?, genero = ?, concentracion = ?,
+           pais_origen = ?, ocasion_uso = ?, estado = ?, es_destacado = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+    )
+    .bind(
+      marcaIdFinal,
+      datos.nombre.trim(),
+      slugFinal,
+      datos.descripcion.trim(),
+      datos.genero,
+      datos.concentracion,
+      datos.pais_origen?.trim() || "Francia",
+      datos.ocasion_uso?.trim() || "Ocasiones especiales y uso distinguido",
+      estadoFinal,
+      esDestacado,
+      productoId,
+    )
+    .run();
+
+  // 2. Actualizar relación de familia olfativa
+  await db
+    .prepare("DELETE FROM producto_familias_olfativas WHERE producto_id = ?")
+    .bind(productoId)
+    .run();
+
+  if (familiaIdFinal) {
+    await db
+      .prepare(
+        "INSERT INTO producto_familias_olfativas (producto_id, familia_olfativa_id) VALUES (?, ?)",
+      )
+      .bind(productoId, familiaIdFinal)
+      .run();
+  }
+
+  // 3. Actualizar variantes de 50ml y 100ml
+  const precio50Centimos = Math.round(Number(datos.precio_50ml || 0) * 100);
+  const precio100Centimos = Math.round(Number(datos.precio_100ml || 0) * 100);
+  const precioRef50Centimos = datos.precio_referencia_50ml
+    ? Math.round(Number(datos.precio_referencia_50ml) * 100)
+    : null;
+
+  // Actualizar 50ml si existe, o crearla
+  const res50 = await db
+    .prepare(
+      `UPDATE variantes_producto 
+       SET precio_centimos = ?, precio_referencia_centimos = ?, updated_at = CURRENT_TIMESTAMP 
+       WHERE producto_id = ? AND tamano_ml = 50`,
+    )
+    .bind(precio50Centimos, precioRef50Centimos, productoId)
+    .run();
+
+  if (res50.meta.changes === 0) {
+    await db
+      .prepare(
+        `INSERT INTO variantes_producto (
+          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 1)`,
+      )
+      .bind(productoId, `MDP-${productoId}-50ML`, precio50Centimos, precioRef50Centimos)
+      .run();
+  }
+
+  // Actualizar 100ml si existe, o crearla
+  const res100 = await db
+    .prepare(
+      `UPDATE variantes_producto 
+       SET precio_centimos = ?, updated_at = CURRENT_TIMESTAMP 
+       WHERE producto_id = ? AND tamano_ml = 100`,
+    )
+    .bind(precio100Centimos, productoId)
+    .run();
+
+  if (res100.meta.changes === 0) {
+    await db
+      .prepare(
+        `INSERT INTO variantes_producto (
+          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 1)`,
+      )
+      .bind(productoId, `MDP-${productoId}-100ML`, precio100Centimos)
+      .run();
+  }
+
+  // 4. Actualizar exactamente las 3 imágenes
+  await db
+    .prepare("DELETE FROM imagenes_producto WHERE producto_id = ?")
+    .bind(productoId)
+    .run();
+
+  const [fotoPortada, fotoCaja, fotoDetalle] = datos.fotos;
+  const imagenDefecto = "/assets/maison-logo.jpeg";
+
+  const sentenciasImagenes = [
+    db
+      .prepare(
+        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+         VALUES (?, ?, ?, 0, 1)`,
+      )
+      .bind(
+        productoId,
+        fotoPortada?.trim() || imagenDefecto,
+        `${datos.nombre} - Frasco y portada principal`,
+      ),
+    db
+      .prepare(
+        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+         VALUES (?, ?, ?, 1, 0)`,
+      )
+      .bind(
+        productoId,
+        fotoCaja?.trim() || fotoPortada?.trim() || imagenDefecto,
+        `${datos.nombre} - Empaque y caja oficial`,
+      ),
+    db
+      .prepare(
+        `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+         VALUES (?, ?, ?, 2, 0)`,
+      )
+      .bind(
+        productoId,
+        fotoDetalle?.trim() || fotoPortada?.trim() || imagenDefecto,
+        `${datos.nombre} - Detalle editorial`,
+      ),
+  ];
+
+  await db.batch(sentenciasImagenes);
+
+  return true;
+}
+
+/**
+ * Alterna el estado activo / inactivo de un perfume sin modificar sus datos.
+ */
+export async function alternarEstadoActivoProducto(
+  db: D1Database,
+  productoId: number,
+  nuevoEstadoActivo: boolean,
+): Promise<boolean> {
+  const nuevoEstado = nuevoEstadoActivo ? "publicado" : "borrador";
+  await db
+    .prepare("UPDATE productos SET estado = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    .bind(nuevoEstado, productoId)
+    .run();
+  return true;
+}
+
+/**
+ * Elimina o archiva un perfume de forma segura:
+ * Si el producto tiene pedidos asociados en `pedido_items`, se archiva para preservar la trazabilidad fiscal.
+ * Si no tiene referencias bloqueantes, se elimina físicamente en cascada.
+ */
+export async function archivarOEliminarProducto(
+  db: D1Database,
+  productoId: number,
+): Promise<{ accion: "eliminado" | "archivado" }> {
+  // Comprobar si alguna de sus variantes fue comprada en un pedido
+  const referenciaPedido = await db
+    .prepare(
+      `SELECT COUNT(*) AS total 
+       FROM pedido_items 
+       WHERE variante_id IN (SELECT id FROM variantes_producto WHERE producto_id = ?)`,
+    )
+    .bind(productoId)
+    .first<{ total: number }>();
+
+  if (referenciaPedido && referenciaPedido.total > 0) {
+    // Preservar trazabilidad: archivar
+    await db
+      .prepare("UPDATE productos SET estado = 'archivado', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+      .bind(productoId)
+      .run();
+    return { accion: "archivado" };
+  }
+
+  // Eliminar en cascada
+  await db.prepare("DELETE FROM productos WHERE id = ?").bind(productoId).run();
+  return { accion: "eliminado" };
 }

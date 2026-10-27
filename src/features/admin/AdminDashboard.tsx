@@ -1,19 +1,139 @@
-import { useState, useEffect } from "react";
-import type { Product, Gender } from "@/types/product";
+import { useState, useEffect, useCallback } from "react";
+import type {
+  ProductoAdminItem,
+  MarcaItem,
+  FamiliaOlfativaItem,
+} from "@/types/database";
 import Icon from "@/components/ui/Icon";
+import ProductTable from "./ProductTable";
+import ProductFormModal from "./ProductFormModal";
 
 interface Props {
-  initialProducts: Product[];
+  initialProducts?: any[];
 }
 
-export default function AdminDashboard({ initialProducts }: Props) {
+export default function AdminDashboard({}: Props) {
   const [logged, setLogged] = useState(false);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [section, setSection] = useState("dashboard");
-  const [search, setSearch] = useState("");
-  const [editing, setEditing] = useState<Product | null>(null);
-  const [saved, setSaved] = useState("");
+  const [cargando, setCargando] = useState(false);
 
+  // Datos en vivo desde Cloudflare D1
+  const [productos, setProductos] = useState<ProductoAdminItem[]>([]);
+  const [marcas, setMarcas] = useState<MarcaItem[]>([]);
+  const [familias, setFamilias] = useState<FamiliaOlfativaItem[]>([]);
+
+  // Estados del modal de producto
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [productoEnEdicion, setProductoEnEdicion] = useState<ProductoAdminItem | null>(null);
+
+  // Notificación tipo toast
+  const [toastMensaje, setToastMensaje] = useState("");
+
+  const mostrarToast = (mensaje: string) => {
+    setToastMensaje(mensaje);
+    window.setTimeout(() => setToastMensaje(""), 3500);
+  };
+
+  // Cargar metadatos (marcas y familias olfativas) desde Cloudflare D1
+  const cargarMetadatos = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/admin/metadata");
+      if (resp.ok) {
+        const datos = await resp.json();
+        if (datos.marcas) setMarcas(datos.marcas);
+        if (datos.familias) setFamilias(datos.familias);
+      }
+    } catch (error) {
+      console.error("Error al cargar metadatos de D1:", error);
+    }
+  }, []);
+
+  // Cargar lista completa de productos desde Cloudflare D1
+  const cargarProductos = useCallback(async () => {
+    setCargando(true);
+    try {
+      const resp = await fetch("/api/admin/products");
+      if (resp.ok) {
+        const lista = await resp.json();
+        setProductos(lista);
+      }
+    } catch (error) {
+      console.error("Error al cargar productos de D1:", error);
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (logged) {
+      cargarMetadatos();
+      cargarProductos();
+    }
+  }, [logged, cargarMetadatos, cargarProductos]);
+
+  // Manejadores de acciones del CRUD
+  const manejarAbrirCreacion = () => {
+    setProductoEnEdicion(null);
+    setModalAbierto(true);
+  };
+
+  const manejarAbrirEdicion = (producto: ProductoAdminItem) => {
+    setProductoEnEdicion(producto);
+    setModalAbierto(true);
+  };
+
+  const manejarAlternarVisibilidad = async (id: number, actualActivo: boolean) => {
+    try {
+      const nuevoEstado = !actualActivo;
+      const resp = await fetch("/api/admin/products", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, activo: nuevoEstado }),
+      });
+
+      if (resp.ok) {
+        setProductos((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, activo: nuevoEstado } : item)),
+        );
+        mostrarToast(
+          nuevoEstado
+            ? "✓ Fragancia activada en boutique."
+            : "✓ Fragancia cambiada a borrador (inactiva).",
+        );
+      } else {
+        mostrarToast("⚠ No se pudo cambiar el estado en D1.");
+      }
+    } catch (error) {
+      mostrarToast("⚠ Error de conexión al actualizar estado.");
+    }
+  };
+
+  const manejarEliminarOArchivar = async (id: number, nombre: string) => {
+    const confirmar = window.confirm(
+      `¿Deseas retirar "${nombre}" del catálogo oficial?\nSi el perfume tiene historial de pedidos, se archivará automáticamente para preservar los registros.`,
+    );
+
+    if (!confirmar) return;
+
+    try {
+      const resp = await fetch(`/api/admin/products?id=${id}`, {
+        method: "DELETE",
+      });
+
+      const resultado = await resp.json();
+
+      if (resp.ok) {
+        setProductos((prev) => prev.filter((p) => p.id !== id));
+        mostrarToast(`✓ ${resultado.mensaje || "Producto retirado correctamente."}`);
+      } else {
+        mostrarToast(`⚠ ${resultado.error || "Error al retirar el producto."}`);
+      }
+    } catch (error) {
+      mostrarToast("⚠ Error de comunicación con el servidor.");
+    }
+  };
+
+  // Pantalla de acceso / login
   if (!logged) {
     return (
       <main className="admin-login">
@@ -29,7 +149,7 @@ export default function AdminDashboard({ initialProducts }: Props) {
         >
           <span>Acceso administrativo</span>
           <h1>Bienvenido</h1>
-          <p>Ingresa al panel demostrativo para gestionar el catálogo.</p>
+          <p>Ingresa al panel de administración conectado a Cloudflare D1.</p>
           <label>
             Correo
             <input type="email" defaultValue="admin@maison.pe" />
@@ -41,45 +161,36 @@ export default function AdminDashboard({ initialProducts }: Props) {
           <button type="submit" className="btn btn-gold full">
             Ingresar al panel
           </button>
-          <small>Demo: utiliza cualquier credencial</small>
-          <a href="/" style={{ color: "var(--champagne)", textAlign: "center", textDecoration: "none" }}>
-            ← Volver a la tienda
+          <small>Credenciales administrativas oficiales</small>
+          <a
+            href="/"
+            style={{
+              color: "var(--champagne)",
+              textAlign: "center",
+              textDecoration: "none",
+            }}
+          >
+            ← Volver a la boutique pública
           </a>
         </form>
       </main>
     );
   }
 
-  const visible = products.filter((p) =>
-    `${p.brand} ${p.name}`.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const saveProduct = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!editing) return;
-    setProducts((all) =>
-      all.some((p) => p.id === editing.id)
-        ? all.map((p) => (p.id === editing.id ? editing : p))
-        : [editing, ...all],
-    );
-    setEditing(null);
-    setSaved("Cambios guardados correctamente");
-    window.setTimeout(() => setSaved(""), 2500);
-  };
-
   const menu = [
     ["dashboard", "Inicio"],
-    ["products", "Productos"],
-    ["brands", "Marcas y categorías"],
-    ["banners", "Banners y destacados"],
-    ["settings", "Configuración"],
+    ["products", "Productos y Catálogo"],
+    ["brands", "Marcas y Familias"],
+    ["banners", "Banners y Carruseles"],
+    ["settings", "Configuración Comercial"],
   ];
 
   return (
     <main className="admin-shell">
+      {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
-        <img src="/assets/maison-logo.jpeg" alt="" />
-        <span>Panel administrativo</span>
+        <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+        <span>Panel Administrativo D1</span>
         <nav>
           {menu.map((item) => (
             <button
@@ -94,59 +205,71 @@ export default function AdminDashboard({ initialProducts }: Props) {
           ))}
         </nav>
         <a href="/" className="exit-admin" style={{ textDecoration: "none" }}>
-          <Icon name="arrow" /> Ver tienda
+          <Icon name="arrow" /> Ver boutique
         </a>
       </aside>
 
+      {/* CONTENIDO PRINCIPAL */}
       <section className="admin-content">
         <header>
           <div>
-            <p>Maison des Parfums</p>
+            <p>Maison des Parfums · Base de datos Cloudflare D1</p>
             <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
           </div>
           <div className="admin-user">
             <span>AD</span>
             <p>
-              Administrador<small>Cuenta demo</small>
+              Administrador<small>Boutique Maison</small>
             </p>
           </div>
         </header>
 
+        {/* 1. SECCIÓN DASHBOARD */}
         {section === "dashboard" && (
           <>
             <div className="stat-grid">
-              <Stat label="Total productos" value={products.length} note="+4 este mes" />
-              <Stat label="Categorías" value={3} note="Hombre, Mujer, Unisex" />
               <Stat
-                label="Marcas"
-                value={new Set(products.map((p) => p.brand)).size}
-                note="Catálogo activo"
+                label="Total perfumes en D1"
+                value={productos.length}
+                note={`${productos.filter((p) => p.activo).length} activos`}
+              />
+              <Stat label="Casas de Perfumería" value={marcas.length} note="Catálogo curado" />
+              <Stat
+                label="Familias olfativas"
+                value={familias.length}
+                note="Composiciones"
               />
               <Stat
-                label="Disponibles"
-                value={products.filter((p) => p.active).length}
-                note={`${products.filter((p) => !p.active).length} desactivados`}
+                label="Destacados en Home"
+                value={productos.filter((p) => p.es_destacado).length}
+                note="Curaduría principal"
               />
             </div>
 
             <div className="admin-panels">
               <article>
                 <div className="panel-head">
-                  <h2>Productos recientes</h2>
+                  <h2>Últimas fragancias añadidas</h2>
                   <button onClick={() => setSection("products")} type="button">
-                    Ver todos
+                    Ver catálogo completo
                   </button>
                 </div>
-                {products.slice(0, 5).map((p) => (
+                {productos.slice(0, 5).map((p) => (
                   <div className="mini-product" key={p.id}>
-                    <img src={p.image} alt="" />
+                    <img
+                      src={p.imagenes[0] || "/assets/maison-logo.jpeg"}
+                      alt={p.nombre}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/assets/maison-logo.jpeg";
+                      }}
+                    />
                     <span>
-                      <b>{p.name}</b>
-                      <small>{p.brand}</small>
+                      <b>{p.nombre}</b>
+                      <small>{p.marca}</small>
                     </span>
-                    <strong>S/ {p.variants[0].price}</strong>
-                    <i className={p.active ? "on" : ""}>
-                      {p.active ? "Activo" : "Inactivo"}
+                    <strong>S/ {p.precio_50ml.toLocaleString("es-PE")}</strong>
+                    <i className={p.activo ? "on" : ""}>
+                      {p.activo ? "Activo" : "Borrador"}
                     </i>
                   </div>
                 ))}
@@ -154,294 +277,108 @@ export default function AdminDashboard({ initialProducts }: Props) {
 
               <article className="stock-panel">
                 <div className="panel-head">
-                  <h2>Resumen de stock</h2>
+                  <h2>Resumen de Catálogo</h2>
                 </div>
                 <div className="stock-visual">
-                  <span>{products.reduce((s, p) => s + p.stock, 0)}</span>
-                  <small>unidades</small>
+                  <span>{productos.length}</span>
+                  <small>perfumes</small>
                 </div>
                 <p>
                   <i />
-                  Stock saludable <strong>84%</strong>
+                  Perfumes publicados:{" "}
+                  <strong>{productos.filter((p) => p.activo).length}</strong>
                 </p>
                 <p>
                   <i />
-                  Stock bajo <strong>16%</strong>
+                  Borradores / Inactivos:{" "}
+                  <strong>{productos.filter((p) => !p.activo).length}</strong>
                 </p>
               </article>
             </div>
           </>
         )}
 
+        {/* 2. SECCIÓN PRODUCTOS / CATÁLOGO (CRUD COMPLETO) */}
         {section === "products" && (
-          <div className="products-admin">
-            <div className="admin-tools">
-              <div className="catalog-search">
-                <Icon name="search" />
-                <input
-                  placeholder="Buscar producto o marca"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <button
-                type="button"
-                className="btn btn-gold"
-                onClick={() =>
-                  setEditing({
-                    ...products[0],
-                    id: Date.now(),
-                    name: "",
-                    brand: "",
-                    slug: `nuevo-${Date.now()}`,
-                    image: products[0].image,
-                  })
-                }
-              >
-                <Icon name="plus" /> Nuevo producto
-              </button>
-            </div>
-
-            <div className="admin-table">
-              <div className="table-row table-head">
-                <span>Producto</span>
-                <span>Categoría</span>
-                <span>Precio</span>
-                <span>Stock</span>
-                <span>Estado</span>
-                <span>Acciones</span>
-              </div>
-              {visible.map((p) => (
-                <div className="table-row" key={p.id}>
-                  <span className="table-product">
-                    <img src={p.image} alt="" />
-                    <b>
-                      {p.name}
-                      <small>{p.brand}</small>
-                    </b>
-                  </span>
-                  <span>{p.gender}</span>
-                  <span>S/ {p.variants[0].price}</span>
-                  <span>{p.stock} uds.</span>
-                  <span>
-                    <i className={p.active ? "status-on" : "status-off"}>
-                      {p.active ? "Activo" : "Inactivo"}
-                    </i>
-                  </span>
-                  <span className="table-actions">
-                    <button
-                      onClick={() => setEditing(p)}
-                      aria-label="Editar"
-                      type="button"
-                    >
-                      <Icon name="edit" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        setProducts((all) =>
-                          all.map((item) =>
-                            item.id === p.id ? { ...item, active: !item.active } : item,
-                          ),
-                        )
-                      }
-                      aria-label="Alternar visibilidad"
-                      type="button"
-                    >
-                      <Icon name="eye" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm("¿Eliminar este producto?")) {
-                          setProducts((all) => all.filter((item) => item.id !== p.id));
-                        }
-                      }}
-                      aria-label="Eliminar"
-                      type="button"
-                    >
-                      <Icon name="trash" />
-                    </button>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ProductTable
+            products={productos}
+            onEdit={manejarAbrirEdicion}
+            onToggleActive={manejarAlternarVisibilidad}
+            onDelete={manejarEliminarOArchivar}
+            onAddNew={manejarAbrirCreacion}
+          />
         )}
 
+        {/* 3. SECCIÓN MARCAS Y FAMILIAS */}
         {section === "brands" && (
           <div className="admin-placeholder">
             <header>
-              <small className="eyebrow">Administración</small>
-              <h2>Marcas y categorías</h2>
-              <p>Organiza las casas de perfumería y las colecciones visibles en la tienda.</p>
+              <small className="eyebrow">Cloudflare D1 · Maestros</small>
+              <h2>Casas de Perfumería y Familias</h2>
+              <p>Marcas y clasificaciones olfativas registradas en la base de datos.</p>
             </header>
-            <div>
-              {[...new Set(products.map((p) => p.brand))].slice(0, 8).map((item) => (
-                <article key={item}>
-                  <span>{item.slice(0, 2).toUpperCase()}</span>
-                  <strong>{item}</strong>
-                  <button type="button">
-                    Gestionar <Icon name="arrow" />
-                  </button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "25px" }}>
+              {marcas.slice(0, 12).map((m) => (
+                <article key={m.id}>
+                  <span>{m.nombre.slice(0, 2).toUpperCase()}</span>
+                  <strong>{m.nombre}</strong>
+                  <span style={{ fontSize: "8px", color: "var(--muted)" }}>Activa</span>
                 </article>
               ))}
             </div>
           </div>
         )}
 
+        {/* 4. SECCIÓN BANNERS */}
         {section === "banners" && (
           <div className="admin-placeholder">
             <header>
-              <small className="eyebrow">Administración</small>
-              <h2>Banners y destacados</h2>
-              <p>Gestiona el orden visual de promociones, novedades y productos destacados.</p>
+              <small className="eyebrow">Visual merchandising</small>
+              <h2>Banners y carruseles</h2>
+              <p>Control visual de diapositivas del hero y promociones intermedias.</p>
             </header>
             <div>
               {[
-                "Hero principal — Activo",
-                "Asesoría personalizada — Activo",
-                "Nuevos ingresos — Activo",
+                "Hero Home · Diapositiva 1 (Baccarat Rouge 540) — Activo",
+                "Hero Home · Diapositiva 2 (Distinción Olfativa) — Activo",
+                "Hero Home · Diapositiva 3 (Asesoría Personalizada) — Activo",
+                "Promo Mitad · Tu aroma habla antes que tú — Activo",
               ].map((item) => (
                 <article key={item}>
-                  <span>{item.slice(0, 2).toUpperCase()}</span>
+                  <span>HD</span>
                   <strong>{item}</strong>
-                  <button type="button">
-                    Gestionar <Icon name="arrow" />
-                  </button>
+                  <span style={{ fontSize: "8px", color: "var(--gold)" }}>Activo</span>
                 </article>
               ))}
             </div>
           </div>
         )}
 
+        {/* 5. SECCIÓN CONFIGURACIÓN COMERCIAL */}
         {section === "settings" && <SettingsSection />}
       </section>
 
-      {editing && (
-        <div className="admin-modal">
-          <form onSubmit={saveProduct}>
-            <div className="modal-head">
-              <div>
-                <small>Catálogo</small>
-                <h2>
-                  {products.some((p) => p.id === editing.id)
-                    ? "Editar producto"
-                    : "Crear producto"}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditing(null)}
-                aria-label="Cerrar modal"
-              >
-                <Icon name="close" />
-              </button>
-            </div>
+      {/* MODAL RESPONSABILIDAD ÚNICA: CREACIÓN / EDICIÓN */}
+      <ProductFormModal
+        isOpen={modalAbierto}
+        onClose={() => {
+          setModalAbierto(false);
+          setProductoEnEdicion(null);
+        }}
+        onSuccess={(mensaje) => {
+          mostrarToast(mensaje);
+          cargarProductos();
+        }}
+        initialProduct={productoEnEdicion}
+        marcasDisponibles={marcas}
+        familiasDisponibles={familias}
+        onReloadMetadata={cargarMetadatos}
+      />
 
-            <div className="form-grid">
-              <label>
-                Nombre
-                <input
-                  required
-                  value={editing.name}
-                  onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                />
-              </label>
-              <label>
-                Marca
-                <input
-                  required
-                  value={editing.brand}
-                  onChange={(e) => setEditing({ ...editing, brand: e.target.value })}
-                />
-              </label>
-              <label>
-                Categoría
-                <select
-                  value={editing.gender}
-                  onChange={(e) =>
-                    setEditing({ ...editing, gender: e.target.value as Gender })
-                  }
-                >
-                  <option>Hombre</option>
-                  <option>Mujer</option>
-                  <option>Unisex</option>
-                </select>
-              </label>
-              <label>
-                Familia olfativa
-                <input
-                  value={editing.family}
-                  onChange={(e) => setEditing({ ...editing, family: e.target.value })}
-                />
-              </label>
-              <label>
-                Precio 50 ml
-                <input
-                  type="number"
-                  value={editing.variants[0].price}
-                  onChange={(e) =>
-                    setEditing({
-                      ...editing,
-                      variants: [
-                        { ...editing.variants[0], price: Number(e.target.value) },
-                        ...editing.variants.slice(1),
-                      ],
-                    })
-                  }
-                />
-              </label>
-              <label>
-                Stock
-                <input
-                  type="number"
-                  value={editing.stock}
-                  onChange={(e) =>
-                    setEditing({ ...editing, stock: Number(e.target.value) })
-                  }
-                />
-              </label>
-              <label className="full-field">
-                Descripción
-                <textarea
-                  rows={4}
-                  value={editing.description}
-                  onChange={(e) =>
-                    setEditing({ ...editing, description: e.target.value })
-                  }
-                />
-              </label>
-              <label className="check-row full-field">
-                <input
-                  type="checkbox"
-                  checked={editing.active}
-                  onChange={(e) =>
-                    setEditing({ ...editing, active: e.target.checked })
-                  }
-                />
-                <span />
-                Producto activo
-              </label>
-            </div>
-
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => setEditing(null)}
-              >
-                Cancelar
-              </button>
-              <button type="submit" className="btn btn-gold">
-                Guardar producto
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {saved && (
+      {/* TOAST DE FEEDBACK VISUAL */}
+      {toastMensaje && (
         <div className="toast">
-          <Icon name="check" /> {saved}
+          <Icon name="check" /> {toastMensaje}
         </div>
       )}
     </main>
@@ -511,9 +448,8 @@ function SettingsSection() {
       });
 
       if (respuesta.ok) {
-        // También guardar en localStorage para respaldo instantáneo en el navegador
         localStorage.setItem("maison-whatsapp", phone);
-        setMensaje("✓ Configuración guardada correctamente en Cloudflare D1.");
+        setMensaje("✓ Configuración comercial guardada correctamente en Cloudflare D1.");
       } else {
         setMensaje("⚠ Error al guardar en la base de datos.");
       }
@@ -534,7 +470,7 @@ function SettingsSection() {
       </header>
 
       <label>
-        Número de WhatsApp
+        Número de WhatsApp para pedidos
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
@@ -543,7 +479,7 @@ function SettingsSection() {
       </label>
 
       <label>
-        Instagram
+        Instagram oficial
         <input
           value={instagram}
           onChange={(e) => setInstagram(e.target.value)}
@@ -561,7 +497,7 @@ function SettingsSection() {
       </label>
 
       <label>
-        Horario comercial
+        Horario comercial de atención
         <input
           value={horario}
           onChange={(e) => setHorario(e.target.value)}
