@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@astrojs/cloudflare": "^12.6.13",
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@rolldown/binding-win32-x64-msvc": "1.0.0-rc.12",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.0.0",
