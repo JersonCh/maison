@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@astrojs/react": "4.2.1",
+    "@astrojs/sitemap": "^3.7.4",
     "@nanostores/react": "^2.0.1",
     "astro": "5.18.2",
     "nanostores": "^1.5.5",

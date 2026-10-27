@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
 
@@ -7,7 +8,31 @@ import path from 'node:path';
 export default defineConfig({
   site: 'https://maison.pe',
   output: 'static',
-  integrations: [react()],
+  integrations: [
+    react(),
+    sitemap({
+      filter: (page) =>
+        !page.includes('/admin') &&
+        !page.includes('/catalogo') &&
+        !page.includes('/preguntas-frecuentes'),
+      serialize(item) {
+        if (item.url === 'https://maison.pe/') {
+          item.priority = 1.0;
+          item.changefreq = 'daily';
+        } else if (item.url.includes('/perfumes/')) {
+          item.priority = 0.9;
+          item.changefreq = 'weekly';
+        } else if (item.url.endsWith('/perfumes/')) {
+          item.priority = 0.9;
+          item.changefreq = 'daily';
+        } else {
+          item.priority = 0.7;
+          item.changefreq = 'monthly';
+        }
+        return item;
+      },
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
     resolve: {

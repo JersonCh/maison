@@ -1,8 +1,119 @@
 ---
-import PlantillaPrincipal from "./PlantillaPrincipal.astro";
+import Announcement from "@/components/layout/Announcement.astro";
+import Header from "@/components/layout/Header.astro";
+import Footer from "@/components/layout/Footer.astro";
+import CartDrawer from "@/features/cart/CartDrawer";
+import SearchModal from "@/features/search/SearchModal";
+import MobileDrawer from "@/components/layout/MobileDrawer";
+import "@/index.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  currentPath?: string;
+  currentGender?: string;
+  noindex?: boolean;
+  hideChrome?: boolean;
+}
+
+const {
+  title = "Maison des Parfums | Perfumería en Perú",
+  description = "Perfumería premium con fragancias para hombre, mujer y unisex. Atención y pedidos personalizados por WhatsApp.",
+  image = "/assets/maison-logo.jpeg",
+  currentPath,
+  currentGender,
+  noindex = false,
+  hideChrome = false,
+} = Astro.props;
+
+const canonicalURL = new URL(
+  Astro.url.pathname,
+  Astro.site || "https://maison.pe",
+);
+const resolvedImageURL = new URL(
+  image,
+  Astro.site || "https://maison.pe",
+).toString();
+
+const storeSchema = {
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Maison des Parfums",
+  "url": "https://maison.pe",
+  "logo": "https://maison.pe/assets/maison-logo.jpeg",
+  "description": "Perfumería de lujo en Perú con selección de fragancias originales y atención personalizada por WhatsApp.",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "PE"
+  },
+  "priceRange": "S/ 390 - S/ 1,250"
+};
 ---
 
-<PlantillaPrincipal {...Astro.props}>
-  <slot name="head" slot="head" />
-  <slot />
-</PlantillaPrincipal>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Global Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(storeSchema)} />
+
+    <!-- Performance: Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Theme & Colors -->
+    <meta name="theme-color" content="#0d0f0c" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- Open Graph / WhatsApp / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Maison des Parfums" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={resolvedImageURL} />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:locale" content="es_PE" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={resolvedImageURL} />
+
+    <slot name="head" />
+  </head>
+  <body>
+    <div class="app-shell">
+      {!hideChrome && (
+        <>
+          <Announcement />
+          <Header
+            currentPath={currentPath || Astro.url.pathname}
+            currentGender={currentGender}
+          />
+        </>
+      )}
+
+      <slot />
+
+      {!hideChrome && (
+        <>
+          <Footer />
+          <!-- Global Reactive Client Islands -->
+          <CartDrawer client:idle />
+          <SearchModal client:idle />
+          <MobileDrawer client:idle />
+        </>
+      )}
+    </div>
+  </body>
+</html>

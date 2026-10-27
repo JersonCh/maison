@@ -1,0 +1,11 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin
+
+# Host
+Host: https://maison.pe
+
+# Sitemaps
+Sitemap: https://maison.pe/sitemap-index.xml

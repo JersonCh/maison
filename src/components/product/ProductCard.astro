@@ -1,5 +1,63 @@
 ---
-import TarjetaProducto from "../producto/TarjetaProducto.astro";
+import type { Product } from "@/types/product";
+import { formatPrice, formatDiscount } from "@/lib/formatters";
+import QuickAddButton from "./QuickAddButton";
+import Icon from "@/components/ui/Icon";
+
+interface Props {
+    product: Product;
+}
+
+const { product } = Astro.props;
+const defaultVariant = product.variants[0];
+const price = defaultVariant.price;
+const discount = formatDiscount(price, product.oldPrice);
+const productUrl = `/perfumes/${product.slug}`;
 ---
 
-<TarjetaProducto {...Astro.props} />
+<article class="product-card">
+    <div class="product-photo">
+        {discount && <span class="sale-badge">{discount}</span>}
+        {product.recent && <span class="new-badge">Nuevo</span>}
+        <button
+            class="heart-btn"
+            aria-label="Agregar a favoritos"
+            type="button"
+        >
+            <Icon name="heart" />
+        </button>
+        <a
+            href={productUrl}
+            aria-label={`Ver detalles de ${product.brand} ${product.name}`}
+        >
+            <img
+                src={product.image}
+                alt={`${product.brand} ${product.name}`}
+                loading="lazy"
+                decoding="async"
+                width="450"
+                height="450"
+            />
+        </a>
+        <QuickAddButton
+            client:visible
+            productId={product.id}
+            size={defaultVariant.size}
+        />
+    </div>
+
+    <div class="product-copy">
+        <p class="brand">{product.brand}</p>
+        <h3>
+            <a href={productUrl}>{product.name}</a>
+        </h3>
+        <p class="meta">{product.gender} · {defaultVariant.size}</p>
+        <div class="price-row">
+            <strong>{formatPrice(price)}</strong>
+            {product.oldPrice && <s>{formatPrice(product.oldPrice)}</s>}
+        </div>
+        <a class="detail-link" href={productUrl}>
+            Ver detalles <Icon name="arrow" size={16} />
+        </a>
+    </div>
+</article>

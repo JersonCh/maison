@@ -1,0 +1,70 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import FaqAccordion from "@/features/faq/FaqAccordion";
+
+const title = "Preguntas Frecuentes | Maison des Parfums";
+const description =
+  "Todo lo que necesitas saber antes de adquirir tu próxima fragancia: autenticidad original, envíos a todo el Perú, pedidos por WhatsApp y formas de pago.";
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Todos los perfumes son originales?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. La propuesta de Maison des Parfums se basa estrictamente en fragancias 100% originales con procedencia verificable y garantía de autenticidad."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo realizo mi pedido?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Añade tus fragancias favoritas al carrito y pulsa 'Enviar pedido por WhatsApp'. Se abrirá una conversación con un asesor que confirmará el stock, coordinará la entrega y facilitará los detalles de pago."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Hacen envíos a todo el Perú?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. Realizamos envíos a Lima Metropolitana y a todas las provincias del Perú. La cobertura, costos y tiempos exactos de entrega se coordinan directamente según tu ubicación."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puedo recibir asesoría para elegir?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Por supuesto. Nuestros asesores pueden recomendarte opciones personalizadas según tus familias olfativas preferidas, ocasión de uso, notas deseadas o presupuesto."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué métodos de pago aceptan?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La tienda no procesa pagos online para mayor cercanía y seguridad. Aceptamos transferencias bancarias, Yape, Plin y contra entrega previa coordinación directa."
+      }
+    }
+  ]
+};
+---
+
+<Layout title={title} description={description} currentPath="/faq">
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} slot="head" />
+
+  <main class="faq-page">
+    <SectionTitle
+      eyebrow="Ayuda Maison"
+      title="Preguntas frecuentes"
+      copy="Todo lo que necesitas saber antes de elegir tu próxima fragancia."
+    />
+
+    <FaqAccordion client:load />
+  </main>
+</Layout>

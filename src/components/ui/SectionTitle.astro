@@ -1,5 +1,23 @@
 ---
-import TituloSeccion from "./TituloSeccion.astro";
+interface Props {
+    eyebrow: string;
+    title: string;
+    copy?: string;
+    light?: boolean;
+    class?: string;
+}
+
+const {
+    eyebrow,
+    title,
+    copy,
+    light = false,
+    class: className = "",
+} = Astro.props;
 ---
 
-<TituloSeccion {...Astro.props} />
+<div class={`section-title ${light ? "light" : ""} ${className}`}>
+    <span>{eyebrow}</span>
+    <h2>{title}</h2>
+    {copy && <p>{copy}</p>}
+</div>

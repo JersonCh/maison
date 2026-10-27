@@ -1,7 +1,52 @@
 ---
-import Boton from "./Boton.astro";
+interface Props {
+  variant?: "gold" | "dark" | "outline" | "ghost";
+  type?: "button" | "submit";
+  href?: string;
+  class?: string;
+  id?: string;
+  disabled?: boolean;
+  target?: string;
+  rel?: string;
+  "aria-label"?: string;
+}
+
+const {
+  variant = "gold",
+  type = "button",
+  href,
+  class: className = "",
+  id,
+  disabled = false,
+  target,
+  rel,
+  "aria-label": ariaLabel,
+} = Astro.props;
+
+const classes = `btn btn-${variant} ${className}`;
 ---
 
-<Boton {...Astro.props}>
-  <slot />
-</Boton>
+{
+  href ? (
+    <a
+      href={href}
+      id={id}
+      class={classes}
+      target={target}
+      rel={rel}
+      aria-label={ariaLabel}
+    >
+      <slot />
+    </a>
+  ) : (
+    <button
+      type={type}
+      id={id}
+      class={classes}
+      disabled={disabled}
+      aria-label={ariaLabel}
+    >
+      <slot />
+    </button>
+  )
+}

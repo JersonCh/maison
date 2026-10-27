@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import AdminDashboard from "@/features/admin/AdminDashboard";
+import { getAllProducts } from "@/data/products";
+
+const allProducts = getAllProducts();
+---
+
+<Layout
+  title="Panel Administrativo | Maison des Parfums"
+  noindex={true}
+  hideChrome={true}
+>
+  <AdminDashboard client:only="react" initialProducts={allProducts} />
+</Layout>

@@ -1,5 +1,48 @@
 ---
-import PiePagina from "./PiePagina.astro";
+
 ---
 
-<PiePagina {...Astro.props} />
+<footer>
+    <div class="footer-main">
+        <div class="footer-brand">
+            <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+            <p>
+                Fragancias originales seleccionadas para convertir cada
+                presencia en un recuerdo.
+            </p>
+            <div class="socials">
+                <span>IG</span>
+                <span>FB</span>
+                <span>TT</span>
+            </div>
+        </div>
+
+        <div>
+            <h3>Explora</h3>
+            <a href="/perfumes">Todos los perfumes</a>
+            <a href="/perfumes?genero=Hombre">Hombre</a>
+            <a href="/perfumes?genero=Mujer">Mujer</a>
+            <a href="/perfumes?genero=Unisex">Unisex</a>
+        </div>
+
+        <div>
+            <h3>Maison</h3>
+            <a href="/nosotros">Nosotros</a>
+            <a href="/contacto">Contacto</a>
+            <a href="/faq">Preguntas frecuentes</a>
+            <a href="/admin">Administración</a>
+        </div>
+
+        <div>
+            <h3>Atención</h3>
+            <p>Escríbenos por WhatsApp</p>
+            <p>Lunes a sábado<br />Horario comercial</p>
+            <p>Perú</p>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <span>© 2025 Maison des Parfums</span>
+        <span>Experiencia de compra por WhatsApp · Sin pagos online</span>
+    </div>
+</footer>

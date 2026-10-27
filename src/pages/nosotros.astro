@@ -1,0 +1,46 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import Button from "@/components/ui/Button.astro";
+import Icon from "@/components/ui/Icon";
+import { categoryImages } from "@/data/products";
+
+const title = "Nosotros | Maison des Parfums";
+const description =
+  "Maison des Parfums nace de una convicción: el perfume más especial no es el más conocido, sino el que se siente auténticamente tuyo. Curaduría honesta y personalizada.";
+---
+
+<Layout title={title} description={description} currentPath="/nosotros">
+  <main class="editorial-page">
+    <section class="editorial-hero">
+      <p class="eyebrow">Nuestra historia</p>
+      <h1>El lujo de encontrar<br />tu propia esencia</h1>
+      <p>
+        Maison des Parfums nace de una convicción: el perfume más especial no es el
+        más conocido, sino el que se siente auténticamente tuyo.
+      </p>
+    </section>
+
+    <section class="editorial-split">
+      <img src={categoryImages.Unisex} alt="Curaduría de fragancias" />
+      <div>
+        <SectionTitle
+          eyebrow="Curaduría con propósito"
+          title="Más que perfumes, memorias"
+        />
+        <p>
+          Seleccionamos fragancias originales de casas reconocidas y propuestas
+          de autor. Cada recomendación parte de escuchar tus gustos, entender tu
+          estilo y acompañarte sin prisa.
+        </p>
+        <p>
+          Nuestra experiencia es cercana, informada y honesta. Porque elegir un
+          perfume debería sentirse tan especial como usarlo.
+        </p>
+        <Button href="/contacto">
+          Conversa con nosotros <Icon name="arrow" />
+        </Button>
+      </div>
+    </section>
+  </main>
+</Layout>

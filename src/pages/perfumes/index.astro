@@ -1,0 +1,32 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import CatalogBrowser from "@/features/catalog/CatalogBrowser";
+import { getAllProducts } from "@/data/products";
+
+const allProducts = getAllProducts();
+const genderParam = Astro.url.searchParams.get("genero") || "";
+const brandParam = Astro.url.searchParams.get("marca") || "";
+const queryParam = Astro.url.searchParams.get("q") || "";
+
+const title = genderParam
+  ? `Perfumes para ${genderParam} | Maison des Parfums`
+  : "Catálogo de Perfumes Originales | Maison des Parfums";
+
+const description =
+  "Descubre nuestra cuidada selección de fragancias originales de lujo en Perú. Perfumes para hombre, mujer y unisex. Atención personalizada por WhatsApp.";
+---
+
+<Layout
+  title={title}
+  description={description}
+  currentPath="/perfumes"
+  currentGender={genderParam}
+>
+  <CatalogBrowser
+    client:load
+    initialProducts={allProducts}
+    initialGender={genderParam}
+    initialBrand={brandParam}
+    initialQuery={queryParam}
+  />
+</Layout>

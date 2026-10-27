@@ -1,0 +1,139 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import ProductDetailInteractive from "@/components/product/ProductDetailInteractive";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import ProductCard from "@/components/product/ProductCard.astro";
+import {
+  getAllProducts,
+  getProductBySlug,
+  getRelatedProducts,
+} from "@/data/products";
+
+export function getStaticPaths() {
+  const allProducts = getAllProducts();
+  return allProducts.map((p) => ({
+    params: { slug: p.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const product = getProductBySlug(slug as string);
+
+if (!product) {
+  return Astro.redirect("/perfumes");
+}
+
+const related = getRelatedProducts(product, 4);
+
+const pageTitle = `${product.name} - ${product.brand} | Maison des Parfums`;
+const pageDescription = `${product.name} de ${product.brand}. Familia olfativa ${product.family}. ${product.description}`;
+const productSchema = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": `${product.brand} ${product.name}`,
+  "image": product.image,
+  "description": product.description,
+  "brand": {
+    "@type": "Brand",
+    "name": product.brand,
+  },
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": "PEN",
+    "lowPrice": product.variants[0]?.price,
+    "highPrice": product.variants[product.variants.length - 1]?.price,
+    "offerCount": product.variants.length,
+    "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+  },
+};
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  image={product.image}
+  currentPath="/perfumes"
+  currentGender={product.gender}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(productSchema)} slot="head" />
+
+  <main class="detail-page">
+    <!-- Breadcrumbs SEO -->
+    <nav class="breadcrumbs" aria-label="Miga de pan">
+      <a href="/">Inicio</a> <span>/</span>
+      <a href="/perfumes">Perfumes</a> <span>/</span>
+      <a href={`/perfumes?marca=${encodeURIComponent(product.brand)}`}>{product.brand}</a> <span>/</span>
+      <b>{product.name}</b>
+    </nav>
+
+    <!-- Ficha interactiva (Galería, tamaños, cantidad, carrito y WhatsApp) -->
+    <ProductDetailInteractive product={product} client:load />
+
+    <!-- Sección de Composición y Notas Olfativas -->
+    <section class="notes-section">
+      <SectionTitle eyebrow="Composición" title="Notas olfativas" />
+      <div class="notes-grid">
+        <article>
+          <span>01</span>
+          <h3>Salida</h3>
+          <p>Bergamota, pimienta rosa y acordes cítricos.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Corazón</h3>
+          <p>Jazmín, maderas nobles y especias envolventes.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Fondo</h3>
+          <p>Ámbar, almizcle blanco y vainilla de Madagascar.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Características del Perfume -->
+    <section class="characteristics">
+      <div>
+        <p class="eyebrow">El carácter</p>
+        <h2>Una estela que deja huella</h2>
+        <p>
+          Creada para acompañar momentos especiales y elevar lo cotidiano con
+          una presencia distinguida.
+        </p>
+      </div>
+      <dl>
+        <div>
+          <dt>Familia olfativa</dt>
+          <dd>{product.family}</dd>
+        </div>
+        <div>
+          <dt>Concentración</dt>
+          <dd>Eau de Parfum</dd>
+        </div>
+        <div>
+          <dt>Ocasión</dt>
+          <dd>Día y noche</dd>
+        </div>
+        <div>
+          <dt>Procedencia</dt>
+          <dd>Importado</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- Fragancias afines recomendadas -->
+    {related.length > 0 && (
+      <section class="products-section related">
+        <SectionTitle
+          eyebrow="También te puede gustar"
+          title="Descubre fragancias afines"
+        />
+        <div class="product-grid four">
+          {related.map((item) => (
+            <ProductCard product={item} />
+          ))}
+        </div>
+      </section>
+    )}
+  </main>
+</Layout>

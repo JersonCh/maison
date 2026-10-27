@@ -1,0 +1,39 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import ContactForm from "@/features/contact/ContactForm";
+import Icon from "@/components/ui/Icon";
+
+const title = "Contacto | Maison des Parfums";
+const description =
+  "Conversemos sobre tu próxima fragancia. Solicita una recomendación, consulta disponibilidad o coordina tu pedido por WhatsApp de forma directa y personalizada.";
+---
+
+<Layout title={title} description={description} currentPath="/contacto">
+  <main class="contact-page">
+    <div>
+      <SectionTitle
+        eyebrow="Estamos para ayudarte"
+        title="Conversemos sobre tu próxima fragancia"
+        copy="Solicita una recomendación, consulta disponibilidad o coordina tu pedido. Atención personalizada y directa por WhatsApp."
+      />
+      <div class="contact-cards">
+        <article>
+          <Icon name="whatsapp" />
+          <h3>WhatsApp Oficial</h3>
+          <p>Atención directa y pedidos.</p>
+          <span>Respuesta personalizada inmediata</span>
+        </article>
+        <article>
+          <span class="at">@</span>
+          <h3>Redes sociales</h3>
+          <p>Comunidad y lanzamientos.</p>
+          <span>Instagram · Facebook · TikTok</span>
+        </article>
+      </div>
+    </div>
+
+    <!-- Formulario interactivo -->
+    <ContactForm client:load />
+  </main>
+</Layout>
