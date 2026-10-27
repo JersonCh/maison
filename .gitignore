@@ -11,6 +11,7 @@ build/
 .cache/
 .vite/
 .astro/
+.wrangler/
 
 # Variables de entorno y secretos
 .env*
