@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!bucket) {
     return new Response(
       JSON.stringify({
-        error: "El almacenamiento Cloudflare R2 no está disponible en este entorno.",
+        error: "El almacenamiento de imágenes no está disponible en este momento.",
       }),
       { status: 503, headers: { "Content-Type": "application/json" } },
     );
@@ -90,7 +90,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   } catch (error: any) {
     console.error("Error al procesar subida a R2:", error);
     return new Response(
-      JSON.stringify({ error: error?.message || "Error al subir la imagen a Cloudflare R2" }),
+      JSON.stringify({ error: error?.message || "Error al subir la imagen" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

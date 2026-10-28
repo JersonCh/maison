@@ -101,7 +101,7 @@ export default function AdminDashboard({}: Props) {
             : "✓ Fragancia cambiada a borrador (inactiva).",
         );
       } else {
-        mostrarToast("⚠ No se pudo cambiar el estado en D1.");
+        mostrarToast("⚠ No se pudo actualizar el estado de la fragancia.");
       }
     } catch (error) {
       mostrarToast("⚠ Error de conexión al actualizar estado.");
@@ -149,7 +149,7 @@ export default function AdminDashboard({}: Props) {
         >
           <span>Acceso administrativo</span>
           <h1>Bienvenido</h1>
-          <p>Ingresa al panel de administración conectado a Cloudflare D1.</p>
+          <p>Ingresa al panel de administración de Maison des Parfums.</p>
           <label>
             Correo
             <input type="email" defaultValue="admin@maison.pe" />
@@ -190,7 +190,7 @@ export default function AdminDashboard({}: Props) {
       {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
         <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
-        <span>Panel Administrativo D1</span>
+        <span>Panel Administrativo</span>
         <nav>
           {menu.map((item) => (
             <button
@@ -213,7 +213,7 @@ export default function AdminDashboard({}: Props) {
       <section className="admin-content">
         <header>
           <div>
-            <p>Maison des Parfums · Base de datos Cloudflare D1</p>
+            <p>Maison des Parfums · Panel de Control</p>
             <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
           </div>
           <div className="admin-user">
@@ -229,7 +229,7 @@ export default function AdminDashboard({}: Props) {
           <>
             <div className="stat-grid">
               <Stat
-                label="Total perfumes en D1"
+                label="Total perfumes"
                 value={productos.length}
                 note={`${productos.filter((p) => p.activo).length} activos`}
               />
@@ -313,9 +313,9 @@ export default function AdminDashboard({}: Props) {
         {section === "brands" && (
           <div className="admin-placeholder">
             <header>
-              <small className="eyebrow">Cloudflare D1 · Maestros</small>
+              <small className="eyebrow">Catálogo · Clasificaciones</small>
               <h2>Casas de Perfumería y Familias</h2>
-              <p>Marcas y clasificaciones olfativas registradas en la base de datos.</p>
+              <p>Casas de perfumería y clasificaciones olfativas del catálogo.</p>
             </header>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "25px" }}>
               {marcas.slice(0, 12).map((m) => (
@@ -450,9 +450,9 @@ function SettingsSection() {
 
       if (respuesta.ok) {
         localStorage.setItem("maison-whatsapp", phone);
-        setMensaje("✓ Configuración comercial guardada correctamente en Cloudflare D1.");
+        setMensaje("✓ Configuración comercial guardada correctamente.");
       } else {
-        setMensaje("⚠ Error al guardar en la base de datos.");
+        setMensaje("⚠ No se pudo guardar la configuración.");
       }
     } catch (error) {
       setMensaje("⚠ Error de conexión con el servidor.");
@@ -467,7 +467,7 @@ function SettingsSection() {
       <header>
         <small className="eyebrow">Canales de atención</small>
         <h2>Configuración comercial</h2>
-        <p>Configura el número oficial de WhatsApp y canales de la tienda (Persistido en D1).</p>
+        <p>Configura el número oficial de WhatsApp y canales de atención de la tienda.</p>
       </header>
 
       <label>
@@ -512,7 +512,7 @@ function SettingsSection() {
         onClick={guardarCambios}
         disabled={guardando}
       >
-        {guardando ? "Guardando en D1..." : "Guardar configuración"}
+        {guardando ? "Guardando cambios..." : "Guardar configuración"}
       </button>
 
       {mensaje && (

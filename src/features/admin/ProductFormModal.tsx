@@ -78,7 +78,7 @@ export default function ProductFormModal({
   // Fotos: Portada obligatoria, caja y detalle opcionales
   const [fotoPortada, setFotoPortada] = useState(
     initialProduct?.imagenes[0] ||
-      "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=900&q=85",
   );
   const [fotoCaja, setFotoCaja] = useState(initialProduct?.imagenes[1] || "");
   const [fotoDetalle, setFotoDetalle] = useState(initialProduct?.imagenes[2] || "");
@@ -186,7 +186,7 @@ export default function ProductFormModal({
       const resultado = await respuesta.json();
 
       if (!respuesta.ok) {
-        throw new Error(resultado?.error || "Error al procesar la solicitud en D1.");
+        throw new Error(resultado?.error || "Error al procesar la solicitud.");
       }
 
       if (onReloadMetadata && (modoNuevaMarca || modoNuevaFamilia)) {
@@ -195,8 +195,8 @@ export default function ProductFormModal({
 
       onSuccess(
         esEdicion
-          ? `✓ "${nombre}" actualizado correctamente en Cloudflare D1.`
-          : `✓ "${nombre}" creado exitosamente en Cloudflare D1.`,
+          ? `✓ Fragancia "${nombre}" guardada correctamente.`
+          : `✓ Fragancia "${nombre}" creada exitosamente.`,
       );
       onClose();
     } catch (err: any) {
@@ -250,7 +250,7 @@ export default function ProductFormModal({
       <form onSubmit={manejarEnvio}>
         <div className="modal-head">
           <div>
-            <small>Catálogo · Alta Perfumería</small>
+            <small>Catálogo</small>
             <h2>{esEdicion ? "Editar fragancia" : "Crear nueva fragancia"}</h2>
           </div>
           <button
@@ -605,7 +605,7 @@ export default function ProductFormModal({
               </div>
               <div className="photo-slot-actions">
                 <label className={`btn-upload-file ${subiendoSlot === 1 ? "uploading" : ""}`}>
-                  {subiendoSlot === 1 ? "⏳ Subiendo a R2..." : "📷 Subir archivo"}
+                  {subiendoSlot === 1 ? "⏳ Subiendo imagen..." : "📷 Subir archivo"}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/avif"
@@ -657,7 +657,7 @@ export default function ProductFormModal({
               </div>
               <div className="photo-slot-actions">
                 <label className={`btn-upload-file ${subiendoSlot === 2 ? "uploading" : ""}`}>
-                  {subiendoSlot === 2 ? "⏳ Subiendo a R2..." : "📷 Subir archivo"}
+                  {subiendoSlot === 2 ? "⏳ Subiendo imagen..." : "📷 Subir archivo"}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/avif"
@@ -708,7 +708,7 @@ export default function ProductFormModal({
               </div>
               <div className="photo-slot-actions">
                 <label className={`btn-upload-file ${subiendoSlot === 3 ? "uploading" : ""}`}>
-                  {subiendoSlot === 3 ? "⏳ Subiendo a R2..." : "📷 Subir archivo"}
+                  {subiendoSlot === 3 ? "⏳ Subiendo imagen..." : "📷 Subir archivo"}
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/avif"
@@ -782,10 +782,10 @@ export default function ProductFormModal({
           </button>
           <button type="submit" className="btn btn-gold" disabled={guardando}>
             {guardando
-              ? "Guardando en Cloudflare D1..."
+              ? "Guardando cambios..."
               : esEdicion
-              ? "Actualizar en Cloudflare D1"
-              : "Crear perfume en Cloudflare D1"}
+                ? "Guardar cambios"
+                : "Crear perfume"}
           </button>
         </div>
       </form>

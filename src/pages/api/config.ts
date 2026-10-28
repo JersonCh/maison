@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -45,7 +45,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -63,13 +63,13 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     return new Response(
       JSON.stringify({
         exito: true,
-        mensaje: "Configuración comercial guardada correctamente en Cloudflare D1",
+        mensaje: "Configuración comercial guardada correctamente",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: "Error al guardar la configuración en D1" }),
+      JSON.stringify({ error: "Error al guardar la configuración" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
