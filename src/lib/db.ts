@@ -1076,13 +1076,7 @@ export async function obtenerDetalleProductoBoutique(
   try {
     const detalleDb = await obtenerDetalleProductoPorSlug(db, slug);
     if (!detalleDb) {
-      const fallback = getProductBySlug(slug);
-      if (!fallback) return null;
-      return {
-        producto: fallback,
-        piramide: piramidePorDefecto,
-        caracteristicas: caracteristicasPorDefecto,
-      };
+      return null;
     }
 
     const fotos = detalleDb.galeria_imagenes && detalleDb.galeria_imagenes.length > 0
