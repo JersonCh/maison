@@ -1,6 +1,5 @@
 import { atom } from "nanostores";
 import type { CartItem } from "@/types/cart";
-import { getProductById } from "@/data/products";
 
 const STORAGE_KEY = "maison-cart";
 
@@ -72,11 +71,8 @@ export function showToast(message: string): void {
     }
 }
 
-export function addToCart(id: number, size?: string, qty = 1): void {
-    const product = getProductById(id);
-    if (!product) return;
-    const finalSize = size || product.variants[0].size;
-
+export function addToCart(id: number, size = "50 ml", qty = 1, productName = "Perfume"): void {
+    const finalSize = size || "50 ml";
     const current = $cart.get();
     const matchIndex = current.findIndex(
         (item) => item.id === id && item.size === finalSize,
@@ -93,7 +89,7 @@ export function addToCart(id: number, size?: string, qty = 1): void {
         $cart.set([...current, { id, size: finalSize, qty }]);
     }
 
-    showToast(`${product.name} se añadió al carrito`);
+    showToast(`${productName} se añadió al carrito`);
 }
 
 export function updateCartQty(id: number, size: string, delta: number): void {

@@ -1,23 +1,29 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useStore } from "@nanostores/react";
 import { $isSearchOpen, closeSearch } from "@/features/cart/cartStore";
-import { getAllProducts } from "@/data/products";
+import type { Product } from "@/types/product";
 import { formatPrice } from "@/lib/formatters";
 import Icon from "@/components/ui/Icon";
 
 export default function SearchModal() {
     const isOpen = useStore($isSearchOpen);
     const [query, setQuery] = useState("");
+    const [products, setProducts] = useState<Product[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
-    const products = getAllProducts();
 
     useEffect(() => {
         if (isOpen) {
             setTimeout(() => inputRef.current?.focus(), 50);
+            if (products.length === 0) {
+                fetch("/api/products")
+                    .then((res) => (res.ok ? res.json() : []))
+                    .then((data) => setProducts(data))
+                    .catch(() => setProducts([]));
+            }
         } else {
             setQuery("");
         }
-    }, [isOpen]);
+    }, [isOpen, products.length]);
 
     const suggestions = useMemo(() => {
         if (!query.trim()) return [];

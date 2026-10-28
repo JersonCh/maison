@@ -9,7 +9,6 @@ import type {
   DatosFormularioProducto,
 } from "@/types/database";
 import type { Gender, Product, ProductVariant } from "@/types/product";
-import { getAllProducts, getProductBySlug } from "@/data/products";
 
 // =============================================================================
 // 1. CONFIGURACIÓN COMERCIAL DE LA TIENDA
@@ -740,7 +739,14 @@ export async function actualizarProductoEnDb(
     datos.familia_olfativa_id,
     datos.nueva_familia,
   );
-  const slugFinal = await generarSlugUnico(db, datos.nombre, productoId);
+  // En comercio electrónico profesional (Shopify, WooCommerce, Medusa):
+  // El slug existente se preserva de forma inmutable para no romper enlaces indexados en Google ni URLs compartidas.
+  const registroActual = await db
+    .prepare("SELECT slug FROM productos WHERE id = ?")
+    .bind(productoId)
+    .first<{ slug: string }>();
+
+  const slugFinal = registroActual?.slug || (await generarSlugUnico(db, datos.nombre, productoId));
   const estadoFinal = datos.activo ? "publicado" : "borrador";
   const esDestacado = datos.es_destacado ? 1 : 0;
 
@@ -925,7 +931,7 @@ export async function obtenerProductosBoutique(
   db?: D1Database,
 ): Promise<Product[]> {
   if (!db) {
-    return getAllProducts();
+    return [];
   }
 
   try {
@@ -952,7 +958,7 @@ export async function obtenerProductosBoutique(
       .all<any>();
 
     if (!productos || productos.length === 0) {
-      return getAllProducts();
+      return [];
     }
 
     // 2. Consultar variantes activas
@@ -1030,8 +1036,8 @@ export async function obtenerProductosBoutique(
       };
     });
   } catch (error) {
-    console.error("Error al consultar productos de D1 para boutique, usando respaldo:", error);
-    return getAllProducts();
+    console.error("Error al consultar productos de D1 para boutique:", error);
+    return [];
   }
 }
 
@@ -1064,13 +1070,7 @@ export async function obtenerDetalleProductoBoutique(
   };
 
   if (!db) {
-    const fallback = getProductBySlug(slug);
-    if (!fallback) return null;
-    return {
-      producto: fallback,
-      piramide: piramidePorDefecto,
-      caracteristicas: caracteristicasPorDefecto,
-    };
+    return null;
   }
 
   try {
@@ -1123,13 +1123,7 @@ export async function obtenerDetalleProductoBoutique(
     };
   } catch (error) {
     console.error("Error al obtener detalle de D1 para slug:", slug, error);
-    const fallback = getProductBySlug(slug);
-    if (!fallback) return null;
-    return {
-      producto: fallback,
-      piramide: piramidePorDefecto,
-      caracteristicas: caracteristicasPorDefecto,
-    };
+    return null;
   }
 }
 

@@ -1,14 +1,13 @@
 import type { APIRoute } from "astro";
-import { obtenerProductosCatalogo } from "@/lib/db";
+import { obtenerProductosBoutique } from "@/lib/db";
 
 export const prerender = false;
 
 /**
  * GET /api/products
- * Retorna la lista de perfumes desde Cloudflare D1 con filtros opcionales.
- * Query params: ?genero=Hombre
+ * Retorna la lista de perfumes desde Cloudflare D1 adaptada para el frontend.
  */
-export const GET: APIRoute = async ({ url, locals }) => {
+export const GET: APIRoute = async ({ locals }) => {
   try {
     const db = locals.runtime?.env?.DB;
     if (!db) {
@@ -18,14 +17,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
       );
     }
 
-    const genero = url.searchParams.get("genero") || undefined;
-    const productos = await obtenerProductosCatalogo(db, { genero });
+    const productos = await obtenerProductosBoutique(db);
 
     return new Response(JSON.stringify(productos), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {

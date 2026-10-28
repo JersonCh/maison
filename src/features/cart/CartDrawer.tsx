@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useStore } from "@nanostores/react";
 import {
   $cart,
@@ -6,7 +7,7 @@ import {
   updateCartQty,
   removeFromCart,
 } from "./cartStore";
-import { getAllProducts } from "@/data/products";
+import type { Product } from "@/types/product";
 import { buildCartWhatsAppUrl } from "@/features/whatsapp/whatsapp";
 import { formatPrice } from "@/lib/formatters";
 import Icon from "@/components/ui/Icon";
@@ -15,7 +16,14 @@ import type { CartLine } from "@/types/cart";
 export default function CartDrawer() {
   const cart = useStore($cart);
   const isOpen = useStore($isCartOpen);
-  const allProducts = getAllProducts();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setAllProducts(data))
+      .catch(() => setAllProducts([]));
+  }, []);
 
   const lines: CartLine[] = cart
     .map((item) => {
