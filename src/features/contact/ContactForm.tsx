@@ -66,7 +66,7 @@ export default function ContactForm({ phone }: Props) {
       </label>
 
       <button type="submit" className="btn btn-gold full">
-        Enviar consulta por WhatsApp <Icon name="arrow" />
+        <Icon name="whatsapp" size={18} /> Enviar consulta por WhatsApp
       </button>
 
       {submitted && (

@@ -31,7 +31,30 @@
 .qty button { display: grid; place-items: center; border: 0; background: none; }
 .qty span { flex: 1; text-align: center; }
 .qty.large button { width: 38px; height: 47px; }
-.whatsapp-btn { margin-top: 10px; color: var(--green); }
+.whatsapp-btn {
+  margin-top: 10px;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s ease;
+}
+.whatsapp-btn svg {
+  color: var(--gold);
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+.whatsapp-btn:hover {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+}
+.whatsapp-btn:hover svg {
+  color: var(--ink);
+  transform: scale(1.1);
+}
 .detail-assurances { display: flex; justify-content: space-around; margin-top: 22px; color: var(--muted); font-size: 9px; }
 .detail-assurances span { display: flex; align-items: center; gap: 6px; }
 .notes-section { padding: 90px 8%; background: var(--ink); color: var(--white); }

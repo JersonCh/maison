@@ -130,7 +130,7 @@ export default function CartDrawer({ phone }: Props) {
                 onClick={handleSendWhatsApp}
                 type="button"
               >
-                <Icon name="whatsapp" /> Enviar pedido por WhatsApp
+                <Icon name="whatsapp" size={18} /> Enviar pedido por WhatsApp
               </button>
               <button className="continue-link" onClick={closeCart} type="button">
                 Seguir comprando

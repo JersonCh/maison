@@ -132,7 +132,7 @@ export default function ProductDetailInteractive({ product, phone }: Props) {
           className="btn btn-outline full whatsapp-btn"
           onClick={handleWhatsAppInquiry}
         >
-          <Icon name="whatsapp" /> Consultar por WhatsApp
+          <Icon name="whatsapp" size={18} /> Consultar por WhatsApp
         </button>
 
         {/* Garantías */}

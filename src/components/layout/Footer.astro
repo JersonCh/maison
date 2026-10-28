@@ -1,5 +1,6 @@
 ---
 import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
+import Icon from "@/components/ui/Icon";
 
 interface Props {
   whatsapp?: string;
@@ -30,9 +31,15 @@ const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Mais
                 presencia en un recuerdo.
             </p>
             <div class="socials">
-                <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">IG</a>
-                <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">FB</a>
-                <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">TT</a>
+                <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <Icon name="instagram" size={15} />
+                </a>
+                <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <Icon name="facebook" size={15} />
+                </a>
+                <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                    <Icon name="tiktok" size={15} />
+                </a>
             </div>
         </div>
 
@@ -54,7 +61,11 @@ const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Mais
 
         <div>
             <h3>Atención</h3>
-            <p><a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="footer-wa-link">Escríbenos por WhatsApp ↗</a></p>
+            <p>
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="footer-wa-link">
+                    <Icon name="whatsapp" size={16} /> Escríbenos por WhatsApp ↗
+                </a>
+            </p>
             <p>{horario}</p>
             <p>Perú</p>
         </div>

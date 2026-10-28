@@ -35,14 +35,18 @@ const directWhatsAppUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponen
           style="text-decoration: none; color: inherit; display: block;"
         >
           <article style="cursor: pointer;">
-            <Icon name="whatsapp" />
+            <Icon name="whatsapp" size={26} />
             <h3>WhatsApp Oficial</h3>
             <p>Atención directa y pedidos.</p>
             <span>Respuesta personalizada inmediata ↗</span>
           </article>
         </a>
         <article>
-          <span class="at">@</span>
+          <div style="display: flex; gap: 10px; color: var(--gold); align-items: center;">
+            <Icon name="instagram" size={20} />
+            <Icon name="facebook" size={20} />
+            <Icon name="tiktok" size={20} />
+          </div>
           <h3>Redes sociales</h3>
           <p>Comunidad y lanzamientos.</p>
           <span>Instagram · Facebook · TikTok</span>
