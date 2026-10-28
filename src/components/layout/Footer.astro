@@ -1,5 +1,36 @@
 ---
+import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
+import Icon from "@/components/ui/Icon";
 
+interface Props {
+  whatsapp?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  horario?: string;
+}
+
+const {
+  whatsapp = "910292249",
+  instagram = "https://instagram.com/maisondesparfums",
+  facebook = "https://facebook.com/maisondesparfums",
+  tiktok = "https://tiktok.com/@maisondesparfums",
+  horario = "Lunes a sábado · 10:00 am - 8:00 pm",
+} = Astro.props;
+
+const phone = normalizarTelefonoWhatsApp(whatsapp);
+const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Maison des Parfums, deseo realizar una consulta.")}`;
+
+const formatSocialUrl = (url?: string, defaultBase = "") => {
+  if (!url) return "#";
+  const clean = url.trim();
+  if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
+  return `${defaultBase}${clean.replace(/^@/, "")}`;
+};
+
+const instagramUrl = formatSocialUrl(instagram, "https://instagram.com/");
+const facebookUrl = formatSocialUrl(facebook, "https://facebook.com/");
+const tiktokUrl = formatSocialUrl(tiktok, "https://tiktok.com/@");
 ---
 
 <footer>
@@ -11,9 +42,15 @@
                 presencia en un recuerdo.
             </p>
             <div class="socials">
-                <span>IG</span>
-                <span>FB</span>
-                <span>TT</span>
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <Icon name="instagram" size={15} />
+                </a>
+                <a href={facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <Icon name="facebook" size={15} />
+                </a>
+                <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                    <Icon name="tiktok" size={15} />
+                </a>
             </div>
         </div>
 
@@ -35,8 +72,12 @@
 
         <div>
             <h3>Atención</h3>
-            <p>Escríbenos por WhatsApp</p>
-            <p>Lunes a sábado<br />Horario comercial</p>
+            <p>
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="footer-wa-link">
+                    <Icon name="whatsapp" size={16} /> Escríbenos por WhatsApp ↗
+                </a>
+            </p>
+            <p>{horario}</p>
             <p>Perú</p>
         </div>
     </div>

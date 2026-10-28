@@ -1,8 +1,12 @@
 import { useState } from "react";
 import Icon from "@/components/ui/Icon";
-import { getStorePhone } from "@/features/whatsapp/whatsapp";
+import { getStorePhone, normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
 
-export default function ContactForm() {
+interface Props {
+  phone?: string;
+}
+
+export default function ContactForm({ phone }: Props) {
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [type, setType] = useState("Recomendación personalizada");
@@ -11,9 +15,9 @@ export default function ContactForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const phone = getStorePhone();
+    const targetPhone = normalizarTelefonoWhatsApp(phone || getStorePhone());
     const text = `Hola Maison des Parfums,\nMi nombre es: ${name}\nContacto: ${contact}\nMotivo: ${type}\nMensaje: ${message || "Deseo recibir asesoría."}`;
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
     setSubmitted(true);
   };
@@ -62,7 +66,7 @@ export default function ContactForm() {
       </label>
 
       <button type="submit" className="btn btn-gold full">
-        Enviar consulta por WhatsApp <Icon name="arrow" />
+        <Icon name="whatsapp" size={18} /> Enviar consulta por WhatsApp
       </button>
 
       {submitted && (

@@ -97,11 +97,11 @@ export default function AdminDashboard({}: Props) {
         );
         mostrarToast(
           nuevoEstado
-            ? "✓ Fragancia activada en boutique."
+            ? "✓ Fragancia activada en el catálogo."
             : "✓ Fragancia cambiada a borrador (inactiva).",
         );
       } else {
-        mostrarToast("⚠ No se pudo cambiar el estado en D1.");
+        mostrarToast("⚠ No se pudo actualizar el estado de la fragancia.");
       }
     } catch (error) {
       mostrarToast("⚠ Error de conexión al actualizar estado.");
@@ -139,7 +139,7 @@ export default function AdminDashboard({}: Props) {
       <main className="admin-login">
         <div className="login-brand">
           <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
-          <p>Gestión de boutique</p>
+          <p>Gestión de la tienda</p>
         </div>
         <form
           onSubmit={(e) => {
@@ -149,7 +149,7 @@ export default function AdminDashboard({}: Props) {
         >
           <span>Acceso administrativo</span>
           <h1>Bienvenido</h1>
-          <p>Ingresa al panel de administración conectado a Cloudflare D1.</p>
+          <p>Ingresa al panel de administración de Maison des Parfums.</p>
           <label>
             Correo
             <input type="email" defaultValue="admin@maison.pe" />
@@ -170,7 +170,7 @@ export default function AdminDashboard({}: Props) {
               textDecoration: "none",
             }}
           >
-            ← Volver a la boutique pública
+            ← Volver a la tienda
           </a>
         </form>
       </main>
@@ -190,7 +190,7 @@ export default function AdminDashboard({}: Props) {
       {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
         <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
-        <span>Panel Administrativo D1</span>
+        <span>Panel Administrativo</span>
         <nav>
           {menu.map((item) => (
             <button
@@ -205,7 +205,7 @@ export default function AdminDashboard({}: Props) {
           ))}
         </nav>
         <a href="/" className="exit-admin" style={{ textDecoration: "none" }}>
-          <Icon name="arrow" /> Ver boutique
+          <Icon name="arrow" /> Ver tienda
         </a>
       </aside>
 
@@ -213,13 +213,13 @@ export default function AdminDashboard({}: Props) {
       <section className="admin-content">
         <header>
           <div>
-            <p>Maison des Parfums · Base de datos Cloudflare D1</p>
+            <p>Maison des Parfums · Panel de Control</p>
             <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
           </div>
           <div className="admin-user">
             <span>AD</span>
             <p>
-              Administrador<small>Boutique Maison</small>
+              Administrador<small>Maison des Parfums</small>
             </p>
           </div>
         </header>
@@ -229,7 +229,7 @@ export default function AdminDashboard({}: Props) {
           <>
             <div className="stat-grid">
               <Stat
-                label="Total perfumes en D1"
+                label="Total perfumes"
                 value={productos.length}
                 note={`${productos.filter((p) => p.activo).length} activos`}
               />
@@ -313,9 +313,9 @@ export default function AdminDashboard({}: Props) {
         {section === "brands" && (
           <div className="admin-placeholder">
             <header>
-              <small className="eyebrow">Cloudflare D1 · Maestros</small>
+              <small className="eyebrow">Catálogo · Clasificaciones</small>
               <h2>Casas de Perfumería y Familias</h2>
-              <p>Marcas y clasificaciones olfativas registradas en la base de datos.</p>
+              <p>Casas de perfumería y clasificaciones olfativas del catálogo.</p>
             </header>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "25px" }}>
               {marcas.slice(0, 12).map((m) => (
@@ -408,11 +408,12 @@ function SettingsSection() {
   const [phone, setPhone] = useState("");
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
+  const [tiktok, setTiktok] = useState("");
   const [horario, setHorario] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  // Cargar configuración real desde Cloudflare D1 al montar
+  // Cargar configuración real desde la base de datos al montar
   useEffect(() => {
     async function cargarConfiguracion() {
       try {
@@ -422,10 +423,11 @@ function SettingsSection() {
           if (datos.whatsapp_pedidos) setPhone(datos.whatsapp_pedidos);
           if (datos.instagram_url) setInstagram(datos.instagram_url);
           if (datos.facebook_url) setFacebook(datos.facebook_url);
+          if (datos.tiktok_url) setTiktok(datos.tiktok_url);
           if (datos.horario_comercial) setHorario(datos.horario_comercial);
         }
       } catch (error) {
-        console.error("Error al cargar configuración de D1:", error);
+        console.error("Error al cargar configuración:", error);
       }
     }
     cargarConfiguracion();
@@ -439,6 +441,7 @@ function SettingsSection() {
         whatsapp_pedidos: phone,
         instagram_url: instagram,
         facebook_url: facebook,
+        tiktok_url: tiktok,
         horario_comercial: horario,
       };
 
@@ -450,9 +453,9 @@ function SettingsSection() {
 
       if (respuesta.ok) {
         localStorage.setItem("maison-whatsapp", phone);
-        setMensaje("✓ Configuración comercial guardada correctamente en Cloudflare D1.");
+        setMensaje("✓ Configuración comercial guardada correctamente.");
       } else {
-        setMensaje("⚠ Error al guardar en la base de datos.");
+        setMensaje("⚠ No se pudo guardar la configuración.");
       }
     } catch (error) {
       setMensaje("⚠ Error de conexión con el servidor.");
@@ -467,7 +470,7 @@ function SettingsSection() {
       <header>
         <small className="eyebrow">Canales de atención</small>
         <h2>Configuración comercial</h2>
-        <p>Configura el número oficial de WhatsApp y canales de la tienda (Persistido en D1).</p>
+        <p>Configura el número oficial de WhatsApp y canales de atención de la tienda.</p>
       </header>
 
       <label>
@@ -489,11 +492,20 @@ function SettingsSection() {
       </label>
 
       <label>
-        Facebook
+        Facebook oficial
         <input
           value={facebook}
           onChange={(e) => setFacebook(e.target.value)}
           placeholder="URL del perfil de Facebook"
+        />
+      </label>
+
+      <label>
+        TikTok oficial
+        <input
+          value={tiktok}
+          onChange={(e) => setTiktok(e.target.value)}
+          placeholder="URL o @usuario de TikTok"
         />
       </label>
 
@@ -512,7 +524,7 @@ function SettingsSection() {
         onClick={guardarCambios}
         disabled={guardando}
       >
-        {guardando ? "Guardando en D1..." : "Guardar configuración"}
+        {guardando ? "Guardando cambios..." : "Guardar configuración"}
       </button>
 
       {mensaje && (

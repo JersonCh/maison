@@ -15,13 +15,13 @@ export const GET: APIRoute = async ({ params, locals }) => {
 
   const bucket = locals.runtime?.env?.BUCKET;
   if (!bucket) {
-    return new Response("Almacenamiento Cloudflare R2 no disponible", { status: 503 });
+    return new Response("Almacenamiento de imágenes no disponible", { status: 503 });
   }
 
   try {
     const object = await bucket.get(path);
     if (!object) {
-      return new Response("Imagen no encontrada en R2", { status: 404 });
+      return new Response("Imagen no encontrada", { status: 404 });
     }
 
     const headers = new Headers();
@@ -38,6 +38,6 @@ export const GET: APIRoute = async ({ params, locals }) => {
     });
   } catch (error: any) {
     console.error(`Error al servir imagen R2 [${path}]:`, error);
-    return new Response("Error al recuperar la imagen desde Cloudflare R2", { status: 500 });
+    return new Response("Error al recuperar la imagen", { status: 500 });
   }
 };

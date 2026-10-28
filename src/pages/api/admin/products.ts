@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -35,7 +35,7 @@ export const GET: APIRoute = async ({ locals }) => {
   } catch (error) {
     console.error("Error al obtener productos para admin:", error);
     return new Response(
-      JSON.stringify({ error: "Error al consultar los productos en D1" }),
+      JSON.stringify({ error: "Error al consultar los productos" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -101,14 +101,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
       JSON.stringify({
         ok: true,
         id: nuevoId,
-        mensaje: "Perfume creado exitosamente en Cloudflare D1",
+        mensaje: "Perfume creado exitosamente",
       }),
       { status: 201, headers: { "Content-Type": "application/json" } },
     );
   } catch (error: any) {
     console.error("Error al crear producto en D1:", error);
     return new Response(
-      JSON.stringify({ error: error?.message || "Error al registrar el producto en D1" }),
+      JSON.stringify({ error: error?.message || "Error al registrar el producto" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -123,7 +123,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -166,14 +166,14 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     return new Response(
       JSON.stringify({
         ok: true,
-        mensaje: "Perfume actualizado exitosamente en Cloudflare D1",
+        mensaje: "Perfume actualizado exitosamente",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error: any) {
     console.error("Error al actualizar producto en D1:", error);
     return new Response(
-      JSON.stringify({ error: error?.message || "Error al actualizar el producto en D1" }),
+      JSON.stringify({ error: error?.message || "Error al actualizar el producto" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -188,7 +188,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -226,7 +226,7 @@ export const DELETE: APIRoute = async ({ request, url, locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -256,14 +256,14 @@ export const DELETE: APIRoute = async ({ request, url, locals }) => {
         mensaje:
           resultado.accion === "archivado"
             ? "El perfume fue archivado para preservar el historial de pedidos y trazabilidad."
-            : "El perfume fue eliminado permanentemente de la base de datos.",
+            : "El perfume fue eliminado permanentemente.",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error al eliminar o archivar producto:", error);
     return new Response(
-      JSON.stringify({ error: "Error al procesar la eliminación en D1" }),
+      JSON.stringify({ error: "Error al procesar la eliminación" }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

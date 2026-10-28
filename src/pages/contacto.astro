@@ -3,10 +3,20 @@ import Layout from "@/layouts/Layout.astro";
 import SectionTitle from "@/components/ui/SectionTitle.astro";
 import ContactForm from "@/features/contact/ContactForm";
 import Icon from "@/components/ui/Icon";
+import { obtenerConfiguracionTienda } from "@/lib/db";
+import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
+
+export const prerender = false;
 
 const title = "Contacto | Maison des Parfums";
 const description =
   "Conversemos sobre tu próxima fragancia. Solicita una recomendación, consulta disponibilidad o coordina tu pedido por WhatsApp de forma directa y personalizada.";
+
+const db = Astro.locals.runtime?.env?.DB;
+const config = db ? await obtenerConfiguracionTienda(db) : {};
+const whatsappPhone = config.whatsapp_pedidos || "910292249";
+const targetPhone = normalizarTelefonoWhatsApp(whatsappPhone);
+const directWhatsAppUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent("Hola Maison des Parfums, deseo contactar con un asesor comercial.")}`;
 ---
 
 <Layout title={title} description={description} currentPath="/contacto">
@@ -18,14 +28,25 @@ const description =
         copy="Solicita una recomendación, consulta disponibilidad o coordina tu pedido. Atención personalizada y directa por WhatsApp."
       />
       <div class="contact-cards">
+        <a
+          href={directWhatsAppUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style="text-decoration: none; color: inherit; display: block;"
+        >
+          <article style="cursor: pointer;">
+            <Icon name="whatsapp" size={26} />
+            <h3>WhatsApp Oficial</h3>
+            <p>Atención directa y pedidos.</p>
+            <span>Respuesta personalizada inmediata ↗</span>
+          </article>
+        </a>
         <article>
-          <Icon name="whatsapp" />
-          <h3>WhatsApp Oficial</h3>
-          <p>Atención directa y pedidos.</p>
-          <span>Respuesta personalizada inmediata</span>
-        </article>
-        <article>
-          <span class="at">@</span>
+          <div style="display: flex; gap: 10px; color: var(--gold); align-items: center;">
+            <Icon name="instagram" size={20} />
+            <Icon name="facebook" size={20} />
+            <Icon name="tiktok" size={20} />
+          </div>
           <h3>Redes sociales</h3>
           <p>Comunidad y lanzamientos.</p>
           <span>Instagram · Facebook · TikTok</span>
@@ -34,6 +55,6 @@ const description =
     </div>
 
     <!-- Formulario interactivo -->
-    <ContactForm client:load />
+    <ContactForm client:load phone={whatsappPhone} />
   </main>
 </Layout>

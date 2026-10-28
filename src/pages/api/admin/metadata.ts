@@ -16,7 +16,7 @@ export const GET: APIRoute = async ({ locals }) => {
     const db = locals.runtime?.env?.DB;
     if (!db) {
       return new Response(
-        JSON.stringify({ error: "Base de datos D1 no disponible" }),
+        JSON.stringify({ error: "Servicio de datos no disponible" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }

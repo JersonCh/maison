@@ -1,6 +1,20 @@
 ---
+interface Props {
+  text?: string;
+}
+
+const {
+  text = "Fragancias 100% Originales · Envíos a todo el Perú · Atención personalizada por WhatsApp",
+} = Astro.props;
+
+const parts = text.split(" · ");
 ---
 
 <div class="announcement">
-  Envíos coordinados a todo el Perú <span></span> Asesoría personalizada por WhatsApp
+  {parts.map((part, index) => (
+    <Fragment key={index}>
+      {part}
+      {index < parts.length - 1 && <span></span>}
+    </Fragment>
+  ))}
 </div>
