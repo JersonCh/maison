@@ -94,10 +94,10 @@ export default function ProductTable({
             >
               <span className="table-product">
                 <img
-                  src={p.imagenes[0] || "/assets/maison-logo.jpeg"}
+                  src={p.imagenes[0] || "/assets/logo-no-fondo300.png"}
                   alt={p.nombre}
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/assets/maison-logo.jpeg";
+                    (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
                   }}
                 />
                 <b>

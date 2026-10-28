@@ -12,7 +12,7 @@ interface Props {
   initialProducts?: any[];
 }
 
-export default function AdminDashboard({}: Props) {
+export default function AdminDashboard({ }: Props) {
   const [logged, setLogged] = useState(false);
   const [section, setSection] = useState("dashboard");
   const [cargando, setCargando] = useState(false);
@@ -138,7 +138,7 @@ export default function AdminDashboard({}: Props) {
     return (
       <main className="admin-login">
         <div className="login-brand">
-          <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+          <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
           <p>Gestión de la tienda</p>
         </div>
         <form
@@ -189,7 +189,7 @@ export default function AdminDashboard({}: Props) {
     <main className="admin-shell">
       {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
-        <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+        <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
         <span>Panel Administrativo</span>
         <nav>
           {menu.map((item) => (
@@ -257,10 +257,10 @@ export default function AdminDashboard({}: Props) {
                 {productos.slice(0, 5).map((p) => (
                   <div className="mini-product" key={p.id}>
                     <img
-                      src={p.imagenes[0] || "/assets/maison-logo.jpeg"}
+                      src={p.imagenes[0] || "/assets/logo-no-fondo300.png"}
                       alt={p.nombre}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/assets/maison-logo.jpeg";
+                        (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
                       }}
                     />
                     <span>

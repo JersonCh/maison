@@ -79,7 +79,7 @@ export async function obtenerProductosCatalogo(
       COALESCE(
         (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
         (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id ORDER BY orden ASC LIMIT 1),
-        '/assets/maison-logo.jpeg'
+        '/assets/logo-no-fondo300.png'
       ) AS imagen_principal,
       v.precio_centimos AS precio_minimo_centimos,
       v.precio_referencia_centimos,
@@ -272,7 +272,7 @@ export async function obtenerFraganciasRelacionadas(
           COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
           COALESCE(
             (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
-            '/assets/maison-logo.jpeg'
+            '/assets/logo-no-fondo300.png'
           ) AS imagen_principal,
           v.precio_centimos AS precio_minimo_centimos,
           v.precio_referencia_centimos,
@@ -299,7 +299,7 @@ export async function obtenerFraganciasRelacionadas(
         COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
         COALESCE(
           (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
-          '/assets/maison-logo.jpeg'
+          '/assets/logo-no-fondo300.png'
         ) AS imagen_principal,
         v.precio_centimos AS precio_minimo_centimos,
         v.precio_referencia_centimos,
@@ -461,7 +461,7 @@ export async function obtenerProductosParaAdmin(
     mapaImagenes.set(img.producto_id, lista);
   }
 
-  const imagenPorDefecto = "/assets/maison-logo.jpeg";
+  const imagenPorDefecto = "/assets/logo-no-fondo300.png";
 
   return productos.map((p) => {
     const vars = mapaVariantes.get(p.id) || [];
@@ -703,7 +703,7 @@ export async function crearNuevoProductoEnDb(
   // 4. Insertar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
   const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
   if (fotosFiltradas.length === 0) {
-    fotosFiltradas.push("/assets/maison-logo.jpeg");
+    fotosFiltradas.push("/assets/logo-no-fondo300.png");
   }
 
   const sentenciasImagenes = fotosFiltradas.map((url, indice) => {
@@ -852,7 +852,7 @@ export async function actualizarProductoEnDb(
 
   const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
   if (fotosFiltradas.length === 0) {
-    fotosFiltradas.push("/assets/maison-logo.jpeg");
+    fotosFiltradas.push("/assets/logo-no-fondo300.png");
   }
 
   const sentenciasImagenes = fotosFiltradas.map((url, indice) => {
@@ -1015,7 +1015,7 @@ export async function obtenerProductosBoutique(
     // Mapear al modelo Product que el frontend consume
     return productos.map((p, index) => {
       const fotos = mapaImagenes.get(p.id) || [];
-      const imagenPrincipal = fotos[0] || "/assets/maison-logo.jpeg";
+      const imagenPrincipal = fotos[0] || "/assets/logo-no-fondo300.png";
       const listaVariantes = mapaVariantes.get(p.id) || [
         { size: "50 ml", price: 490 },
         { size: "100 ml", price: 620 },
@@ -1085,7 +1085,7 @@ export async function obtenerDetalleProductoBoutique(
 
     const fotos = detalleDb.galeria_imagenes && detalleDb.galeria_imagenes.length > 0
       ? detalleDb.galeria_imagenes
-      : ["/assets/maison-logo.jpeg"];
+      : ["/assets/logo-no-fondo300.png"];
 
     const variantes: ProductVariant[] = detalleDb.variantes.map((v) => ({
       size: `${v.tamano_ml} ml`,

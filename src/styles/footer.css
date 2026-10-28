@@ -1,6 +1,6 @@
 footer { background: #090a09; color: #c2bfb8; }
 .footer-main { max-width: 1240px; margin: auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: 70px; padding: 80px 32px 65px; }
-.footer-brand img { width: 150px; height: 115px; object-fit: cover; }
+.footer-brand img { width: auto; max-width: 150px; height: 100px; object-fit: contain; object-position: left center; }
 .footer-brand p { max-width: 300px; color: #8d8b86; font-family: var(--serif); font-size: 14px; line-height: 1.7; }
 .footer-main h3 { margin: 14px 0 25px; color: var(--gold-light); font-size: 10px; letter-spacing: .17em; text-transform: uppercase; }
 .footer-main > div:not(.footer-brand) { display: flex; flex-direction: column; align-items: flex-start; }

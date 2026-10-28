@@ -3,29 +3,30 @@ import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
 import Icon from "@/components/ui/Icon";
 
 interface Props {
-  whatsapp?: string;
-  instagram?: string;
-  facebook?: string;
-  tiktok?: string;
-  horario?: string;
+    whatsapp?: string;
+    instagram?: string;
+    facebook?: string;
+    tiktok?: string;
+    horario?: string;
 }
 
 const {
-  whatsapp = "910292249",
-  instagram = "https://instagram.com/maisondesparfums",
-  facebook = "https://facebook.com/maisondesparfums",
-  tiktok = "https://tiktok.com/@maisondesparfums",
-  horario = "Lunes a sábado · 10:00 am - 8:00 pm",
+    whatsapp = "910292249",
+    instagram = "https://instagram.com/maisondesparfums",
+    facebook = "https://facebook.com/maisondesparfums",
+    tiktok = "https://tiktok.com/@maisondesparfums",
+    horario = "Lunes a sábado · 10:00 am - 8:00 pm",
 } = Astro.props;
 
 const phone = normalizarTelefonoWhatsApp(whatsapp);
 const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Maison des Parfums, deseo realizar una consulta.")}`;
 
 const formatSocialUrl = (url?: string, defaultBase = "") => {
-  if (!url) return "#";
-  const clean = url.trim();
-  if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
-  return `${defaultBase}${clean.replace(/^@/, "")}`;
+    if (!url) return "#";
+    const clean = url.trim();
+    if (clean.startsWith("http://") || clean.startsWith("https://"))
+        return clean;
+    return `${defaultBase}${clean.replace(/^@/, "")}`;
 };
 
 const instagramUrl = formatSocialUrl(instagram, "https://instagram.com/");
@@ -36,19 +37,34 @@ const tiktokUrl = formatSocialUrl(tiktok, "https://tiktok.com/@");
 <footer>
     <div class="footer-main">
         <div class="footer-brand">
-            <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
+            <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
             <p>
                 Fragancias originales seleccionadas para convertir cada
                 presencia en un recuerdo.
             </p>
             <div class="socials">
-                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a
+                    href={instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                >
                     <Icon name="instagram" size={15} />
                 </a>
-                <a href={facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <a
+                    href={facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook"
+                >
                     <Icon name="facebook" size={15} />
                 </a>
-                <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <a
+                    href={tiktokUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="TikTok"
+                >
                     <Icon name="tiktok" size={15} />
                 </a>
             </div>
@@ -73,7 +89,12 @@ const tiktokUrl = formatSocialUrl(tiktok, "https://tiktok.com/@");
         <div>
             <h3>Atención</h3>
             <p>
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="footer-wa-link">
+                <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="footer-wa-link"
+                >
                     <Icon name="whatsapp" size={16} /> Escríbenos por WhatsApp ↗
                 </a>
             </p>

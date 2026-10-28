@@ -48,6 +48,6 @@
 @media (max-width: 780px) {
   .mobile-drawer { display: block; left: 0; right: auto; padding: 25px; transform: translateX(-105%); }
   .drawer-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-  .drawer-top img { width: 100px; height: 80px; object-fit: cover; }
+  .drawer-top img { width: auto; max-width: 100px; height: 68px; object-fit: contain; object-position: left center; }
   .mobile-drawer > button { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; border-bottom: 1px solid var(--line); padding: 17px 0; background: none; font-family: var(--serif); font-size: 19px; }
 }

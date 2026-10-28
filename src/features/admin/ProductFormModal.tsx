@@ -596,7 +596,7 @@ export default function ProductFormModal({
                     src={fotoPortada}
                     alt="Vista previa portada"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/assets/maison-logo.jpeg";
+                      (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
                     }}
                   />
                 ) : (
@@ -648,7 +648,7 @@ export default function ProductFormModal({
                     src={fotoCaja}
                     alt="Vista previa caja"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/assets/maison-logo.jpeg";
+                      (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
                     }}
                   />
                 ) : (
@@ -699,7 +699,7 @@ export default function ProductFormModal({
                     src={fotoDetalle}
                     alt="Vista previa detalle"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/assets/maison-logo.jpeg";
+                      (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
                     }}
                   />
                 ) : (
