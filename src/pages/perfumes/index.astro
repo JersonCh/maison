@@ -1,11 +1,12 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import CatalogBrowser from "@/features/catalog/CatalogBrowser";
-import { getAllProducts } from "@/data/products";
+import { obtenerProductosBoutique } from "@/lib/db";
 
 export const prerender = false;
 
-const allProducts = getAllProducts();
+const db = Astro.locals.runtime?.env?.DB;
+const allProducts = await obtenerProductosBoutique(db);
 const genderParam = Astro.url.searchParams.get("genero") || "";
 const brandParam = Astro.url.searchParams.get("marca") || "";
 const queryParam = Astro.url.searchParams.get("q") || "";

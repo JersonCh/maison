@@ -8,7 +8,8 @@ import type {
   ProductoAdminItem,
   DatosFormularioProducto,
 } from "@/types/database";
-import type { Gender } from "@/types/product";
+import type { Gender, Product, ProductVariant } from "@/types/product";
+import { getAllProducts, getProductBySlug } from "@/data/products";
 
 // =============================================================================
 // 1. CONFIGURACIÓN COMERCIAL DE LA TIENDA
@@ -909,3 +910,232 @@ export async function archivarOEliminarProducto(
   await db.prepare("DELETE FROM productos WHERE id = ?").bind(productoId).run();
   return { accion: "eliminado" };
 }
+
+// =============================================================================
+// 6. ADAPTADOR Y CONSULTAS PARA LA TIENDA PÚBLICA (FRONTEND BOUTIQUE)
+// =============================================================================
+
+/**
+ * Obtiene todos los productos publicados desde Cloudflare D1 adaptados
+ * al modelo de dominio `Product` que consume el frontend público.
+ * Si la base de datos no está disponible o falla, utiliza el catálogo
+ * estático de respaldo para garantizar cero caídas en la tienda.
+ */
+export async function obtenerProductosBoutique(
+  db?: D1Database,
+): Promise<Product[]> {
+  if (!db) {
+    return getAllProducts();
+  }
+
+  try {
+    // 1. Consultar productos publicados
+    const { results: productos } = await db
+      .prepare(
+        `SELECT 
+          p.id,
+          p.nombre,
+          p.slug,
+          m.nombre AS marca,
+          p.genero,
+          COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
+          COALESCE(p.descripcion, '') AS descripcion,
+          p.es_destacado,
+          p.created_at
+        FROM productos p
+        JOIN marcas m ON p.marca_id = m.id
+        LEFT JOIN producto_familias_olfativas pf ON p.id = pf.producto_id
+        LEFT JOIN familias_olfativas f ON pf.familia_olfativa_id = f.id
+        WHERE p.estado = 'publicado'
+        ORDER BY p.id ASC`,
+      )
+      .all<any>();
+
+    if (!productos || productos.length === 0) {
+      return getAllProducts();
+    }
+
+    // 2. Consultar variantes activas
+    const { results: variantes } = await db
+      .prepare(
+        `SELECT producto_id, tamano_ml, precio_centimos, precio_referencia_centimos, es_predeterminada
+         FROM variantes_producto
+         WHERE activo = 1
+         ORDER BY tamano_ml ASC`,
+      )
+      .all<any>();
+
+    // 3. Consultar imágenes ordenadas
+    const { results: imagenes } = await db
+      .prepare(
+        `SELECT producto_id, clave_archivo, es_principal, orden
+         FROM imagenes_producto
+         ORDER BY es_principal DESC, orden ASC`,
+      )
+      .all<{ producto_id: number; clave_archivo: string; es_principal: number; orden: number }>();
+
+    // Agrupar variantes por producto_id
+    const mapaVariantes = new Map<number, ProductVariant[]>();
+    const mapaPreciosReferencia = new Map<number, number>();
+
+    for (const v of variantes) {
+      if (!mapaVariantes.has(v.producto_id)) {
+        mapaVariantes.set(v.producto_id, []);
+      }
+      mapaVariantes.get(v.producto_id)!.push({
+        size: `${v.tamano_ml} ml`,
+        price: Math.round(v.precio_centimos / 100),
+      });
+
+      if (v.precio_referencia_centimos && v.precio_referencia_centimos > v.precio_centimos) {
+        mapaPreciosReferencia.set(v.producto_id, Math.round(v.precio_referencia_centimos / 100));
+      }
+    }
+
+    // Agrupar imágenes por producto_id
+    const mapaImagenes = new Map<number, string[]>();
+    for (const img of imagenes) {
+      if (!mapaImagenes.has(img.producto_id)) {
+        mapaImagenes.set(img.producto_id, []);
+      }
+      mapaImagenes.get(img.producto_id)!.push(img.clave_archivo);
+    }
+
+    // Mapear al modelo Product que el frontend consume
+    return productos.map((p, index) => {
+      const fotos = mapaImagenes.get(p.id) || [];
+      const imagenPrincipal = fotos[0] || "/assets/maison-logo.jpeg";
+      const listaVariantes = mapaVariantes.get(p.id) || [
+        { size: "50 ml", price: 490 },
+        { size: "100 ml", price: 620 },
+      ];
+      const precioAnterior = mapaPreciosReferencia.get(p.id);
+
+      return {
+        id: p.id,
+        slug: p.slug,
+        brand: p.marca,
+        name: p.nombre,
+        gender: p.genero as Gender,
+        family: p.familia_olfativa,
+        description: p.descripcion,
+        image: imagenPrincipal,
+        gallery: fotos.length > 0 ? fotos : [imagenPrincipal],
+        variants: listaVariantes,
+        oldPrice: precioAnterior,
+        stock: 12,
+        featured: Boolean(p.es_destacado),
+        recent: index >= productos.length - 4,
+        active: true,
+      };
+    });
+  } catch (error) {
+    console.error("Error al consultar productos de D1 para boutique, usando respaldo:", error);
+    return getAllProducts();
+  }
+}
+
+/**
+ * Obtiene la ficha de detalle de un perfume por su slug desde Cloudflare D1
+ * adaptada al frontend con su pirámide olfativa y variantes completas.
+ */
+export async function obtenerDetalleProductoBoutique(
+  slug: string,
+  db?: D1Database,
+): Promise<{
+  producto: Product;
+  piramide: PiramideOlfativa;
+  caracteristicas: {
+    concentracion: string;
+    ocasion: string;
+    procedencia: string;
+  };
+} | null> {
+  const piramidePorDefecto: PiramideOlfativa = {
+    salida: ["Bergamota", "Pimienta rosa", "Acordes cítricos"],
+    corazon: ["Jazmín", "Maderas nobles", "Especias envolventes"],
+    fondo: ["Ámbar", "Almizcle blanco", "Vainilla de Madagascar"],
+  };
+
+  const caracteristicasPorDefecto = {
+    concentracion: "Eau de Parfum",
+    ocasion: "Día y noche",
+    procedencia: "Importado",
+  };
+
+  if (!db) {
+    const fallback = getProductBySlug(slug);
+    if (!fallback) return null;
+    return {
+      producto: fallback,
+      piramide: piramidePorDefecto,
+      caracteristicas: caracteristicasPorDefecto,
+    };
+  }
+
+  try {
+    const detalleDb = await obtenerDetalleProductoPorSlug(db, slug);
+    if (!detalleDb) {
+      const fallback = getProductBySlug(slug);
+      if (!fallback) return null;
+      return {
+        producto: fallback,
+        piramide: piramidePorDefecto,
+        caracteristicas: caracteristicasPorDefecto,
+      };
+    }
+
+    const fotos = detalleDb.galeria_imagenes && detalleDb.galeria_imagenes.length > 0
+      ? detalleDb.galeria_imagenes
+      : ["/assets/maison-logo.jpeg"];
+
+    const variantes: ProductVariant[] = detalleDb.variantes.map((v) => ({
+      size: `${v.tamano_ml} ml`,
+      price: Math.round(v.precio_centimos / 100),
+    }));
+
+    const varRef = detalleDb.variantes.find(
+      (v) => v.precio_referencia_centimos && v.precio_referencia_centimos > v.precio_centimos,
+    );
+    const precioReferencia = varRef?.precio_referencia_centimos
+      ? Math.round(varRef.precio_referencia_centimos / 100)
+      : undefined;
+
+    const producto: Product = {
+      id: detalleDb.id,
+      slug: detalleDb.slug,
+      brand: detalleDb.marca,
+      name: detalleDb.nombre,
+      gender: detalleDb.genero,
+      family: detalleDb.familia_olfativa,
+      description: detalleDb.descripcion,
+      image: fotos[0],
+      gallery: fotos,
+      variants: variantes.length > 0 ? variantes : [{ size: "50 ml", price: 490 }],
+      oldPrice: precioReferencia,
+      stock: 12,
+      featured: true,
+      active: true,
+    };
+
+    return {
+      producto,
+      piramide: detalleDb.piramide_olfativa || piramidePorDefecto,
+      caracteristicas: {
+        concentracion: detalleDb.concentracion || "Eau de Parfum",
+        ocasion: detalleDb.ocasion_uso || "Día y noche",
+        procedencia: detalleDb.pais_origen || "Importado",
+      },
+    };
+  } catch (error) {
+    console.error("Error al obtener detalle de D1 para slug:", slug, error);
+    const fallback = getProductBySlug(slug);
+    if (!fallback) return null;
+    return {
+      producto: fallback,
+      piramide: piramidePorDefecto,
+      caracteristicas: caracteristicasPorDefecto,
+    };
+  }
+}
+

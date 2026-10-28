@@ -4,26 +4,43 @@ import ProductDetailInteractive from "@/components/product/ProductDetailInteract
 import SectionTitle from "@/components/ui/SectionTitle.astro";
 import ProductCard from "@/components/product/ProductCard.astro";
 import {
-  getAllProducts,
-  getProductBySlug,
-  getRelatedProducts,
-} from "@/data/products";
+  obtenerDetalleProductoBoutique,
+  obtenerProductosBoutique,
+} from "@/lib/db";
 
-export function getStaticPaths() {
-  const allProducts = getAllProducts();
-  return allProducts.map((p) => ({
-    params: { slug: p.slug },
-  }));
-}
+export const prerender = false;
 
 const { slug } = Astro.params;
-const product = getProductBySlug(slug as string);
+const db = Astro.locals.runtime?.env?.DB;
 
-if (!product) {
+if (!slug) {
   return Astro.redirect("/perfumes");
 }
 
-const related = getRelatedProducts(product, 4);
+const resultado = await obtenerDetalleProductoBoutique(slug as string, db);
+
+if (!resultado) {
+  return Astro.redirect("/perfumes");
+}
+
+const { producto: product, piramide, caracteristicas } = resultado;
+
+// Obtener fragancias afines desde D1
+const todosLosProductos = await obtenerProductosBoutique(db);
+const related = todosLosProductos
+  .filter(
+    (p) =>
+      p.id !== product.id &&
+      (p.family === product.family || p.brand === product.brand),
+  )
+  .slice(0, 4);
+
+if (related.length < 4) {
+  const adicionales = todosLosProductos.filter(
+    (p) => p.id !== product.id && !related.some((r) => r.id === p.id),
+  );
+  related.push(...adicionales.slice(0, 4 - related.length));
+}
 
 const pageTitle = `${product.name} - ${product.brand} | Maison des Parfums`;
 const pageDescription = `${product.name} de ${product.brand}. Familia olfativa ${product.family}. ${product.description}`;
@@ -76,17 +93,17 @@ const productSchema = {
         <article>
           <span>01</span>
           <h3>Salida</h3>
-          <p>Bergamota, pimienta rosa y acordes cítricos.</p>
+          <p>{piramide.salida.join(", ")}</p>
         </article>
         <article>
           <span>02</span>
           <h3>Corazón</h3>
-          <p>Jazmín, maderas nobles y especias envolventes.</p>
+          <p>{piramide.corazon.join(", ")}</p>
         </article>
         <article>
           <span>03</span>
           <h3>Fondo</h3>
-          <p>Ámbar, almizcle blanco y vainilla de Madagascar.</p>
+          <p>{piramide.fondo.join(", ")}</p>
         </article>
       </div>
     </section>
@@ -108,15 +125,15 @@ const productSchema = {
         </div>
         <div>
           <dt>Concentración</dt>
-          <dd>Eau de Parfum</dd>
+          <dd>{caracteristicas.concentracion}</dd>
         </div>
         <div>
           <dt>Ocasión</dt>
-          <dd>Día y noche</dd>
+          <dd>{caracteristicas.ocasion}</dd>
         </div>
         <div>
           <dt>Procedencia</dt>
-          <dd>Importado</dd>
+          <dd>{caracteristicas.procedencia}</dd>
         </div>
       </dl>
     </section>

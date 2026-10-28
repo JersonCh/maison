@@ -4,16 +4,19 @@ import SectionTitle from "@/components/ui/SectionTitle.astro";
 import Button from "@/components/ui/Button.astro";
 import ProductCard from "@/components/product/ProductCard.astro";
 import Icon from "@/components/ui/Icon";
-import {
-  heroImage,
-  categoryImages,
-  getFeaturedProducts,
-  getRecentProducts,
-} from "@/data/products";
+import { heroImage, categoryImages } from "@/data/products";
+import { obtenerProductosBoutique } from "@/lib/db";
 import type { Gender } from "@/types/product";
 
-const featuredProducts = getFeaturedProducts();
-const recentProducts = getRecentProducts();
+export const prerender = false;
+
+const db = Astro.locals.runtime?.env?.DB;
+const allProducts = await obtenerProductosBoutique(db);
+
+const featuredProducts = allProducts.filter((p) => p.featured).slice(0, 5);
+const recentProducts = allProducts
+  .filter((p) => p.recent || !p.featured)
+  .slice(0, 4);
 const categories: Gender[] = ["Hombre", "Mujer", "Unisex"];
 
 const websiteSchema = {
