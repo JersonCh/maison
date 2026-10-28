@@ -134,6 +134,7 @@ export interface ProductoAdminItem {
  */
 export interface DatosFormularioProducto {
   nombre: string;
+  slug?: string;
   marca_id?: number;
   nueva_marca?: string;
   genero: Gender;

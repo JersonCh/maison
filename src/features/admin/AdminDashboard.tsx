@@ -360,6 +360,7 @@ export default function AdminDashboard({}: Props) {
 
       {/* MODAL RESPONSABILIDAD ÚNICA: CREACIÓN / EDICIÓN */}
       <ProductFormModal
+        key={productoEnEdicion?.id ?? "nuevo"}
         isOpen={modalAbierto}
         onClose={() => {
           setModalAbierto(false);

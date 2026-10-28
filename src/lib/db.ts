@@ -618,7 +618,7 @@ export async function crearNuevoProductoEnDb(
     datos.familia_olfativa_id,
     datos.nueva_familia,
   );
-  const slugFinal = await generarSlugUnico(db, datos.nombre);
+  const slugFinal = await generarSlugUnico(db, datos.slug?.trim() || datos.nombre);
   const estadoFinal = datos.activo ? "publicado" : "borrador";
   const esDestacado = datos.es_destacado ? 1 : 0;
 
@@ -740,13 +740,19 @@ export async function actualizarProductoEnDb(
     datos.nueva_familia,
   );
   // En comercio electrónico profesional (Shopify, WooCommerce, Medusa):
-  // El slug existente se preserva de forma inmutable para no romper enlaces indexados en Google ni URLs compartidas.
+  // Si el usuario proporcionó un slug explícito diferente, se normaliza y valida.
+  // De lo contrario, el slug existente se preserva de forma inmutable para proteger SEO y URLs compartidas.
   const registroActual = await db
     .prepare("SELECT slug FROM productos WHERE id = ?")
     .bind(productoId)
     .first<{ slug: string }>();
 
-  const slugFinal = registroActual?.slug || (await generarSlugUnico(db, datos.nombre, productoId));
+  let slugFinal = registroActual?.slug;
+  if (datos.slug?.trim() && datos.slug.trim() !== registroActual?.slug) {
+    slugFinal = await generarSlugUnico(db, datos.slug.trim(), productoId);
+  } else if (!slugFinal) {
+    slugFinal = await generarSlugUnico(db, datos.nombre, productoId);
+  }
   const estadoFinal = datos.activo ? "publicado" : "borrador";
   const esDestacado = datos.es_destacado ? 1 : 0;
 

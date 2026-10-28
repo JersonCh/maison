@@ -6,6 +6,7 @@ import type {
   DatosFormularioProducto,
 } from "@/types/database";
 import type { Gender } from "@/types/product";
+import { slugify } from "@/lib/slug";
 import Icon from "@/components/ui/Icon";
 
 interface Props {
@@ -27,12 +28,19 @@ export default function ProductFormModal({
   familiasDisponibles,
   onReloadMetadata,
 }: Props) {
-  if (!isOpen) return null;
-
   const esEdicion = Boolean(initialProduct?.id);
 
   // Estados del formulario
   const [nombre, setNombre] = useState(initialProduct?.nombre || "");
+  const [slug, setSlug] = useState(
+    initialProduct?.slug || slugify(initialProduct?.nombre || ""),
+  );
+  const [slugEditado, setSlugEditado] = useState(
+    initialProduct?.slug || slugify(initialProduct?.nombre || ""),
+  );
+  const [modoEditarSlug, setModoEditarSlug] = useState(false);
+  const [slugPersonalizado, setSlugPersonalizado] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const [marcaId, setMarcaId] = useState<number>(
     initialProduct?.marca_id || marcasDisponibles[0]?.id || 1,
   );
@@ -107,6 +115,7 @@ export default function ProductFormModal({
     try {
       const cargaUtil: DatosFormularioProducto & { id?: number } = {
         nombre: nombre.trim(),
+        slug: slug.trim() || undefined,
         marca_id: modoNuevaMarca ? undefined : marcaId,
         nueva_marca: modoNuevaMarca ? nuevaMarca.trim() : undefined,
         genero,
@@ -158,6 +167,45 @@ export default function ProductFormModal({
     }
   };
 
+  const copiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://maison.pe/perfumes/${slug}`);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Sin bloqueo si el portapapeles no tiene permisos
+    }
+  };
+
+  const confirmarSlugEditado = () => {
+    const normalizado = slugify(slugEditado);
+    if (!normalizado) {
+      setSlugEditado(slug);
+      setModoEditarSlug(false);
+      return;
+    }
+    setSlug(normalizado);
+    setSlugPersonalizado(true);
+    setModoEditarSlug(false);
+  };
+
+  const cancelarSlugEditado = () => {
+    setSlugEditado(slug);
+    setModoEditarSlug(false);
+  };
+
+  const manejarKeyDownSlug = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      confirmarSlugEditado();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelarSlugEditado();
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
     <div className="admin-modal" role="dialog" aria-modal="true">
       <form onSubmit={manejarEnvio}>
@@ -200,15 +248,111 @@ export default function ProductFormModal({
           </legend>
 
           <div className="form-grid">
-            <label>
-              Nombre del perfume *
-              <input
-                required
-                placeholder="Ej. Baccarat Rouge 540"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-              />
-            </label>
+            <div>
+              <label>
+                Nombre del perfume *
+                <input
+                  required
+                  placeholder="Ej. Baccarat Rouge 540"
+                  value={nombre}
+                  onChange={(e) => {
+                    const nuevoNombre = e.target.value;
+                    setNombre(nuevoNombre);
+                    if (!esEdicion && !slugPersonalizado) {
+                      const nuevoSlug = slugify(nuevoNombre);
+                      setSlug(nuevoSlug);
+                      setSlugEditado(nuevoSlug);
+                    }
+                  }}
+                />
+              </label>
+
+              {/* Visualizador de enlace permanente SEO (estilo WooCommerce / Shopify) */}
+              <div className="permalink-box">
+                <div className="permalink-url-wrapper">
+                  <span>Enlace permanente:&nbsp;</span>
+                  <code>
+                    https://maison.pe/perfumes/<strong>{slug || "nuevo-perfume"}</strong>
+                  </code>
+                </div>
+
+                <div className="permalink-actions">
+                  {esEdicion && !modoEditarSlug && (
+                    <span className="permalink-badge">SEO Fijo</span>
+                  )}
+
+                  {!modoEditarSlug && (
+                    <>
+                      <button
+                        type="button"
+                        className="permalink-btn"
+                        onClick={() => {
+                          setSlugEditado(slug);
+                          setModoEditarSlug(true);
+                        }}
+                      >
+                        Editar URL
+                      </button>
+
+                      {esEdicion && slug && (
+                        <>
+                          <button
+                            type="button"
+                            className="permalink-btn"
+                            onClick={copiarEnlace}
+                          >
+                            {copiado ? "¡Copiado!" : "Copiar"}
+                          </button>
+                          <a
+                            href={`/perfumes/${slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="permalink-link"
+                            title="Ver en boutique (abre en nueva pestaña)"
+                          >
+                            Ver ↗
+                          </a>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {modoEditarSlug && (
+                  <>
+                    <div className="permalink-edit-row">
+                      <input
+                        type="text"
+                        autoFocus
+                        value={slugEditado}
+                        onChange={(e) => setSlugEditado(e.target.value)}
+                        onKeyDown={manejarKeyDownSlug}
+                        placeholder="nuevo-slug"
+                      />
+                      <button
+                        type="button"
+                        className="permalink-btn-confirm"
+                        onClick={confirmarSlugEditado}
+                      >
+                        Aceptar
+                      </button>
+                      <button
+                        type="button"
+                        className="permalink-btn-cancel"
+                        onClick={cancelarSlugEditado}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                    {esEdicion && (
+                      <p className="permalink-warning">
+                        ⚠ Modificar el enlace de un perfume ya publicado alterará su URL permanente en la tienda pública.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
 
             <div>
               <label>
