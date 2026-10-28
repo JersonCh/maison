@@ -39,7 +39,7 @@ export default function CatalogBrowser({
     if (paramQuery) setSearch(paramQuery);
   }, []);
 
-  // Sincronizar URL suavemente
+  // Sincronizar URL suavemente y actualizar enlace activo en cabecera
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams();
@@ -52,6 +52,25 @@ export default function CatalogBrowser({
       ? `${window.location.pathname}?${queryString}`
       : window.location.pathname;
     window.history.replaceState(null, "", newRelativePath);
+
+    // Mantener sincronizada la barra de navegación superior si cambia el género interactivamente
+    const navLinks = document.querySelectorAll(".site-header nav a");
+    navLinks.forEach((link) => {
+      const href = link.getAttribute("href") || "";
+      const url = new URL(href, window.location.origin);
+      const linkGender = url.searchParams.get("genero")?.toLowerCase() || "";
+      const isPerfumesBase = href === "/perfumes";
+
+      if (gender) {
+        if (linkGender === gender.toLowerCase()) {
+          link.classList.add("active");
+        } else {
+          link.classList.remove("active");
+        }
+      } else if (isPerfumesBase) {
+        link.classList.add("active");
+      }
+    });
   }, [gender, brand, search]);
 
   const brands = useMemo(
@@ -102,7 +121,9 @@ export default function CatalogBrowser({
   };
 
   const pageTitle = gender
-    ? `Perfumes para ${gender.toLowerCase()}`
+    ? gender.toLowerCase() === "unisex"
+      ? "Perfumes Unisex"
+      : `Perfumes para ${gender.toLowerCase()}`
     : "Todos los perfumes";
 
   return (

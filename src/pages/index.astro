@@ -78,7 +78,11 @@ const websiteSchema = {
             <a class="category-card" href={`/perfumes?genero=${gender}`}>
               <img
                 src={categoryImages[gender]}
-                alt={`Perfumes para ${gender.toLowerCase()}`}
+                alt={
+                  gender.toLowerCase() === "unisex"
+                    ? "Perfumes Unisex"
+                    : `Perfumes para ${gender.toLowerCase()}`
+                }
                 loading="lazy"
               />
               <span>

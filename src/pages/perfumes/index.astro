@@ -9,7 +9,9 @@ const brandParam = Astro.url.searchParams.get("marca") || "";
 const queryParam = Astro.url.searchParams.get("q") || "";
 
 const title = genderParam
-  ? `Perfumes para ${genderParam} | Maison des Parfums`
+  ? genderParam.toLowerCase() === "unisex"
+    ? "Perfumes Unisex | Maison des Parfums"
+    : `Perfumes para ${genderParam} | Maison des Parfums`
   : "Catálogo de Perfumes Originales | Maison des Parfums";
 
 const description =

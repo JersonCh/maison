@@ -38,9 +38,9 @@ const navItems = [
     <nav>
         {
             navItems.map((item) => {
-                const isActive =
-                    (item.gender && currentGender === item.gender) ||
-                    (!item.gender && currentPath === item.href);
+                const isActive = item.gender
+                    ? currentGender?.toLowerCase() === item.gender.toLowerCase()
+                    : !currentGender && currentPath === item.href;
                 return (
                     <a href={item.href} class={isActive ? "active" : ""}>
                         {item.label}
