@@ -73,7 +73,7 @@ export default function ProductDetailInteractive({ product }: Props) {
 
         <div className="stock">
           <i />
-          <span>Disponible</span> · {product.stock} unidades
+          <span>Disponible</span>
         </div>
 
         {/* Variantes de tamaño */}

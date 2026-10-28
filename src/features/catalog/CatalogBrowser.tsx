@@ -96,7 +96,7 @@ export default function CatalogBrowser({
       if (brand && p.brand !== brand) return false;
       if (family && p.family !== family) return false;
       if (p.variants[0].price > maxPrice) return false;
-      if (available && p.stock <= 0) return false;
+      if (available && p.stock !== undefined && p.stock <= 0) return false;
       return true;
     });
 

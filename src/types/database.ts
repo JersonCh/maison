@@ -125,7 +125,7 @@ export interface ProductoAdminItem {
   precio_100ml: number; // En Soles
   precio_referencia_50ml: number | null; // En Soles
   imagenes: string[]; // 1 a 3 fotos (portada obligatoria, caja y detalle opcionales)
-  stock: number;
+  stock?: number;
 }
 
 /**

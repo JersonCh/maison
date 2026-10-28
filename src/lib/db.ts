@@ -494,7 +494,6 @@ export async function obtenerProductosParaAdmin(
         ? Math.round(v50.precio_referencia_centimos / 100)
         : null,
       imagenes: fotosRegistradas,
-      stock: 12, // Stock estimado referencial
     };
   });
 }
@@ -1035,7 +1034,6 @@ export async function obtenerProductosBoutique(
         gallery: fotos.length > 0 ? fotos : [imagenPrincipal],
         variants: listaVariantes,
         oldPrice: precioAnterior,
-        stock: 12,
         featured: Boolean(p.es_destacado),
         recent: index >= productos.length - 4,
         active: true,
@@ -1113,7 +1111,6 @@ export async function obtenerDetalleProductoBoutique(
       gallery: fotos,
       variants: variantes.length > 0 ? variantes : [{ size: "50 ml", price: 490 }],
       oldPrice: precioReferencia,
-      stock: 12,
       featured: true,
       active: true,
     };

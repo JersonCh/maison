@@ -17,7 +17,7 @@ export interface Product {
     gallery: string[];
     variants: ProductVariant[];
     oldPrice?: number;
-    stock: number;
+    stock?: number;
     featured?: boolean;
     recent?: boolean;
     active?: boolean;

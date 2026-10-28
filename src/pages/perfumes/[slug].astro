@@ -60,7 +60,7 @@ const productSchema = {
     "lowPrice": product.variants[0]?.price,
     "highPrice": product.variants[product.variants.length - 1]?.price,
     "offerCount": product.variants.length,
-    "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    "availability": product.active !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
   },
 };
 ---
