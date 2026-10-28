@@ -88,6 +88,45 @@ export default function ProductFormModal({
 
   const [guardando, setGuardando] = useState(false);
   const [errorValidacion, setErrorValidacion] = useState("");
+  const [subiendoSlot, setSubiendoSlot] = useState<number | null>(null);
+  const [errorSubida, setErrorSubida] = useState<string | null>(null);
+
+  const manejarSubidaArchivo = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    slotNumero: number,
+    setter: (url: string) => void,
+  ) => {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+
+    setErrorSubida(null);
+    setSubiendoSlot(slotNumero);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", archivo);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al subir la imagen.");
+      }
+
+      setter(data.url);
+    } catch (err: any) {
+      console.error("Error al subir archivo a R2:", err);
+      setErrorSubida(
+        `Error en foto ${slotNumero}: ${err.message || "No se pudo subir la imagen."}`,
+      );
+    } finally {
+      setSubiendoSlot(null);
+      e.target.value = "";
+    }
+  };
 
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -539,8 +578,10 @@ export default function ProductFormModal({
           <p style={{ margin: "0 0 10px 0", fontSize: "9px", color: "var(--muted)" }}>
             La foto de portada es indispensable para la boutique y el catálogo. La caja
             oficial y el detalle editorial son opcionales y pueden añadirse ahora o más
-            adelante.
+            adelante. Puedes subir imágenes desde tu dispositivo o mantener/pegar una URL existente.
           </p>
+
+          {errorSubida && <div className="photo-upload-error">⚠ {errorSubida}</div>}
 
           <div className="photo-slots-grid">
             {/* Foto 1: Portada (Obligatoria) */}
@@ -562,10 +603,33 @@ export default function ProductFormModal({
                   <span className="photo-slot-empty">Sin imagen</span>
                 )}
               </div>
+              <div className="photo-slot-actions">
+                <label className={`btn-upload-file ${subiendoSlot === 1 ? "uploading" : ""}`}>
+                  {subiendoSlot === 1 ? "⏳ Subiendo a R2..." : "📷 Subir archivo"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    disabled={subiendoSlot !== null}
+                    style={{ display: "none" }}
+                    onChange={(e) => manejarSubidaArchivo(e, 1, setFotoPortada)}
+                  />
+                </label>
+                {fotoPortada && (
+                  <button
+                    type="button"
+                    className="btn-clear-photo"
+                    onClick={() => setFotoPortada("")}
+                    title="Limpiar campo"
+                  >
+                    Quitar
+                  </button>
+                )}
+              </div>
               <div className="photo-slot-input">
+                <span className="photo-slot-url-label">URL de la imagen</span>
                 <input
                   required
-                  placeholder="URL imagen portada (obligatoria)..."
+                  placeholder="https://... o /api/images/..."
                   value={fotoPortada}
                   onChange={(e) => setFotoPortada(e.target.value)}
                 />
@@ -591,9 +655,32 @@ export default function ProductFormModal({
                   <span className="photo-slot-empty">Opcional (sin foto)</span>
                 )}
               </div>
+              <div className="photo-slot-actions">
+                <label className={`btn-upload-file ${subiendoSlot === 2 ? "uploading" : ""}`}>
+                  {subiendoSlot === 2 ? "⏳ Subiendo a R2..." : "📷 Subir archivo"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    disabled={subiendoSlot !== null}
+                    style={{ display: "none" }}
+                    onChange={(e) => manejarSubidaArchivo(e, 2, setFotoCaja)}
+                  />
+                </label>
+                {fotoCaja && (
+                  <button
+                    type="button"
+                    className="btn-clear-photo"
+                    onClick={() => setFotoCaja("")}
+                    title="Limpiar campo"
+                  >
+                    Quitar
+                  </button>
+                )}
+              </div>
               <div className="photo-slot-input">
+                <span className="photo-slot-url-label">URL de la imagen</span>
                 <input
-                  placeholder="URL imagen empaque (opcional)..."
+                  placeholder="https://... o /api/images/..."
                   value={fotoCaja}
                   onChange={(e) => setFotoCaja(e.target.value)}
                 />
@@ -619,9 +706,32 @@ export default function ProductFormModal({
                   <span className="photo-slot-empty">Opcional (sin foto)</span>
                 )}
               </div>
+              <div className="photo-slot-actions">
+                <label className={`btn-upload-file ${subiendoSlot === 3 ? "uploading" : ""}`}>
+                  {subiendoSlot === 3 ? "⏳ Subiendo a R2..." : "📷 Subir archivo"}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    disabled={subiendoSlot !== null}
+                    style={{ display: "none" }}
+                    onChange={(e) => manejarSubidaArchivo(e, 3, setFotoDetalle)}
+                  />
+                </label>
+                {fotoDetalle && (
+                  <button
+                    type="button"
+                    className="btn-clear-photo"
+                    onClick={() => setFotoDetalle("")}
+                    title="Limpiar campo"
+                  >
+                    Quitar
+                  </button>
+                )}
+              </div>
               <div className="photo-slot-input">
+                <span className="photo-slot-url-label">URL de la imagen</span>
                 <input
-                  placeholder="URL imagen detalle (opcional)..."
+                  placeholder="https://... o /api/images/..."
                   value={fotoDetalle}
                   onChange={(e) => setFotoDetalle(e.target.value)}
                 />
