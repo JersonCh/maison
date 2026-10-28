@@ -97,7 +97,7 @@ export default function AdminDashboard({}: Props) {
         );
         mostrarToast(
           nuevoEstado
-            ? "✓ Fragancia activada en boutique."
+            ? "✓ Fragancia activada en el catálogo."
             : "✓ Fragancia cambiada a borrador (inactiva).",
         );
       } else {
@@ -139,7 +139,7 @@ export default function AdminDashboard({}: Props) {
       <main className="admin-login">
         <div className="login-brand">
           <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
-          <p>Gestión de boutique</p>
+          <p>Gestión de la tienda</p>
         </div>
         <form
           onSubmit={(e) => {
@@ -170,7 +170,7 @@ export default function AdminDashboard({}: Props) {
               textDecoration: "none",
             }}
           >
-            ← Volver a la boutique pública
+            ← Volver a la tienda
           </a>
         </form>
       </main>
@@ -205,7 +205,7 @@ export default function AdminDashboard({}: Props) {
           ))}
         </nav>
         <a href="/" className="exit-admin" style={{ textDecoration: "none" }}>
-          <Icon name="arrow" /> Ver boutique
+          <Icon name="arrow" /> Ver tienda
         </a>
       </aside>
 
@@ -219,7 +219,7 @@ export default function AdminDashboard({}: Props) {
           <div className="admin-user">
             <span>AD</span>
             <p>
-              Administrador<small>Boutique Maison</small>
+              Administrador<small>Maison des Parfums</small>
             </p>
           </div>
         </header>

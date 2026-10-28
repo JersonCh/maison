@@ -250,7 +250,7 @@ export default function ProductFormModal({
       <form onSubmit={manejarEnvio}>
         <div className="modal-head">
           <div>
-            <small>Catálogo · Boutique Maison</small>
+            <small>Catálogo · Alta Perfumería</small>
             <h2>{esEdicion ? "Editar fragancia" : "Crear nueva fragancia"}</h2>
           </div>
           <button
@@ -347,9 +347,9 @@ export default function ProductFormModal({
                             target="_blank"
                             rel="noopener noreferrer"
                             className="permalink-link"
-                            title="Ver en boutique (abre en nueva pestaña)"
+                            title="Ver perfume en tienda (abre en nueva pestaña)"
                           >
-                            Ver ↗
+                            Ver perfume ↗
                           </a>
                         </>
                       )}
@@ -576,7 +576,7 @@ export default function ProductFormModal({
           </legend>
 
           <p style={{ margin: "0 0 10px 0", fontSize: "9px", color: "var(--muted)" }}>
-            La foto de portada es indispensable para la boutique y el catálogo. La caja
+            La foto de portada es indispensable para la tienda y el catálogo. La caja
             oficial y el detalle editorial son opcionales y pueden añadirse ahora o más
             adelante. Puedes subir imágenes desde tu dispositivo o mantener/pegar una URL existente.
           </p>
@@ -744,7 +744,7 @@ export default function ProductFormModal({
         <fieldset className="admin-fieldset">
           <legend className="admin-fieldset-legend">
             <span>Paso 4 · Estado</span>
-            Publicación en Boutique
+            Publicación en Catálogo
           </legend>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
