@@ -20,6 +20,17 @@ const {
 
 const phone = normalizarTelefonoWhatsApp(whatsapp);
 const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Maison des Parfums, deseo realizar una consulta.")}`;
+
+const formatSocialUrl = (url?: string, defaultBase = "") => {
+  if (!url) return "#";
+  const clean = url.trim();
+  if (clean.startsWith("http://") || clean.startsWith("https://")) return clean;
+  return `${defaultBase}${clean.replace(/^@/, "")}`;
+};
+
+const instagramUrl = formatSocialUrl(instagram, "https://instagram.com/");
+const facebookUrl = formatSocialUrl(facebook, "https://facebook.com/");
+const tiktokUrl = formatSocialUrl(tiktok, "https://tiktok.com/@");
 ---
 
 <footer>
@@ -31,13 +42,13 @@ const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Mais
                 presencia en un recuerdo.
             </p>
             <div class="socials">
-                <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <Icon name="instagram" size={15} />
                 </a>
-                <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <a href={facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                     <Icon name="facebook" size={15} />
                 </a>
-                <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <a href={tiktokUrl} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
                     <Icon name="tiktok" size={15} />
                 </a>
             </div>

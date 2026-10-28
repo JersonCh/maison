@@ -408,11 +408,12 @@ function SettingsSection() {
   const [phone, setPhone] = useState("");
   const [instagram, setInstagram] = useState("");
   const [facebook, setFacebook] = useState("");
+  const [tiktok, setTiktok] = useState("");
   const [horario, setHorario] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
-  // Cargar configuración real desde Cloudflare D1 al montar
+  // Cargar configuración real desde la base de datos al montar
   useEffect(() => {
     async function cargarConfiguracion() {
       try {
@@ -422,10 +423,11 @@ function SettingsSection() {
           if (datos.whatsapp_pedidos) setPhone(datos.whatsapp_pedidos);
           if (datos.instagram_url) setInstagram(datos.instagram_url);
           if (datos.facebook_url) setFacebook(datos.facebook_url);
+          if (datos.tiktok_url) setTiktok(datos.tiktok_url);
           if (datos.horario_comercial) setHorario(datos.horario_comercial);
         }
       } catch (error) {
-        console.error("Error al cargar configuración de D1:", error);
+        console.error("Error al cargar configuración:", error);
       }
     }
     cargarConfiguracion();
@@ -439,6 +441,7 @@ function SettingsSection() {
         whatsapp_pedidos: phone,
         instagram_url: instagram,
         facebook_url: facebook,
+        tiktok_url: tiktok,
         horario_comercial: horario,
       };
 
@@ -489,11 +492,20 @@ function SettingsSection() {
       </label>
 
       <label>
-        Facebook
+        Facebook oficial
         <input
           value={facebook}
           onChange={(e) => setFacebook(e.target.value)}
           placeholder="URL del perfil de Facebook"
+        />
+      </label>
+
+      <label>
+        TikTok oficial
+        <input
+          value={tiktok}
+          onChange={(e) => setTiktok(e.target.value)}
+          placeholder="URL o @usuario de TikTok"
         />
       </label>
 
