@@ -6,6 +6,7 @@ import ProductCard from "@/components/product/ProductCard.astro";
 import {
   obtenerDetalleProductoBoutique,
   obtenerProductosBoutique,
+  obtenerConfiguracionTienda,
 } from "@/lib/db";
 
 export const prerender = false;
@@ -24,6 +25,9 @@ if (!resultado) {
 }
 
 const { producto: product, piramide, caracteristicas } = resultado;
+
+const storeConfig = db ? await obtenerConfiguracionTienda(db) : {};
+const whatsappPhone = storeConfig.whatsapp_pedidos || "910292249";
 
 // Obtener fragancias afines desde D1
 const todosLosProductos = await obtenerProductosBoutique(db);
@@ -84,7 +88,7 @@ const productSchema = {
     </nav>
 
     <!-- Ficha interactiva (Galería, tamaños, cantidad, carrito y WhatsApp) -->
-    <ProductDetailInteractive product={product} client:load />
+    <ProductDetailInteractive product={product} phone={whatsappPhone} client:load />
 
     <!-- Sección de Composición y Notas Olfativas -->
     <section class="notes-section">

@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer.astro";
 import CartDrawer from "@/features/cart/CartDrawer";
 import SearchModal from "@/features/search/SearchModal";
 import MobileDrawer from "@/components/layout/MobileDrawer";
+import { obtenerConfiguracionTienda } from "@/lib/db";
 import "@/index.css";
 
 interface Props {
@@ -26,6 +27,16 @@ const {
   noindex = false,
   hideChrome = false,
 } = Astro.props;
+
+const db = Astro.locals.runtime?.env?.DB;
+const storeConfig = db ? await obtenerConfiguracionTienda(db) : {};
+const whatsappPhone = storeConfig.whatsapp_pedidos || "910292249";
+const horario = storeConfig.horario_comercial || "Lunes a sábado · 10:00 am - 8:00 pm";
+const instagram = storeConfig.instagram_url || "https://instagram.com/maisondesparfums";
+const facebook = storeConfig.facebook_url || "https://facebook.com/maisondesparfums";
+const tiktok = storeConfig.tiktok_url || "https://tiktok.com/@maisondesparfums";
+const announcementText = storeConfig.anuncio_superior_texto;
+const announcementActive = storeConfig.anuncio_superior_activo !== "0";
 
 const canonicalURL = new URL(
   Astro.url.pathname,
@@ -89,13 +100,20 @@ const storeSchema = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={resolvedImageURL} />
 
+    <!-- Sync WhatsApp number from D1 to client -->
+    <script is:inline define:vars={{ whatsappPhone }}>
+      if (typeof window !== 'undefined' && whatsappPhone) {
+        localStorage.setItem('maison-whatsapp', whatsappPhone);
+      }
+    </script>
+
     <slot name="head" />
   </head>
   <body>
     <div class="app-shell">
       {!hideChrome && (
         <>
-          <Announcement />
+          {announcementActive && <Announcement text={announcementText} />}
           <Header
             currentPath={currentPath || Astro.url.pathname}
             currentGender={currentGender}
@@ -107,9 +125,15 @@ const storeSchema = {
 
       {!hideChrome && (
         <>
-          <Footer />
+          <Footer
+            whatsapp={whatsappPhone}
+            horario={horario}
+            instagram={instagram}
+            facebook={facebook}
+            tiktok={tiktok}
+          />
           <!-- Global Reactive Client Islands -->
-          <CartDrawer client:idle />
+          <CartDrawer client:idle phone={whatsappPhone} />
           <SearchModal client:idle />
           <MobileDrawer client:idle />
         </>

@@ -7,7 +7,10 @@ footer { background: #090a09; color: #c2bfb8; }
 .footer-main button, .footer-main > div > p { margin: 0 0 14px; border: 0; background: none; color: #aaa7a0; font-size: 11px; line-height: 1.6; text-align: left; }
 .footer-main button:hover { color: var(--gold); }
 .socials { display: flex; gap: 9px; margin-top: 20px; }
-.socials span { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #42423e; border-radius: 50%; color: var(--gold); font-size: 8px; }
+.socials a, .socials span { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #42423e; border-radius: 50%; color: var(--gold); font-size: 8px; text-decoration: none; transition: border-color 0.2s, color 0.2s; }
+.socials a:hover { border-color: var(--gold); color: var(--gold-light); }
+.footer-wa-link { color: var(--gold-light) !important; text-decoration: underline; transition: color 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+.footer-wa-link:hover { color: #fff !important; }
 .footer-bottom { display: flex; justify-content: space-between; max-width: 1240px; margin: auto; padding: 22px 32px; border-top: 1px solid #242522; color: #666762; font-size: 9px; letter-spacing: .06em; text-transform: uppercase; }
 
 @media (max-width: 780px) {

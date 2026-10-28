@@ -1,5 +1,24 @@
 ---
+import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
 
+interface Props {
+  whatsapp?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  horario?: string;
+}
+
+const {
+  whatsapp = "910292249",
+  instagram = "https://instagram.com/maisondesparfums",
+  facebook = "https://facebook.com/maisondesparfums",
+  tiktok = "https://tiktok.com/@maisondesparfums",
+  horario = "Lunes a sábado · 10:00 am - 8:00 pm",
+} = Astro.props;
+
+const phone = normalizarTelefonoWhatsApp(whatsapp);
+const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent("Hola Maison des Parfums, deseo realizar una consulta.")}`;
 ---
 
 <footer>
@@ -11,9 +30,9 @@
                 presencia en un recuerdo.
             </p>
             <div class="socials">
-                <span>IG</span>
-                <span>FB</span>
-                <span>TT</span>
+                <a href={instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">IG</a>
+                <a href={facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">FB</a>
+                <a href={tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">TT</a>
             </div>
         </div>
 
@@ -35,8 +54,8 @@
 
         <div>
             <h3>Atención</h3>
-            <p>Escríbenos por WhatsApp</p>
-            <p>Lunes a sábado<br />Horario comercial</p>
+            <p><a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="footer-wa-link">Escríbenos por WhatsApp ↗</a></p>
+            <p>{horario}</p>
             <p>Perú</p>
         </div>
     </div>

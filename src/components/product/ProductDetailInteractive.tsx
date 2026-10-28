@@ -7,9 +7,10 @@ import Icon from "@/components/ui/Icon";
 
 interface Props {
   product: Product;
+  phone?: string;
 }
 
-export default function ProductDetailInteractive({ product }: Props) {
+export default function ProductDetailInteractive({ product, phone }: Props) {
   const [selectedImage, setSelectedImage] = useState(product.image);
   const [selectedSize, setSelectedSize] = useState(product.variants[0].size);
   const [qty, setQty] = useState(1);
@@ -22,7 +23,7 @@ export default function ProductDetailInteractive({ product }: Props) {
   };
 
   const handleWhatsAppInquiry = () => {
-    const url = buildProductInquiryWhatsAppUrl(product, selectedSize);
+    const url = buildProductInquiryWhatsAppUrl(product, selectedSize, phone);
     window.open(url, "_blank", "noopener,noreferrer");
   };
 

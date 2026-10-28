@@ -13,7 +13,11 @@ import { formatPrice } from "@/lib/formatters";
 import Icon from "@/components/ui/Icon";
 import type { CartLine } from "@/types/cart";
 
-export default function CartDrawer() {
+interface Props {
+  phone?: string;
+}
+
+export default function CartDrawer({ phone }: Props) {
   const cart = useStore($cart);
   const isOpen = useStore($isCartOpen);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -44,7 +48,7 @@ export default function CartDrawer() {
   const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
   const handleSendWhatsApp = () => {
-    const url = buildCartWhatsAppUrl(lines, total);
+    const url = buildCartWhatsAppUrl(lines, total, phone);
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
