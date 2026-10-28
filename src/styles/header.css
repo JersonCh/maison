@@ -1,0 +1,77 @@
+.announcement {
+  height: 30px; display: flex; align-items: center; justify-content: center; gap: 18px;
+  background: var(--gold); color: var(--ink); font-size: 10px; font-weight: 600; letter-spacing: .11em; text-transform: uppercase;
+}
+.announcement span { width: 3px; height: 3px; border-radius: 50%; background: var(--ink); }
+.site-header {
+  position: sticky; top: 0; z-index: 40; height: 86px; display: grid; grid-template-columns: 150px 1fr 150px; align-items: center;
+  padding: 0 4.5%; background: rgba(13, 15, 12, .97); border-bottom: 1px solid rgba(215, 173, 87, .25); backdrop-filter: blur(12px);
+}
+.logo-button { display: block; width: 106px; height: 72px; border: 0; padding: 0; overflow: hidden; background: none; }
+.logo-button img { width: 100%; height: 100%; object-fit: cover; object-position: center 53%; }
+.site-header nav { display: flex; justify-content: center; align-items: stretch; height: 100%; gap: 28px; }
+.site-header nav a, .site-header nav button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: none;
+  color: #ddd8cd;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  text-decoration: none;
+  padding: 0 4px;
+  transition: color .2s ease;
+}
+.site-header nav a::after, .site-header nav button::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0;
+  height: 2px;
+  background: var(--gold);
+  transition: .25s ease;
+}
+.site-header nav a:hover, .site-header nav a.active,
+.site-header nav button:hover, .site-header nav button.active {
+  color: var(--gold);
+}
+.site-header nav a.active::after, .site-header nav button.active::after {
+  right: 0;
+}
+.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+.header-actions button, .header-actions a, .mobile-icon {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--white);
+  padding: 7px;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+.header-actions button:hover, .header-actions a:hover, .mobile-icon:hover {
+  color: var(--gold);
+}
+.bag-action { position: relative; }
+.bag-action span { position: absolute; right: -2px; top: -1px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--gold); color: var(--ink); font-size: 9px; font-weight: 700; }
+.mobile-icon { display: none; }
+
+@media (max-width: 1050px) {
+  .site-header { grid-template-columns: 110px 1fr 110px; padding: 0 3%; }
+  .site-header nav { gap: 13px; }
+  .site-header nav a, .site-header nav button { font-size: 10px; }
+}
+
+@media (max-width: 780px) {
+  .announcement { font-size: 8px; }
+  .announcement span, .announcement span + * { display: none; }
+  .site-header { height: 70px; grid-template-columns: 1fr auto 1fr; padding: 0 18px; }
+  .site-header nav { display: none; }
+  .logo-button { width: 88px; height: 62px; }
+  .mobile-icon { display: grid; justify-self: start; }
+  .header-actions { gap: 3px; }
+  .user-action { display: none !important; }
+}
