@@ -4,14 +4,56 @@ import SectionTitle from "@/components/ui/SectionTitle.astro";
 import Button from "@/components/ui/Button.astro";
 import ProductCard from "@/components/product/ProductCard.astro";
 import Icon from "@/components/ui/Icon";
-import { heroImage, categoryImages } from "@/data/products";
-import { obtenerProductosBoutique } from "@/lib/db";
+import HeroEmblaCarousel from "@/components/home/HeroEmblaCarousel";
+import { categoryImages } from "@/data/products";
+import { obtenerProductosBoutique, obtenerBannersPorUbicacion } from "@/lib/db";
+import type { BannerSlide } from "@/types/database";
 import type { Gender } from "@/types/product";
 
 export const prerender = false;
 
 const db = Astro.locals.runtime?.env?.DB;
 const allProducts = await obtenerProductosBoutique(db);
+
+// Banners dinámicos de la base de datos con respaldo luxury por defecto
+const bannersDb = db ? await obtenerBannersPorUbicacion(db, "hero_home") : [];
+const defaultHeroSlides: BannerSlide[] = [
+  {
+    id: 1,
+    ubicacion: "hero_home",
+    titulo: "Encuentra una fragancia que hable por ti",
+    subtitulo: "Fragancias originales · Curaduría excepcional",
+    texto_boton: "Explorar perfumes",
+    enlace_url: "/perfumes",
+    imagen_desktop: "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=1800&q=90",
+    imagen_mobile: "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=900&q=85",
+    orden: 0,
+  },
+  {
+    id: 2,
+    ubicacion: "hero_home",
+    titulo: "El arte de la distinción olfativa",
+    subtitulo: "Casas de autor y alta perfumería europea",
+    texto_boton: "Ver Novedades",
+    enlace_url: "/perfumes",
+    imagen_desktop: "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?auto=format&fit=crop&w=1800&q=90",
+    imagen_mobile: "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?auto=format&fit=crop&w=900&q=85",
+    orden: 1,
+  },
+  {
+    id: 3,
+    ubicacion: "hero_home",
+    titulo: "Asesoría cercana y personalizada",
+    subtitulo: "Descubre notas creadas a la medida de tu estilo",
+    texto_boton: "Hablar con un asesor",
+    enlace_url: "/contacto",
+    imagen_desktop: "https://images.unsplash.com/photo-1705936118918-870095881e61?auto=format&fit=crop&w=1800&q=90",
+    imagen_mobile: "https://images.unsplash.com/photo-1705936118918-870095881e61?auto=format&fit=crop&w=900&q=85",
+    orden: 2,
+  },
+];
+
+const heroSlides = bannersDb && bannersDb.length > 0 ? bannersDb : defaultHeroSlides;
 
 const featuredProducts = allProducts.filter((p) => p.featured).slice(0, 5);
 const recentProducts = allProducts
@@ -39,34 +81,8 @@ const websiteSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} slot="head" />
 
   <main>
-    <!-- Hero Section -->
-    <section class="hero">
-      <img
-        src={heroImage}
-        alt="Perfume de lujo en una composición editorial oscura"
-        loading="eager"
-        fetchpriority="high"
-      />
-      <div class="hero-shade"></div>
-      <div class="hero-content">
-        <p class="eyebrow">Fragancias originales · Curaduría excepcional</p>
-        <h1>
-          Encuentra una fragancia<br />que hable por ti
-        </h1>
-        <p>
-          Descubre aromas que trascienden el tiempo y convierten tu esencia en
-          una firma inolvidable.
-        </p>
-        <Button href="/perfumes">
-          Explorar perfumes <Icon name="arrow" />
-        </Button>
-      </div>
-      <div class="hero-index">
-        <span>01</span>
-        <i></i>
-        <span>03</span>
-      </div>
-    </section>
+    <!-- Carrusel Hero Embla (Opción B: Arrastre Táctil / Swipe) -->
+    <HeroEmblaCarousel client:load slides={heroSlides} />
 
     <!-- Categories Section -->
     <section class="category-section">
