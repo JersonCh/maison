@@ -18,7 +18,13 @@ export type IconName =
     | "eye"
     | "facebook"
     | "instagram"
-    | "tiktok";
+    | "tiktok"
+    | "mail"
+    | "mapPin"
+    | "sparkles"
+    | "truck"
+    | "box"
+    | "clock";
 
 const filledIcons = new Set<IconName>([
     "whatsapp",
@@ -74,6 +80,42 @@ const paths: Record<IconName, ReactNode> = {
         <>
             <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6Z" />
             <circle cx="12" cy="12" r="2.5" />
+        </>
+    ),
+    mail: (
+        <>
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="m3 7 9 6 9-6" />
+        </>
+    ),
+    mapPin: (
+        <>
+            <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8Z" />
+            <circle cx="12" cy="10" r="3" />
+        </>
+    ),
+    sparkles: (
+        <path d="m12 3 1.9 4.8L18.7 9.7l-4.8 1.9L12 16.4l-1.9-4.8L5.3 9.7l4.8-1.9L12 3ZM5 18l.9 2.1L8 21l-2.1.9L5 24l-.9-2.1L2 21l2.1-.9L5 18ZM19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9L19 16Z" />
+    ),
+    truck: (
+        <>
+            <rect x="2" y="5" width="13" height="11" rx="1" />
+            <path d="M15 9h4l3 3v4h-7V9Z" />
+            <circle cx="6" cy="18" r="2" />
+            <circle cx="18" cy="18" r="2" />
+        </>
+    ),
+    box: (
+        <>
+            <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />
+            <path d="M3 7.5V16.5L12 21V12" />
+            <path d="M21 7.5V16.5L12 21" />
+        </>
+    ),
+    clock: (
+        <>
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 6 12 12 16 14" />
         </>
     ),
 };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/Icon";
 
-const faqs = [
+const defaultFaqs: [string, string][] = [
   [
     "¿Todos los perfumes son originales?",
     "Sí. La propuesta de Maison des Parfums se basa estrictamente en fragancias 100% originales con procedencia verificable y garantía de autenticidad.",
@@ -24,7 +24,12 @@ const faqs = [
   ],
 ];
 
-export default function FaqAccordion() {
+interface Props {
+  items?: [string, string][];
+}
+
+export default function FaqAccordion({ items }: Props) {
+  const faqList = items || defaultFaqs;
   const [openIndex, setOpenIndex] = useState<number>(0);
 
   const toggle = (index: number) => {
@@ -33,7 +38,7 @@ export default function FaqAccordion() {
 
   return (
     <div className="faq-list">
-      {faqs.map((faq, index) => {
+      {faqList.map((faq, index) => {
         const isOpen = openIndex === index;
         return (
           <article key={faq[0]} className={isOpen ? "open" : ""}>

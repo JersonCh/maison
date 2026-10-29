@@ -1,60 +1,329 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import SectionTitle from "@/components/ui/SectionTitle.astro";
-import ContactForm from "@/features/contact/ContactForm";
 import Icon from "@/components/ui/Icon";
+import FaqAccordion from "@/features/faq/FaqAccordion";
 import { obtenerConfiguracionTienda } from "@/lib/db";
 import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
 
 export const prerender = false;
 
-const title = "Contacto | Maison des Parfums";
-const description =
-  "Conversemos sobre tu próxima fragancia. Solicita una recomendación, consulta disponibilidad o coordina tu pedido por WhatsApp de forma directa y personalizada.";
-
 const db = Astro.locals.runtime?.env?.DB;
 const config = db ? await obtenerConfiguracionTienda(db) : {};
-const whatsappPhone = config.whatsapp_pedidos || "910292249";
-const targetPhone = normalizarTelefonoWhatsApp(whatsappPhone);
-const directWhatsAppUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent("Hola Maison des Parfums, deseo contactar con un asesor comercial.")}`;
+
+const rawPhone = config.whatsapp_pedidos || "910292249";
+const targetPhone = normalizarTelefonoWhatsApp(rawPhone);
+const horario = config.horario_comercial || "Lunes a sábado · 10:00 am - 8:00 pm";
+const instagram = config.instagram_url || "https://instagram.com/maisondesparfums";
+const emailContact = config.email_contacto || "contacto@maisondesparfums.pe";
+const direccion = config.direccion_fisica || "Av. Conquistadores 940, San Isidro, Lima - Perú";
+const mapEmbedUrl = config.mapa_embed_url || "https://maps.google.com/maps?q=Av.+Conquistadores+940,+San+Isidro,+Lima,+Peru&t=&z=15&ie=UTF8&iwloc=&output=embed";
+const googleMapsLink = config.google_maps_link || "https://maps.google.com/?q=Av.+Conquistadores+940,+San+Isidro,+Lima,+Peru";
+const wazeLink = config.waze_link || "https://waze.com/ul?q=Av.+Conquistadores+940,+San+Isidro,+Lima,+Peru";
+
+// URLs pre-redactadas para WhatsApp
+const buildWaLink = (mensaje: string) =>
+  `https://wa.me/${targetPhone}?text=${encodeURIComponent(mensaje)}`;
+
+const mainWaUrl = buildWaLink("Hola Maison des Parfums, deseo contactar con un asesor comercial.");
+const disponibilidadWaUrl = buildWaLink("Hola Maison des Parfums, deseo consultar la disponibilidad de una fragancia.");
+const asesoriaWaUrl = buildWaLink("Hola Maison des Parfums, me gustaría recibir asesoría personalizada para elegir mi perfume ideal.");
+const enviosWaUrl = buildWaLink("Hola Maison des Parfums, quisiera consultar los métodos y tiempos de envío para mi ciudad.");
+const seguimientoWaUrl = buildWaLink("Hola Maison des Parfums, deseo consultar el estado de seguimiento de mi pedido.");
+
+// Preguntas frecuentes especializadas para contacto
+const contactFaqs: [string, string][] = [
+  [
+    "¿Cómo puedo consultar la disponibilidad de un perfume?",
+    "Puedes escribirnos directamente por WhatsApp indicando el nombre de la fragancia. Te confirmaremos al instante si la tenemos en stock para entrega inmediata o bajo pedido.",
+  ],
+  [
+    "¿Cómo realizo un pedido?",
+    "Todo el proceso de compra se coordina de manera personalizada y segura a través de WhatsApp. Una vez confirmada la disponibilidad de tu fragancia, te indicamos los pasos para concretar la compra.",
+  ],
+  [
+    "¿Qué tipo de asesoría puedo solicitar?",
+    "Nuestros asesores están disponibles para orientarte según tus familias olfativas preferidas, notas aromáticas, ocasión de uso, estación del año o presupuesto.",
+  ],
+  [
+    "¿Cómo son los envíos a Lima y provincias?",
+    "Realizamos envíos a toda Lima Metropolitana y a todas las provincias del Perú. Indícanos tu distrito o ciudad y te brindaremos los tiempos y alternativas de despacho disponibles.",
+  ],
+  [
+    "¿Cómo hago el seguimiento de un pedido realizado?",
+    "Escríbenos al mismo chat de WhatsApp donde coordinaste tu compra con tus datos o comprobante, y te brindaremos el estado actualizado de tu entrega en tiempo real.",
+  ],
+];
+
+const title = "Contacto y Asesoría Personalizada | Maison des Parfums";
+const description =
+  "Conversemos sobre tu próxima fragancia original. Atención personalizada por WhatsApp, consultas rápidas, ubicación de nuestra sede en Lima y preguntas frecuentes.";
 ---
 
 <Layout title={title} description={description} currentPath="/contacto">
-  <main class="contact-page">
-    <div>
-      <SectionTitle
-        eyebrow="Estamos para ayudarte"
-        title="Conversemos sobre tu próxima fragancia"
-        copy="Solicita una recomendación, consulta disponibilidad o coordina tu pedido. Atención personalizada y directa por WhatsApp."
-      />
-      <div class="contact-cards">
+  <div class="contact-view">
+    {/* 1. HERO EDITORIAL DE CONTACTO */}
+    <section class="contact-hero-wrap">
+      <span class="eyebrow">Estamos para ayudarte</span>
+      <h1>Hablemos de fragancias</h1>
+      <p>
+        ¿Buscas un perfume, necesitas conocer su disponibilidad o quieres ayuda
+        para elegir? Estamos aquí para orientarte de forma cercana y exclusiva.
+      </p>
+    </section>
+
+    {/* 2. CANALES DE CONTACTO (3 COLUMNAS) */}
+    <section class="contact-channels-section">
+      <div class="contact-channels-grid">
+        {/* Canal 1: WhatsApp (Destacado Principal) */}
+        <div class="channel-card featured">
+          <div class="channel-icon-circle">
+            <Icon name="whatsapp" size={26} />
+          </div>
+          <h3>Escríbenos por WhatsApp</h3>
+          <p>
+            Atención prioritaria y directa. Consulta sobre perfumes, notas,
+            disponibilidad inmediata y pedidos.
+          </p>
+          <a
+            href={mainWaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="channel-btn-primary"
+          >
+            <Icon name="whatsapp" size={16} /> Iniciar conversación
+          </a>
+        </div>
+
+        {/* Canal 2: Redes Sociales */}
+        <div class="channel-card">
+          <div class="channel-icon-circle">
+            <Icon name="instagram" size={24} />
+          </div>
+          <h3>Síguenos en redes</h3>
+          <p>
+            Descubre novedades, lanzamientos europeos y contenido audiovisual de
+            nuestra curaduría olfativa.
+          </p>
+          <a
+            href={instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="channel-link-simple"
+          >
+            @maisondesparfums ↗
+          </a>
+        </div>
+
+        {/* Canal 3: Correo Electrónico */}
+        <div class="channel-card">
+          <div class="channel-icon-circle">
+            <Icon name="mail" size={24} />
+          </div>
+          <h3>Consultas por correo</h3>
+          <p>
+            Un canal complementario para consultas corporativas, alianzas
+            comerciales o comunicaciones formales.
+          </p>
+          <a
+            href={`mailto:${emailContact}`}
+            class="channel-link-simple"
+          >
+            {emailContact}
+          </a>
+        </div>
+      </div>
+    </section>
+
+    {/* 3. CONSULTAS RÁPIDAS EN 1 CLIC (4 TEMAS CLAVE) */}
+    <section class="quick-queries-section">
+      <div class="quick-queries-header">
+        <span class="eyebrow">Atención Inmediata</span>
+        <h2>Inicia tu consulta rápida</h2>
+        <p>
+          Selecciona un tema para comenzar la conversación en WhatsApp con el
+          mensaje preparado.
+        </p>
+      </div>
+
+      <div class="quick-queries-grid">
+        {/* Opción 1: Disponibilidad */}
         <a
-          href={directWhatsAppUrl}
+          href={disponibilidadWaUrl}
           target="_blank"
           rel="noopener noreferrer"
-          style="text-decoration: none; color: inherit; display: block;"
+          class="query-card"
         >
-          <article style="cursor: pointer;">
-            <Icon name="whatsapp" size={26} />
-            <h3>WhatsApp Oficial</h3>
-            <p>Atención directa y pedidos.</p>
-            <span>Respuesta personalizada inmediata ↗</span>
-          </article>
-        </a>
-        <article>
-          <div style="display: flex; gap: 10px; color: var(--gold); align-items: center;">
-            <Icon name="instagram" size={20} />
-            <Icon name="facebook" size={20} />
-            <Icon name="tiktok" size={20} />
+          <div class="query-card-icon">
+            <Icon name="search" size={22} />
           </div>
-          <h3>Redes sociales</h3>
-          <p>Comunidad y lanzamientos.</p>
-          <span>Instagram · Facebook · TikTok</span>
-        </article>
-      </div>
-    </div>
+          <h3>Disponibilidad</h3>
+          <p>Consultar el stock o presentación de un perfume específico.</p>
+          <span class="query-card-cta">
+            Consultar <Icon name="arrow" size={12} />
+          </span>
+        </a>
 
-    <!-- Formulario interactivo -->
-    <ContactForm client:load phone={whatsappPhone} />
-  </main>
+        {/* Opción 2: Ayuda para elegir */}
+        <a
+          href={asesoriaWaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="query-card"
+        >
+          <div class="query-card-icon">
+            <Icon name="sparkles" size={22} />
+          </div>
+          <h3>Ayuda para elegir</h3>
+          <p>Recibir orientación personalizada según tus gustos u ocasión.</p>
+          <span class="query-card-cta">
+            Asesoría <Icon name="arrow" size={12} />
+          </span>
+        </a>
+
+        {/* Opción 3: Envíos y entregas */}
+        <a
+          href={enviosWaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="query-card"
+        >
+          <div class="query-card-icon">
+            <Icon name="truck" size={22} />
+          </div>
+          <h3>Envíos y entregas</h3>
+          <p>Conocer métodos, cobertura y tiempos de despacho para tu ciudad.</p>
+          <span class="query-card-cta">
+            Consultar <Icon name="arrow" size={12} />
+          </span>
+        </a>
+
+        {/* Opción 4: Estado de pedido */}
+        <a
+          href={seguimientoWaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="query-card"
+        >
+          <div class="query-card-icon">
+            <Icon name="box" size={22} />
+          </div>
+          <h3>Estado de pedido</h3>
+          <p>Información y seguimiento sobre una compra recientemente coordinada.</p>
+          <span class="query-card-cta">
+            Seguimiento <Icon name="arrow" size={12} />
+          </span>
+        </a>
+      </div>
+    </section>
+
+    {/* 4. SEDE OFICIAL, DIRECCIÓN Y MAPA INTERACTIVO */}
+    <section class="location-section-wrap">
+      <div class="location-inner">
+        <div class="location-header">
+          <span class="eyebrow">Ubicación y Entregas</span>
+          <h2>Visítanos y coordina tu entrega</h2>
+          <p>
+            Sede física de atención y punto de despacho para retiros coordinados
+            en Lima.
+          </p>
+        </div>
+
+        <div class="location-split-grid">
+          {/* Tarjeta de información de la sede */}
+          <div class="location-card-info">
+            <div class="location-item">
+              <div class="location-item-icon">
+                <Icon name="mapPin" size={22} />
+              </div>
+              <div class="location-item-text">
+                <h4>Dirección</h4>
+                <p>{direccion}</p>
+                <small>San Isidro · Lima, Perú</small>
+              </div>
+            </div>
+
+            <div class="location-item">
+              <div class="location-item-icon">
+                <Icon name="clock" size={22} />
+              </div>
+              <div class="location-item-text">
+                <h4>Horario de atención</h4>
+                <p>{horario}</p>
+                <small>Atención de pedidos y consultas presenciales previa cita</small>
+              </div>
+            </div>
+
+            <div class="location-item" style="margin-bottom: 28px;">
+              <div class="location-item-icon">
+                <Icon name="check" size={20} />
+              </div>
+              <div class="location-item-text">
+                <h4>Modalidad</h4>
+                <p>Retiro coordinado y atención personalizada</p>
+                <small>Coordina previamente por WhatsApp para tener tu pedido listo</small>
+              </div>
+            </div>
+
+            <div class="location-nav-buttons">
+              <a
+                href={googleMapsLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-location-link"
+              >
+                <Icon name="mapPin" size={15} /> Abrir en Google Maps ↗
+              </a>
+              <a
+                href={wazeLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-location-link"
+              >
+                <Icon name="arrow" size={15} /> Abrir en Waze ↗
+              </a>
+            </div>
+          </div>
+
+          {/* Mapa Interactivo Google Maps */}
+          <div class="location-map-card">
+            <iframe
+              src={mapEmbedUrl}
+              title="Ubicación de Maison des Parfums en Lima"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* 5. PREGUNTAS FRECUENTES EN CONTACTO */}
+    <section class="contact-faq-wrap">
+      <div class="contact-faq-header">
+        <span class="eyebrow">Dudas Habituales</span>
+        <h2>Preguntas Frecuentes</h2>
+      </div>
+
+      <FaqAccordion client:load items={contactFaqs} />
+    </section>
+
+    {/* 6. CIERRE EDITORIAL / CTA FINAL */}
+    <section class="contact-closing-cta">
+      <div class="contact-closing-inner">
+        <h3>¿Te ayudamos a encontrar tu fragancia?</h3>
+        <p>
+          Cuéntanos qué aroma buscas, para qué ocasión o qué notas prefieres, y
+          te orientaremos para encontrar tu opción ideal.
+        </p>
+        <a
+          href={asesoriaWaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-cta-gold"
+        >
+          <Icon name="whatsapp" size={18} /> Hablar por WhatsApp
+        </a>
+      </div>
+    </section>
+  </div>
 </Layout>

@@ -1,3 +1,8 @@
+/* ==========================================================================
+   MAISON DES PARFUMS - PÁGINAS ESTÁTICAS E INSTITUCIONALES (NOSOTROS / CONTACTO / FAQ)
+   ========================================================================== */
+
+/* 1. NOSOTROS / EDITORIAL */
 .editorial-hero { padding: 110px 8% 100px; background: var(--ink); color: var(--white); text-align: center; }
 .editorial-hero h1 { margin: 12px 0 16px; font-family: var(--serif); font-size: 68px; font-weight: 500; line-height: 1.05; }
 .editorial-hero > p:last-child { max-width: 650px; margin: auto; color: #aaa7a0; font-family: var(--serif); font-size: 17px; line-height: 1.7; }
@@ -7,42 +12,435 @@
 .editorial-split > div > p { color: var(--muted); font-size: 13px; line-height: 1.8; }
 .editorial-split .btn { margin-top: 20px; }
 
-.contact-page { max-width: 1200px; min-height: 700px; margin: auto; display: grid; grid-template-columns: 1fr .8fr; gap: 100px; padding: 100px 32px; }
-.contact-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 45px; }
-.contact-cards article { padding: 26px; border: 1px solid var(--line); background: var(--white); }
-.contact-cards article > svg, .contact-cards .at { color: var(--gold); font-size: 22px; }
-.contact-cards h3 { margin: 18px 0 8px; font-family: var(--serif); font-size: 20px; font-weight: 500; }
-.contact-cards p, .contact-cards span { color: var(--muted); font-size: 10px; line-height: 1.5; }
-.contact-form { display: flex; flex-direction: column; align-self: center; padding: 40px; box-shadow: var(--shadow); background: var(--white); }
-.contact-form > p { margin: 0 0 25px; font-family: var(--serif); font-size: 25px; }
-.contact-form label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 17px; font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-.contact-form input, .contact-form select, .contact-form textarea {
-  width: 100%; border: 1px solid var(--line); outline: none; padding: 13px; background: var(--ivory); font-size: 11px; letter-spacing: 0; text-transform: none; resize: vertical;
+/* 2. CONTACTO LUXURY (ARQUITECTURA DE ALTA PERFUMERÍA) */
+.contact-view { background: var(--ivory); }
+
+/* Hero de contacto */
+.contact-hero-wrap {
+  padding: 85px 24px 45px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, #f4ede1 0%, var(--ivory) 70%);
+  border-bottom: 1px solid rgba(215, 173, 87, 0.2);
+}
+.contact-hero-wrap .eyebrow {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+.contact-hero-wrap h1 {
+  font-family: var(--serif);
+  font-size: clamp(38px, 4.5vw, 56px);
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.contact-hero-wrap p {
+  max-width: 620px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
 }
 
+/* Canales de Contacto (Grid 3 columnas) */
+.contact-channels-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 55px 24px;
+}
+.contact-channels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.channel-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.channel-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(13, 15, 12, 0.05);
+}
+.channel-card.featured {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+.channel-card.featured:hover {
+  border-color: var(--gold);
+}
+.channel-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 22px;
+  background: #fbf9f5;
+  border: 1px solid var(--line);
+  color: var(--gold);
+  transition: all 0.25s ease;
+}
+.channel-card:hover .channel-icon-circle {
+  border-color: var(--gold);
+  background: var(--white);
+}
+.channel-card.featured .channel-icon-circle {
+  background: #1a1c19;
+  border-color: rgba(215, 173, 87, 0.35);
+  color: var(--gold);
+}
+.channel-card h3 {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.channel-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 24px;
+  flex-grow: 1;
+}
+.channel-card.featured p {
+  color: #c9c5bd;
+}
+.channel-btn-primary {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--gold);
+  color: var(--ink);
+  padding: 13px 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid var(--gold);
+}
+.channel-btn-primary:hover {
+  background: var(--gold-light);
+  border-color: var(--gold-light);
+  transform: scale(1.02);
+}
+.channel-link-simple {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  transition: all 0.2s ease;
+}
+.channel-link-simple:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+/* Consultas Rápidas (4 opciones temáticas a WhatsApp) */
+.quick-queries-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 75px;
+}
+.quick-queries-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.quick-queries-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.quick-queries-header p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.quick-queries-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.query-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: var(--ink);
+  transition: all 0.25s ease;
+}
+.query-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 10px 24px rgba(13, 15, 12, 0.06);
+  transform: translateY(-2px);
+}
+.query-card-icon {
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.query-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  transition: color 0.2s ease;
+}
+.query-card:hover h3 {
+  color: var(--gold);
+}
+.query-card p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  flex-grow: 1;
+}
+.query-card-cta {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: gap 0.2s ease;
+}
+.query-card:hover .query-card-cta {
+  gap: 9px;
+}
+
+/* Ubicación y Mapa Interactivo */
+.location-section-wrap {
+  background: #f4ede1;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 85px 24px;
+}
+.location-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.location-header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+.location-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.5vw, 40px);
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.location-header p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.location-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 32px;
+  align-items: stretch;
+}
+.location-card-info {
+  background: var(--white);
+  border: 1px solid rgba(215, 173, 87, 0.35);
+  padding: 42px 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 12px 32px rgba(13, 15, 12, 0.04);
+}
+.location-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.location-item-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.location-item-text h4 {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 5px;
+}
+.location-item-text p {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin: 0;
+}
+.location-item-text small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.location-nav-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.btn-location-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  background: var(--ivory);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.btn-location-link:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--white);
+}
+
+.location-map-card {
+  position: relative;
+  min-height: 420px;
+  border: 1px solid rgba(215, 173, 87, 0.35);
+  overflow: hidden;
+  background: #dedbd3;
+  box-shadow: 0 12px 32px rgba(13, 15, 12, 0.04);
+}
+.location-map-card iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border: 0;
+  filter: contrast(102%) brightness(98%);
+}
+
+/* Preguntas Frecuentes en Contacto */
+.contact-faq-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 85px 24px 60px;
+}
+.contact-faq-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.contact-faq-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.5vw, 40px);
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+/* CTA Final de Cierre */
+.contact-closing-cta {
+  padding: 95px 24px;
+  text-align: center;
+  background: var(--ivory);
+  border-top: 1px solid rgba(215, 173, 87, 0.25);
+}
+.contact-closing-inner {
+  max-width: 650px;
+  margin: 0 auto;
+}
+.contact-closing-inner h3 {
+  font-family: var(--serif);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 500;
+  margin: 0 0 16px;
+  color: var(--ink);
+}
+.contact-closing-inner p {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0 0 32px;
+}
+.btn-cta-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 36px;
+  background: var(--ink);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 14px 35px rgba(13, 15, 12, 0.12);
+  transition: all 0.25s ease;
+}
+.btn-cta-gold:hover {
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+/* 3. FAQ GLOBAL */
 .faq-page { max-width: 950px; min-height: 700px; margin: auto; padding: 100px 32px; }
 .faq-page > .section-title { margin: 0 auto 50px; text-align: center; }
 .faq-list article { border-top: 1px solid var(--line); }
 .faq-list article:last-child { border-bottom: 1px solid var(--line); }
-.faq-list button { width: 100%; display: grid; grid-template-columns: 45px 1fr auto; align-items: center; border: 0; padding: 24px 0; background: none; text-align: left; }
+.faq-list button { width: 100%; display: grid; grid-template-columns: 45px 1fr auto; align-items: center; border: 0; padding: 24px 0; background: none; text-align: left; cursor: pointer; }
 .faq-list button span { color: var(--gold); font-family: var(--serif); font-size: 12px; }
 .faq-list button strong { font-family: var(--serif); font-size: 18px; font-weight: 500; }
-.faq-list article > p { max-height: 0; overflow: hidden; margin: 0 50px; color: var(--muted); font-size: 12px; line-height: 1.7; transition: .25s ease; }
+.faq-list article > p { max-height: 0; overflow: hidden; margin: 0 50px; color: var(--muted); font-size: 13px; line-height: 1.7; transition: .25s ease; }
 .faq-list article.open > p { max-height: 200px; margin-bottom: 24px; }
 
+/* Responsive */
+@media (max-width: 1050px) {
+  .contact-channels-grid { grid-template-columns: 1fr; max-width: 500px; margin: 0 auto; }
+  .quick-queries-grid { grid-template-columns: repeat(2, 1fr); }
+  .location-split-grid { grid-template-columns: 1fr; }
+  .location-map-card { min-height: 350px; }
+}
+
 @media (max-width: 780px) {
-  .editorial-split, .contact-page { grid-template-columns: 1fr; }
+  .editorial-split { grid-template-columns: 1fr; }
   .editorial-split > img { height: 550px; }
-  .contact-page { gap: 60px; }
+  .contact-hero-wrap { padding: 65px 20px 35px; }
+  .quick-queries-grid { grid-template-columns: 1fr; }
+  .location-section-wrap { padding: 65px 20px; }
+  .location-card-info { padding: 30px 20px; }
+  .contact-closing-cta { padding: 75px 20px; }
 }
 
 @media (max-width: 480px) {
   .editorial-hero { padding: 80px 22px; }
   .editorial-hero h1 { font-size: 45px; }
   .editorial-split > img { height: 420px; }
-  .contact-page { padding: 70px 20px; }
-  .contact-cards { grid-template-columns: 1fr; }
-  .contact-form { padding: 28px 22px; }
+  .channel-card { padding: 30px 20px; }
   .faq-page { padding: 70px 20px; }
   .faq-list button strong { font-size: 15px; }
+  .location-map-card { min-height: 280px; }
 }
