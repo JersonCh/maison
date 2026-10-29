@@ -10,6 +10,12 @@ const allProducts = await obtenerProductosBoutique(db);
 const genderParam = Astro.url.searchParams.get("genero") || "";
 const brandParam = Astro.url.searchParams.get("marca") || "";
 const queryParam = Astro.url.searchParams.get("q") || "";
+const pageParamRaw =
+  Astro.url.searchParams.get("pagina") ||
+  Astro.url.searchParams.get("page") ||
+  "1";
+const pageParam = parseInt(pageParamRaw, 10);
+const initialPage = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
 
 const title = genderParam
   ? genderParam.toLowerCase() === "unisex"
@@ -33,5 +39,6 @@ const description =
     initialGender={genderParam}
     initialBrand={brandParam}
     initialQuery={queryParam}
+    initialPage={initialPage}
   />
 </Layout>
