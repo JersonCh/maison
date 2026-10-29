@@ -12,40 +12,51 @@ const config = db ? await obtenerConfiguracionTienda(db) : {};
 
 const rawPhone = config.whatsapp_pedidos || "954159831";
 const targetPhone = normalizarTelefonoWhatsApp(rawPhone);
-const horario = config.horario_comercial || "Lunes a sábado · 10:00 am - 8:00 pm";
-const instagram = config.instagram_url || "https://instagram.com/maisondesparfums.pe";
+const horario =
+  config.horario_comercial || "Lunes a sábado · 10:00 am - 8:00 pm";
+const instagram =
+  config.instagram_url || "https://instagram.com/maisondesparfums.pe";
 const emailContact = config.email_contacto || "contacto@maisondesparfums.pe";
 
 // Datos de ubicación comercial extraídos de la sede oficial
-const direccionLocal = config.direccion_local || "Asoc. Centro Comercial Mercadillo Bolognesi";
+const direccionLocal =
+  config.direccion_local || "Asoc. Centro Comercial Mercadillo Bolognesi";
 const direccionInterior = config.direccion_interior || "Int. D-312 · 1ra Fila";
-const direccionAvenida = config.direccion_avenida || "Av. Crnl. Mendoza Nº 1945";
+const direccionAvenida =
+  config.direccion_avenida || "Av. Crnl. Mendoza Nº 1945";
 const direccionCiudad = config.direccion_ciudad || "Tacna, Perú";
 
 const mapEmbedUrl =
   config.mapa_embed_url ||
   "https://maps.google.com/maps?q=Mercadillo+Bolognesi,+Av.+Coronel+Mendoza,+Tacna&t=&z=17&ie=UTF8&iwloc=&output=embed";
 const googleMapsLink =
-  config.google_maps_link ||
-  "https://maps.app.goo.gl/XDkotmawNbUdNEyb7";
-const wazeLink =
-  config.waze_link ||
-  "https://waze.com/ul?q=Mercadillo+Bolognesi+Tacna";
+  config.google_maps_link || "https://maps.app.goo.gl/XDkotmawNbUdNEyb7";
+const wazeLink = "https://waze.com/ul?q=Mercadillo+Bolognesi+Tacna";
 
 // URLs pre-redactadas para WhatsApp
 const buildWaLink = (mensaje: string) =>
   `https://wa.me/${targetPhone}?text=${encodeURIComponent(mensaje)}`;
 
-const mainWaUrl = buildWaLink("Hola Maison des Parfums, deseo contactar con un asesor comercial.");
-const disponibilidadWaUrl = buildWaLink("Hola Maison des Parfums, deseo consultar la disponibilidad de una fragancia.");
-const asesoriaWaUrl = buildWaLink("Hola Maison des Parfums, me gustaría recibir asesoría personalizada para elegir mi perfume ideal.");
-const enviosWaUrl = buildWaLink("Hola Maison des Parfums, quisiera consultar los métodos y tiempos de envío a mi ciudad.");
-const seguimientoWaUrl = buildWaLink("Hola Maison des Parfums, deseo consultar el estado de seguimiento de mi pedido.");
+const mainWaUrl = buildWaLink(
+  "Hola Maison des Parfums, deseo contactar con un asesor comercial.",
+);
+const disponibilidadWaUrl = buildWaLink(
+  "Hola Maison des Parfums, deseo consultar la disponibilidad de una fragancia.",
+);
+const asesoriaWaUrl = buildWaLink(
+  "Hola Maison des Parfums, me gustaría recibir asesoría personalizada para elegir mi perfume ideal.",
+);
+const enviosWaUrl = buildWaLink(
+  "Hola Maison des Parfums, quisiera consultar los métodos y tiempos de envío a mi ciudad.",
+);
+const seguimientoWaUrl = buildWaLink(
+  "Hola Maison des Parfums, deseo consultar el estado de seguimiento de mi pedido.",
+);
 
 // Preguntas frecuentes contextuales de contacto y sede
 const contactFaqs: [string, string][] = [
   [
-    "¿Puedo visitar su boutique y probar las fragancias en persona?",
+    "¿Puedo visitar su tienda y probar las fragancias en persona?",
     "¡Por supuesto! Te esperamos en nuestra sede física ubicada en la Asoc. Centro Comercial Mercadillo Bolognesi, Int. D-312 (1ra Fila), Av. Crnl. Mendoza Nº 1945, Tacna. También puedes escribirnos por WhatsApp con anticipación para consultar stock de probadores o tener tu fragancia lista.",
   ],
   [
@@ -58,7 +69,7 @@ const contactFaqs: [string, string][] = [
   ],
   [
     "¿Cómo coordino mi pedido?",
-    "Todo el proceso de compra se coordina de manera personalizada y transparente a través de WhatsApp. Una vez confirmada tu fragancia y método de entrega (retiro en boutique en Tacna o envío a domicilio a nivel nacional), te indicamos los pasos para concretar la compra.",
+    "Todo el proceso de compra se coordina de manera personalizada y transparente a través de WhatsApp. Una vez confirmada tu fragancia y método de entrega (retiro en local en Tacna o envío a domicilio a nivel nacional), te indicamos los pasos para concretar la compra.",
   ],
   [
     "¿Qué medios de pago aceptan?",
@@ -93,8 +104,8 @@ const description =
           </div>
           <h3>Escríbenos por WhatsApp</h3>
           <p>
-            Atención prioritaria y directa (+51 954 159 831). Consulta sobre perfumes, notas,
-            disponibilidad inmediata y pedidos.
+            Atención prioritaria y directa (+51 954 159 831). Consulta sobre
+            perfumes, notas, disponibilidad inmediata y pedidos.
           </p>
           <a
             href={mainWaUrl}
@@ -136,10 +147,7 @@ const description =
             Un canal complementario para consultas corporativas, alianzas
             comerciales o comunicaciones formales.
           </p>
-          <a
-            href={`mailto:${emailContact}`}
-            class="channel-link-simple"
-          >
+          <a href={`mailto:${emailContact}`} class="channel-link-simple">
             {emailContact}
           </a>
         </div>
@@ -203,7 +211,9 @@ const description =
             <Icon name="truck" size={22} />
           </div>
           <h3>Envíos y entregas</h3>
-          <p>Conocer métodos, cobertura y tiempos de despacho para tu ciudad.</p>
+          <p>
+            Conocer métodos, cobertura y tiempos de despacho para tu ciudad.
+          </p>
           <span class="query-card-cta">
             Consultar <Icon name="arrow" size={12} />
           </span>
@@ -220,7 +230,9 @@ const description =
             <Icon name="box" size={22} />
           </div>
           <h3>Estado de pedido</h3>
-          <p>Información y seguimiento sobre una compra recientemente coordinada.</p>
+          <p>
+            Información y seguimiento sobre una compra recientemente coordinada.
+          </p>
           <span class="query-card-cta">
             Seguimiento <Icon name="arrow" size={12} />
           </span>
@@ -233,10 +245,10 @@ const description =
       <div class="location-inner">
         <div class="location-header">
           <span class="eyebrow">Ubicación y Entregas</span>
-          <h2>Visítanos en nuestra boutique</h2>
+          <h2>Visítanos en nuestra tienda</h2>
           <p>
-            Punto de atención presencial y despacho para retiros coordinados
-            en Tacna, con envíos garantizados a todo el Perú.
+            Punto de atención presencial y despacho para retiros coordinados en
+            Tacna, con envíos garantizados a todo el Perú.
           </p>
         </div>
 
@@ -249,8 +261,12 @@ const description =
               </div>
               <div class="location-item-text">
                 <h4>Dirección de la Sede</h4>
-                <p class="location-address-main"><strong>{direccionLocal}</strong></p>
-                <p class="location-address-sub">{direccionInterior} &bull; {direccionAvenida}</p>
+                <p class="location-address-main">
+                  <strong>{direccionLocal}</strong>
+                </p>
+                <p class="location-address-sub">
+                  {direccionInterior} &bull; {direccionAvenida}
+                </p>
                 <small>{direccionCiudad}</small>
               </div>
             </div>
@@ -262,7 +278,9 @@ const description =
               <div class="location-item-text">
                 <h4>Horario de atención</h4>
                 <p>{horario}</p>
-                <small>Atención en boutique y despacho de pedidos para todo el país</small>
+                <small
+                  >Atención en tienda y despacho de pedidos para todo el país</small
+                >
               </div>
             </div>
 
@@ -273,7 +291,10 @@ const description =
               <div class="location-item-text">
                 <h4>Modalidad</h4>
                 <p>Atención presencial y retiros coordinados</p>
-                <small>Coordina previamente por WhatsApp para asegurar stock o probar notas olfativas</small>
+                <small
+                  >Coordina previamente por WhatsApp para asegurar stock o
+                  probar notas olfativas</small
+                >
               </div>
             </div>
 
@@ -303,8 +324,7 @@ const description =
               src={mapEmbedUrl}
               title="Ubicación de Maison des Parfums en C.C. Mercadillo Bolognesi, Tacna"
               loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-            />
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         </div>
       </div>

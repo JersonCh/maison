@@ -356,6 +356,7 @@ INSERT OR IGNORE INTO configuracion_tienda (clave, valor, descripcion, categoria
 ('facebook_url', 'https://facebook.com/maisondesparfums', 'Enlace al perfil de Facebook', 'redes'),
 ('tiktok_url', 'https://tiktok.com/@maisondesparfums', 'Enlace al canal de TikTok', 'redes'),
 ('horario_comercial', 'Lunes a sábado · 10:00 am - 8:00 pm', 'Horario de atención al cliente', 'contacto'),
+('email_contacto', 'contacto@maisondesparfums.pe', 'Correo electrónico de contacto y atención', 'contacto'),
 ('anuncio_superior_texto', 'Fragancias 100% Originales · Envíos a todo el Perú · Atención personalizada por WhatsApp', 'Texto de la barra de anuncios superior', 'anuncios'),
 ('anuncio_superior_activo', '1', '1: visible, 0: oculto', 'anuncios');
 

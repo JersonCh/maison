@@ -410,6 +410,7 @@ function SettingsSection() {
   const [facebook, setFacebook] = useState("");
   const [tiktok, setTiktok] = useState("");
   const [horario, setHorario] = useState("");
+  const [email, setEmail] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
@@ -425,6 +426,7 @@ function SettingsSection() {
           if (datos.facebook_url) setFacebook(datos.facebook_url);
           if (datos.tiktok_url) setTiktok(datos.tiktok_url);
           if (datos.horario_comercial) setHorario(datos.horario_comercial);
+          if (datos.email_contacto) setEmail(datos.email_contacto);
         }
       } catch (error) {
         console.error("Error al cargar configuración:", error);
@@ -443,6 +445,7 @@ function SettingsSection() {
         facebook_url: facebook,
         tiktok_url: tiktok,
         horario_comercial: horario,
+        email_contacto: email,
       };
 
       const respuesta = await fetch("/api/config", {
@@ -515,6 +518,16 @@ function SettingsSection() {
           value={horario}
           onChange={(e) => setHorario(e.target.value)}
           placeholder="Ej. Lunes a sábado · 10:00 am - 8:00 pm"
+        />
+      </label>
+
+      <label>
+        Correo electrónico de contacto
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Ej. contacto@maisondesparfums.pe"
         />
       </label>
 
