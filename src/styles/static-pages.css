@@ -155,6 +155,12 @@
   color: var(--gold);
   border-color: var(--gold);
 }
+.channel-link-simple.copied {
+  color: var(--gold);
+  border-color: var(--gold);
+  font-weight: 600;
+  cursor: default;
+}
 
 /* Consultas Rápidas (4 opciones temáticas a WhatsApp) */
 .quick-queries-section {

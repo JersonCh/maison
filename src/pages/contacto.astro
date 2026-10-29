@@ -147,7 +147,13 @@ const description =
             Un canal complementario para consultas corporativas, alianzas
             comerciales o comunicaciones formales.
           </p>
-          <a href={`mailto:${emailContact}`} class="channel-link-simple">
+          <a
+            id="email-contact-link"
+            href={`mailto:${emailContact}`}
+            data-email={emailContact}
+            class="channel-link-simple"
+            title="En PC: Haz clic para copiar correo · En móvil: Abrir aplicación"
+          >
             {emailContact}
           </a>
         </div>
@@ -359,4 +365,46 @@ const description =
       </div>
     </section>
   </div>
+
+  <script>
+    function setupEmailLink() {
+      const emailLink = document.getElementById("email-contact-link") as HTMLAnchorElement | null;
+      if (!emailLink) return;
+
+      emailLink.addEventListener("click", (e) => {
+        // Detectar si el usuario está en móvil / pantalla táctil
+        const isMobile =
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+          (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+
+        // Si es PC: prevenimos mailto y copiamos al portapapeles
+        if (!isMobile) {
+          e.preventDefault();
+          const email = emailLink.getAttribute("data-email") || emailLink.textContent?.trim() || "";
+          if (email) {
+            navigator.clipboard
+              .writeText(email)
+              .then(() => {
+                const originalText = emailLink.textContent;
+                emailLink.textContent = "✓ ¡Copiado al portapapeles!";
+                emailLink.classList.add("copied");
+
+                setTimeout(() => {
+                  emailLink.textContent = originalText;
+                  emailLink.classList.remove("copied");
+                }, 2200);
+              })
+              .catch(() => {
+                // Si el navegador bloquea clipboard, recurre a mailto
+                window.location.href = `mailto:${email}`;
+              });
+          }
+        }
+        // Si es móvil: el evento continúa normalmente y abre la app de correo
+      });
+    }
+
+    setupEmailLink();
+    document.addEventListener("astro:page-load", setupEmailLink);
+  </script>
 </Layout>
