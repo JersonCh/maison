@@ -30,11 +30,11 @@ const {
 
 const db = Astro.locals.runtime?.env?.DB;
 const storeConfig = db ? await obtenerConfiguracionTienda(db) : {};
-const whatsappPhone = storeConfig.whatsapp_pedidos || "910292249";
+const whatsappPhone = storeConfig.whatsapp_pedidos || "954159831";
 const horario = storeConfig.horario_comercial || "Lunes a sábado · 10:00 am - 8:00 pm";
-const instagram = storeConfig.instagram_url || "https://instagram.com/maisondesparfums";
+const instagram = storeConfig.instagram_url || "https://instagram.com/maisondesparfums.pe";
 const facebook = storeConfig.facebook_url || "https://facebook.com/maisondesparfums";
-const tiktok = storeConfig.tiktok_url || "https://tiktok.com/@maisondesparfums";
+const tiktok = storeConfig.tiktok_url || "https://tiktok.com/@maisondesparfums.pe";
 const announcementText = storeConfig.anuncio_superior_texto;
 const announcementActive = storeConfig.anuncio_superior_activo !== "0";
 

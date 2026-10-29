@@ -2,7 +2,7 @@ import type { CartLine } from "@/types/cart";
 import type { Product } from "@/types/product";
 import { formatPrice } from "@/lib/formatters";
 
-export const DEFAULT_WHATSAPP_NUMBER = "51910292249";
+export const DEFAULT_WHATSAPP_NUMBER = "51954159831";
 
 /**
  * Normaliza y formatea el número de WhatsApp para wa.me.

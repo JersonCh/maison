@@ -10,15 +10,27 @@ export const prerender = false;
 const db = Astro.locals.runtime?.env?.DB;
 const config = db ? await obtenerConfiguracionTienda(db) : {};
 
-const rawPhone = config.whatsapp_pedidos || "910292249";
+const rawPhone = config.whatsapp_pedidos || "954159831";
 const targetPhone = normalizarTelefonoWhatsApp(rawPhone);
 const horario = config.horario_comercial || "Lunes a sábado · 10:00 am - 8:00 pm";
-const instagram = config.instagram_url || "https://instagram.com/maisondesparfums";
+const instagram = config.instagram_url || "https://instagram.com/maisondesparfums.pe";
 const emailContact = config.email_contacto || "contacto@maisondesparfums.pe";
-const direccion = config.direccion_fisica || "Av. Conquistadores 940, San Isidro, Lima - Perú";
-const mapEmbedUrl = config.mapa_embed_url || "https://maps.google.com/maps?q=Av.+Conquistadores+940,+San+Isidro,+Lima,+Peru&t=&z=15&ie=UTF8&iwloc=&output=embed";
-const googleMapsLink = config.google_maps_link || "https://maps.google.com/?q=Av.+Conquistadores+940,+San+Isidro,+Lima,+Peru";
-const wazeLink = config.waze_link || "https://waze.com/ul?q=Av.+Conquistadores+940,+San+Isidro,+Lima,+Peru";
+
+// Datos de ubicación comercial extraídos de la sede oficial
+const direccionLocal = config.direccion_local || "Asoc. Centro Comercial Mercadillo Bolognesi";
+const direccionInterior = config.direccion_interior || "Int. D-312 · 1ra Fila";
+const direccionAvenida = config.direccion_avenida || "Av. Crnl. Mendoza Nº 1945";
+const direccionCiudad = config.direccion_ciudad || "Tacna, Perú";
+
+const mapEmbedUrl =
+  config.mapa_embed_url ||
+  "https://maps.google.com/maps?q=Av.+Coronel+Mendoza+1945,+Mercadillo+Bolognesi,+Tacna,+Peru&t=&z=16&ie=UTF8&iwloc=&output=embed";
+const googleMapsLink =
+  config.google_maps_link ||
+  "https://maps.google.com/?q=Av.+Coronel+Mendoza+1945,+Mercadillo+Bolognesi,+Tacna,+Peru";
+const wazeLink =
+  config.waze_link ||
+  "https://waze.com/ul?q=Av.+Coronel+Mendoza+1945,+Tacna";
 
 // URLs pre-redactadas para WhatsApp
 const buildWaLink = (mensaje: string) =>
@@ -27,36 +39,36 @@ const buildWaLink = (mensaje: string) =>
 const mainWaUrl = buildWaLink("Hola Maison des Parfums, deseo contactar con un asesor comercial.");
 const disponibilidadWaUrl = buildWaLink("Hola Maison des Parfums, deseo consultar la disponibilidad de una fragancia.");
 const asesoriaWaUrl = buildWaLink("Hola Maison des Parfums, me gustaría recibir asesoría personalizada para elegir mi perfume ideal.");
-const enviosWaUrl = buildWaLink("Hola Maison des Parfums, quisiera consultar los métodos y tiempos de envío para mi ciudad.");
+const enviosWaUrl = buildWaLink("Hola Maison des Parfums, quisiera consultar los métodos y tiempos de envío a mi ciudad.");
 const seguimientoWaUrl = buildWaLink("Hola Maison des Parfums, deseo consultar el estado de seguimiento de mi pedido.");
 
-// Preguntas frecuentes especializadas para contacto
+// Preguntas frecuentes contextuales de contacto y sede
 const contactFaqs: [string, string][] = [
   [
+    "¿Puedo visitar su boutique y probar las fragancias en persona?",
+    "¡Por supuesto! Te esperamos en nuestra sede física ubicada en la Asoc. Centro Comercial Mercadillo Bolognesi, Int. D-312 (1ra Fila), Av. Crnl. Mendoza Nº 1945, Tacna. También puedes escribirnos por WhatsApp con anticipación para consultar stock de probadores o tener tu fragancia lista.",
+  ],
+  [
+    "¿Hacen envíos a Lima y a todas las provincias del Perú?",
+    "Sí, realizamos envíos a todo el territorio nacional (Lima y todas las regiones) mediante agencias seguras y garantizadas como Olva Courier y Shalom, despachando cada fragancia 100% sellada y con embalaje protector de alta seguridad.",
+  ],
+  [
     "¿Cómo puedo consultar la disponibilidad de un perfume?",
-    "Puedes escribirnos directamente por WhatsApp indicando el nombre de la fragancia. Te confirmaremos al instante si la tenemos en stock para entrega inmediata o bajo pedido.",
+    "Puedes escribirnos directamente por WhatsApp indicando el nombre de la fragancia. Te confirmaremos al instante si la tenemos en stock para entrega inmediata en tienda o despacho nacional.",
   ],
   [
-    "¿Cómo realizo un pedido?",
-    "Todo el proceso de compra se coordina de manera personalizada y segura a través de WhatsApp. Una vez confirmada la disponibilidad de tu fragancia, te indicamos los pasos para concretar la compra.",
+    "¿Cómo coordino mi pedido?",
+    "Todo el proceso de compra se coordina de manera personalizada y transparente a través de WhatsApp. Una vez confirmada tu fragancia y método de entrega (retiro en boutique en Tacna o envío a domicilio a nivel nacional), te indicamos los pasos para concretar la compra.",
   ],
   [
-    "¿Qué tipo de asesoría puedo solicitar?",
-    "Nuestros asesores están disponibles para orientarte según tus familias olfativas preferidas, notas aromáticas, ocasión de uso, estación del año o presupuesto.",
-  ],
-  [
-    "¿Cómo son los envíos a Lima y provincias?",
-    "Realizamos envíos a toda Lima Metropolitana y a todas las provincias del Perú. Indícanos tu distrito o ciudad y te brindaremos los tiempos y alternativas de despacho disponibles.",
-  ],
-  [
-    "¿Cómo hago el seguimiento de un pedido realizado?",
-    "Escríbenos al mismo chat de WhatsApp donde coordinaste tu compra con tus datos o comprobante, y te brindaremos el estado actualizado de tu entrega en tiempo real.",
+    "¿Qué medios de pago aceptan?",
+    "Aceptamos transferencias bancarias (BCP, BBVA, Interbank), pagos móviles (Yape y Plin) y pagos presenciales en nuestra tienda física en Tacna al momento de retirar tu pedido.",
   ],
 ];
 
-const title = "Contacto y Asesoría Personalizada | Maison des Parfums";
+const title = "Contacto y Sede Boutique | Maison des Parfums Tacna";
 const description =
-  "Conversemos sobre tu próxima fragancia original. Atención personalizada por WhatsApp, consultas rápidas, ubicación de nuestra sede en Lima y preguntas frecuentes.";
+  "Visítanos en C.C. Mercadillo Bolognesi (Tacna) o comunícate vía WhatsApp al 954 159 831. Fragancias originales con atención personalizada y envíos a todo el Perú.";
 ---
 
 <Layout title={title} description={description} currentPath="/contacto">
@@ -81,7 +93,7 @@ const description =
           </div>
           <h3>Escríbenos por WhatsApp</h3>
           <p>
-            Atención prioritaria y directa. Consulta sobre perfumes, notas,
+            Atención prioritaria y directa (+51 954 159 831). Consulta sobre perfumes, notas,
             disponibilidad inmediata y pedidos.
           </p>
           <a
@@ -110,7 +122,7 @@ const description =
             rel="noopener noreferrer"
             class="channel-link-simple"
           >
-            @maisondesparfums ↗
+            @maisondesparfums.pe ↗
           </a>
         </div>
 
@@ -221,10 +233,10 @@ const description =
       <div class="location-inner">
         <div class="location-header">
           <span class="eyebrow">Ubicación y Entregas</span>
-          <h2>Visítanos y coordina tu entrega</h2>
+          <h2>Visítanos en nuestra boutique</h2>
           <p>
-            Sede física de atención y punto de despacho para retiros coordinados
-            en Lima.
+            Punto de atención presencial y despacho para retiros coordinados
+            en Tacna, con envíos garantizados a todo el Perú.
           </p>
         </div>
 
@@ -236,9 +248,10 @@ const description =
                 <Icon name="mapPin" size={22} />
               </div>
               <div class="location-item-text">
-                <h4>Dirección</h4>
-                <p>{direccion}</p>
-                <small>San Isidro · Lima, Perú</small>
+                <h4>Dirección de la Sede</h4>
+                <p class="location-address-main"><strong>{direccionLocal}</strong></p>
+                <p class="location-address-sub">{direccionInterior} &bull; {direccionAvenida}</p>
+                <small>{direccionCiudad}</small>
               </div>
             </div>
 
@@ -249,7 +262,7 @@ const description =
               <div class="location-item-text">
                 <h4>Horario de atención</h4>
                 <p>{horario}</p>
-                <small>Atención de pedidos y consultas presenciales previa cita</small>
+                <small>Atención en boutique y despacho de pedidos para todo el país</small>
               </div>
             </div>
 
@@ -259,8 +272,8 @@ const description =
               </div>
               <div class="location-item-text">
                 <h4>Modalidad</h4>
-                <p>Retiro coordinado y atención personalizada</p>
-                <small>Coordina previamente por WhatsApp para tener tu pedido listo</small>
+                <p>Atención presencial y retiros coordinados</p>
+                <small>Coordina previamente por WhatsApp para asegurar stock o probar notas olfativas</small>
               </div>
             </div>
 
@@ -288,7 +301,7 @@ const description =
           <div class="location-map-card">
             <iframe
               src={mapEmbedUrl}
-              title="Ubicación de Maison des Parfums en Lima"
+              title="Ubicación de Maison des Parfums en C.C. Mercadillo Bolognesi, Tacna"
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
             />
