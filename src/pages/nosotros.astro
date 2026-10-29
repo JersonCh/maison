@@ -1,46 +1,326 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import SectionTitle from "@/components/ui/SectionTitle.astro";
-import Button from "@/components/ui/Button.astro";
 import Icon from "@/components/ui/Icon";
-import { categoryImages } from "@/data/products";
+import { obtenerConfiguracionTienda } from "@/lib/db";
+import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
 
-const title = "Nosotros | Maison des Parfums";
+export const prerender = false;
+
+const db = Astro.locals.runtime?.env?.DB;
+const config = db ? await obtenerConfiguracionTienda(db) : {};
+
+const rawPhone = config.whatsapp_pedidos || "954159831";
+const targetPhone = normalizarTelefonoWhatsApp(rawPhone);
+const tiktokUrl =
+  config.tiktok_url || "https://tiktok.com/@maisondesparfums.pe";
+const whatsappUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(
+  "Hola Maison des Parfums, deseo recibir asesoría sobre su selección de fragancias.",
+)}`;
+
+const title = "Nuestra Esencia | Maison des Parfums";
 const description =
-  "Maison des Parfums nace de una convicción: el perfume más especial no es el más conocido, sino el que se siente auténticamente tuyo. Curaduría honesta y personalizada.";
+  "Descubre la historia y curaduría de Maison des Parfums: alta perfumería original, nuestro espacio en Tacna, asesoría personalizada y envíos garantizados a todo el Perú.";
 ---
 
 <Layout title={title} description={description} currentPath="/nosotros">
-  <main class="editorial-page">
-    <section class="editorial-hero">
-      <p class="eyebrow">Nuestra historia</p>
-      <h1>El lujo de encontrar<br />tu propia esencia</h1>
-      <p>
-        Maison des Parfums nace de una convicción: el perfume más especial no es el
-        más conocido, sino el que se siente auténticamente tuyo.
-      </p>
-    </section>
+  <div class="about-view">
+    {/* 1. HERO EDITORIAL DE MARCA */}
+    <section class="about-hero-section">
+      <div class="about-hero-text">
+        <span class="eyebrow">Nuestra Esencia</span>
+        <h1>El arte de elegir <br /><span class="text-gold">tu fragancia</span></h1>
+        <p>
+          Cada fragancia tiene una personalidad propia. Descubre aromas que
+          acompañan tu estilo, evocan recuerdos y convierten cada presencia en
+          un recuerdo personal e inolvidable.
+        </p>
+        <div class="about-hero-actions">
+          <a href="/perfumes" class="btn-about-primary">
+            Explorar colección <Icon name="arrow" size={14} />
+          </a>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-about-secondary"
+          >
+            <Icon name="whatsapp" size={16} /> Hablemos por WhatsApp
+          </a>
+        </div>
+      </div>
 
-    <section class="editorial-split">
-      <img src={categoryImages.Unisex} alt="Curaduría de fragancias" />
-      <div>
-        <SectionTitle
-          eyebrow="Curaduría con propósito"
-          title="Más que perfumes, memorias"
+      <div class="about-hero-media">
+        <img
+          src="https://images.unsplash.com/photo-1615397349754-cfa2066a298e?auto=format&fit=crop&w=900&q=80"
+          alt="Alta Perfumería en Maison des Parfums"
+          loading="eager"
+          decoding="async"
         />
-        <p>
-          Seleccionamos fragancias originales de casas reconocidas y propuestas
-          de autor. Cada recomendación parte de escuchar tus gustos, entender tu
-          estilo y acompañarte sin prisa.
-        </p>
-        <p>
-          Nuestra experiencia es cercana, informada y honesta. Porque elegir un
-          perfume debería sentirse tan especial como usarlo.
-        </p>
-        <Button href="/contacto">
-          Conversa con nosotros <Icon name="arrow" />
-        </Button>
       </div>
     </section>
-  </main>
+
+    {/* 2. NUESTRO ESPACIO (TIENDA FÍSICA EN TACNA) */}
+    <section class="about-space-section">
+      <div class="about-space-inner">
+        <div class="about-space-header">
+          <span class="eyebrow">Nuestro Espacio</span>
+          <h2>Un santuario para los sentidos</h2>
+          <p>
+            Te invitamos a descubrir nuestra tienda física en Tacna, un espacio
+            diseñado con delicadeza donde cada rincón invita a la exploración
+            olfativa en una atmósfera íntima y acogedora.
+          </p>
+        </div>
+
+        <div class="about-space-grid">
+          {/* Foto Principal Destacada (8 columnas) */}
+          <div class="space-main-item">
+            <img
+              src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?auto=format&fit=crop&w=1200&q=80"
+              alt="Interior de nuestra tienda física en Tacna"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+
+          {/* Fotos Secundarias en Columna (4 columnas) */}
+          <div class="space-side-stack">
+            <div class="space-side-item">
+              <img
+                src="https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?auto=format&fit=crop&w=600&q=80"
+                alt="Detalle de frascos y notas olfativas"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="space-side-item">
+              <img
+                src="https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=600&q=80"
+                alt="Ambiente y experiencia olfativa"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* 3. EL ROSTRO DETRÁS DE LA MARCA */}
+    <section class="about-founder-section">
+      <div class="about-founder-inner">
+        <div class="founder-media-wrap">
+          <div class="founder-media-card">
+            <img
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=700&q=80"
+              alt="Flavia Briceño - Fundadora de Maison des Parfums"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div class="founder-accent-frame" aria-hidden="true"></div>
+        </div>
+
+        <div class="founder-text-wrap">
+          <span class="eyebrow">El rostro detrás de la marca</span>
+          <blockquote>
+            &ldquo;Mi pasión siempre fue conectar a las personas con aromas que
+            cuentan su propia historia. Cada frasco en nuestra selección fue
+            elegido pensando en la emoción y el recuerdo que despertará en quien
+            lo lleva.&rdquo;
+          </blockquote>
+          <h4>Flavia Briceño Igarto</h4>
+          <p>Fundadora & Curadora Olfativa</p>
+        </div>
+      </div>
+    </section>
+
+    {/* 4. EXPERIENCIA MAISON (COMUNIDAD / VIDEOS UGC) */}
+    <section class="about-community-section">
+      <div class="about-community-inner">
+        <div class="community-header">
+          <div>
+            <span class="eyebrow">Comunidad Maison</span>
+            <h2>Experiencias compartidas</h2>
+          </div>
+          <a
+            href={tiktokUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Seguir en TikTok"
+          >
+            Síguenos en TikTok <Icon name="tiktok" size={16} />
+          </a>
+        </div>
+
+        {/* Grid de 4 tarjetas estilo Reels / TikToks (formato vertical 9:16) */}
+        <div class="community-grid">
+          {/* Tarjeta UGC 1: Unboxing */}
+          <a
+            href={tiktokUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="community-card"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=500&q=80"
+              alt="Unboxing y presentación de fragancias"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="community-overlay"></div>
+            <div class="community-play-badge">
+              <Icon name="play" size={18} />
+            </div>
+            <div class="community-card-info">
+              <span class="community-card-tag">Unboxing</span>
+              <p class="community-card-title">Empaque y sellos originales</p>
+            </div>
+          </a>
+
+          {/* Tarjeta UGC 2: Reseña */}
+          <a
+            href={tiktokUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="community-card"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1630573133526-8d090e0269af?auto=format&fit=crop&w=500&q=80"
+              alt="Reseña y notas aromáticas"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="community-overlay"></div>
+            <div class="community-play-badge">
+              <Icon name="play" size={18} />
+            </div>
+            <div class="community-card-info">
+              <span class="community-card-tag">Reseña</span>
+              <p class="community-card-title">Sensaciones y familias olfativas</p>
+            </div>
+          </a>
+
+          {/* Tarjeta UGC 3: Favoritos */}
+          <a
+            href={tiktokUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="community-card"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1672848700906-2b8ca62639e4?auto=format&fit=crop&w=500&q=80"
+              alt="Fragancias favoritas y más elegidas"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="community-overlay"></div>
+            <div class="community-play-badge">
+              <Icon name="play" size={18} />
+            </div>
+            <div class="community-card-info">
+              <span class="community-card-tag">Favoritos</span>
+              <p class="community-card-title">Las joyas más solicitadas</p>
+            </div>
+          </a>
+
+          {/* Tarjeta UGC 4: Estética & Notas */}
+          <a
+            href={tiktokUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="community-card"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1705936118918-870095881e61?auto=format&fit=crop&w=500&q=80"
+              alt="Estilo y personalidad olfativa"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="community-overlay"></div>
+            <div class="community-play-badge">
+              <Icon name="play" size={18} />
+            </div>
+            <div class="community-card-info">
+              <span class="community-card-tag">Aroma & Estilo</span>
+              <p class="community-card-title">Encuentra tu fragancia firma</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    {/* 5. PROPUESTA DE VALOR (4 PILARES) */}
+    <section class="about-values-section">
+      <div class="about-values-grid">
+        <div class="value-card">
+          <div class="value-icon-wrap">
+            <Icon name="sparkles" size={28} />
+          </div>
+          <h4>Selección curada</h4>
+          <p>
+            Explora diferentes casas de diseño, tendencias y notas aromáticas para
+            encontrar la propuesta que resuene con tu autenticidad.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon-wrap">
+            <Icon name="whatsapp" size={28} />
+          </div>
+          <h4>Orientación personal</h4>
+          <p>
+            Resuelve todas tus dudas y recibe asesoría cercana por WhatsApp para
+            elegir tu aroma según la ocasión, estación o presupuesto.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon-wrap">
+            <Icon name="check" size={28} />
+          </div>
+          <h4>Transparencia total</h4>
+          <p>
+            Consulta presentaciones, familias olfativas y códigos de lote (Batch
+            Code) con información 100% verídica y verificable.
+          </p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon-wrap">
+            <Icon name="truck" size={28} />
+          </div>
+          <h4>Atención y despachos</h4>
+          <p>
+            Coordina de forma sencilla por WhatsApp, retira en nuestra tienda en
+            Tacna o recibe tu entrega protegida a cualquier ciudad del país.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* 6. CIERRE EDITORIAL / CTA */}
+    <section class="about-closing-cta">
+      <div class="about-closing-inner">
+        <h3>Tu próxima fragancia te espera</h3>
+        <p>
+          Explora nuestra colección o escríbenos para ayudarte a encontrar el
+          aroma que conecte verdaderamente contigo.
+        </p>
+        <div class="about-closing-actions">
+          <a href="/perfumes" class="btn-cta-gold">
+            Descubrir perfumes <Icon name="arrow" size={14} />
+          </a>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-cta-outline"
+          >
+            <Icon name="whatsapp" size={16} /> Hablar por WhatsApp
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
 </Layout>

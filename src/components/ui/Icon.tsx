@@ -24,13 +24,15 @@ export type IconName =
     | "sparkles"
     | "truck"
     | "box"
-    | "clock";
+    | "clock"
+    | "play";
 
 const filledIcons = new Set<IconName>([
     "whatsapp",
     "facebook",
     "instagram",
     "tiktok",
+    "play",
 ]);
 
 const paths: Record<IconName, ReactNode> = {
@@ -118,6 +120,7 @@ const paths: Record<IconName, ReactNode> = {
             <polyline points="12 6 12 12 16 14" />
         </>
     ),
+    play: <polygon points="6 3 20 12 6 21 6 3" />,
 };
 
 export default function Icon({
