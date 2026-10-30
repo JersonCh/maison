@@ -233,7 +233,7 @@ export default function AdminDashboard({ }: Props) {
                 value={productos.length}
                 note={`${productos.filter((p) => p.activo).length} activos`}
               />
-              <Stat label="Casas de Perfumería" value={marcas.length} note="Catálogo curado" />
+              <Stat label="Casas de Perfumería" value={marcas.length} note="Marcas verificadas" />
               <Stat
                 label="Familias olfativas"
                 value={familias.length}
@@ -242,7 +242,7 @@ export default function AdminDashboard({ }: Props) {
               <Stat
                 label="Destacados en Home"
                 value={productos.filter((p) => p.es_destacado).length}
-                note="Curaduría principal"
+                note="Selección destacada"
               />
             </div>
 

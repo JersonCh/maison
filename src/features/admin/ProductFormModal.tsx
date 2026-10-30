@@ -571,7 +571,7 @@ export default function ProductFormModal({
         {/* 3. SECCIÓN: GALERÍA DE FRAGANCIA */}
         <fieldset className="admin-fieldset">
           <legend className="admin-fieldset-legend">
-            <span>Paso 3 · Curaduría Visual</span>
+            <span>Paso 3 · Galería Visual</span>
             Galería de Fragancia (Portada obligatoria · Secundarias opcionales)
           </legend>
 
@@ -765,7 +765,7 @@ export default function ProductFormModal({
                 onChange={(e) => setEsDestacado(e.target.checked)}
               />
               <span />
-              <strong>Destacar en la página de inicio (Sección Curaduría)</strong>
+              <strong>Destacar en la página de inicio (Productos Destacados)</strong>
             </label>
           </div>
         </fieldset>
