@@ -20,7 +20,7 @@
   align-items: center;
 }
 .about-hero-text .eyebrow {
-  color: var(--gold);
+  color: var(--gold-deep);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .22em;
@@ -37,11 +37,11 @@
   margin: 0 0 20px;
 }
 .about-hero-text h1 .text-gold {
-  color: var(--gold);
+  color: #a87a32;
   font-style: italic;
 }
 .about-hero-text p {
-  color: var(--muted);
+  color: #4a4742;
   font-size: 16px;
   line-height: 1.75;
   margin: 0 0 32px;
@@ -112,10 +112,10 @@
 
 /* 1.2 Nuestro Espacio (Tienda física) */
 .about-space-section {
-  background: var(--card);
+  background: #f4ede1;
   padding: 95px 24px;
-  border-top: 1px solid rgba(215, 173, 87, 0.15);
-  border-bottom: 1px solid rgba(215, 173, 87, 0.15);
+  border-top: 1px solid rgba(215, 173, 87, 0.2);
+  border-bottom: 1px solid rgba(215, 173, 87, 0.2);
 }
 .about-space-inner {
   max-width: 1240px;
@@ -127,7 +127,7 @@
   margin: 0 auto 55px;
 }
 .about-space-header .eyebrow {
-  color: var(--gold);
+  color: var(--gold-deep);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .22em;
@@ -143,8 +143,8 @@
   margin: 0 0 16px;
 }
 .about-space-header p {
-  color: var(--muted);
-  font-size: 15px;
+  color: #4a4742;
+  font-size: 15.5px;
   line-height: 1.7;
   margin: 0;
 }
@@ -235,7 +235,7 @@
   text-align: left;
 }
 .founder-text-wrap .eyebrow {
-  color: var(--gold);
+  color: var(--gold-deep);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: .22em;
@@ -247,6 +247,7 @@
   font-family: var(--serif);
   font-size: clamp(22px, 2.6vw, 30px);
   font-style: italic;
+  font-weight: 500;
   line-height: 1.5;
   color: var(--ink);
   margin: 0 0 24px;
@@ -262,14 +263,15 @@
   margin: 0 0 4px;
 }
 .founder-text-wrap p {
-  color: var(--muted);
-  font-size: 13px;
+  color: #55524c;
+  font-size: 13.5px;
+  font-weight: 500;
   margin: 0;
 }
 
 /* 1.4 Comunidad Maison (Videos Reels / UGC) */
 .about-community-section {
-  background: var(--bg);
+  background: var(--ink) !important;
   padding: 95px 24px 105px;
   color: var(--ivory);
 }
@@ -414,27 +416,27 @@
   text-align: left;
 }
 .value-icon-wrap {
-  color: var(--gold);
+  color: var(--gold-deep);
   margin-bottom: 16px;
   display: inline-flex;
 }
 .value-card h4 {
   font-family: var(--serif);
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink);
   margin: 0 0 10px;
 }
 .value-card p {
-  color: var(--muted);
-  font-size: 13.5px;
+  color: #44413b;
+  font-size: 14px;
   line-height: 1.65;
   margin: 0;
 }
 
 /* 1.6 Cierre Editorial / CTA */
 .about-closing-cta {
-  background: var(--bg);
+  background: var(--ink) !important;
   padding: 95px 24px;
   text-align: center;
   border-top: 1px solid rgba(215, 173, 87, 0.2);
@@ -451,7 +453,7 @@
   margin: 0 0 16px;
 }
 .about-closing-inner p {
-  color: var(--muted);
+  color: #c9c5bd;
   font-size: 16px;
   line-height: 1.7;
   margin: 0 0 32px;
