@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS imagenes_producto (
     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- Curaduría manual de fragancias afines ("También te puede gustar")
+-- Selección manual de fragancias afines ("También te puede gustar")
 CREATE TABLE IF NOT EXISTS productos_relacionados (
     producto_origen_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
     producto_relacionado_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
