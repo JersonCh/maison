@@ -1,0 +1,229 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/ui/Icon";
+import SectionTitle from "@/components/ui/SectionTitle.astro";
+import ShippingCourierTabs from "@/features/shipping/ShippingCourierTabs";
+import { obtenerConfiguracionTienda } from "@/lib/db";
+import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
+
+export const prerender = false;
+
+const db = Astro.locals.runtime?.env?.DB;
+const config = db ? await obtenerConfiguracionTienda(db) : {};
+
+const rawPhone = config.whatsapp_pedidos || "954159831";
+const targetPhone = normalizarTelefonoWhatsApp(rawPhone);
+
+const cotizarEnvioWaUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(
+  "Hola Maison des Parfums, quisiera consultar el costo y tiempo de envío a mi ciudad.",
+)}`;
+
+const title = "Envíos a todo el Perú y Métodos de Pago | Maison des Parfums";
+const description =
+  "Conoce nuestras políticas de envío nacional por Shalom y Olva Courier, días de despacho de fragancias y facilidades de pago (Yape, Plin, transferencias y Visa).";
+---
+
+<Layout title={title} description={description} currentPath="/envios">
+  <main class="shipping-view">
+    {/* 1. Hero Minimalista & Sobrio */}
+    <section class="shipping-hero">
+      <div class="shipping-hero-inner">
+        <span class="eyebrow">Logística y Cobertura Nacional</span>
+        <h1>Envíos a todo el Perú & Formas de Pago</h1>
+        <p class="shipping-hero-copy">
+          Despachamos fragancias 100% originales desde nuestra sede en Tacna 
+          hacia cualquier departamento del país con empaque acolchado de alta seguridad.
+        </p>
+
+        {/* 3 Pilares Rápidos */}
+        <div class="shipping-pillars-strip">
+          <div class="pillar-item">
+            <div class="pillar-icon">
+              <Icon name="clock" size={20} />
+            </div>
+            <div>
+              <strong>Despachos programados</strong>
+              <span>Todos los jueves puntualmente</span>
+            </div>
+          </div>
+
+          <div class="pillar-item">
+            <div class="pillar-icon">
+              <Icon name="truck" size={20} />
+            </div>
+            <div>
+              <strong>Agencias aliadas</strong>
+              <span>Shalom & Olva Courier a nivel nacional</span>
+            </div>
+          </div>
+
+          <div class="pillar-item">
+            <div class="pillar-icon">
+              <Icon name="box" size={20} />
+            </div>
+            <div>
+              <strong>Empaque blindado</strong>
+              <span>Protección especial para frascos finos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* 2. Sección Interactiva: Couriers (Shalom vs Olva) */}
+    <section class="shipping-section couriers-section">
+      <div class="shipping-container">
+        <SectionTitle
+          eyebrow="Operadores de transporte"
+          title="Elige tu modalidad de entrega preferida"
+          copy="Trabajamos con las agencias líderes del Perú para darte flexibilidad de retiro en sucursal o entrega directa en la puerta de tu hogar."
+        />
+
+        <ShippingCourierTabs client:load />
+      </div>
+    </section>
+
+    {/* 3. Cronograma del Despacho (3 pasos simples) */}
+    <section class="shipping-section schedule-section">
+      <div class="shipping-container">
+        <SectionTitle
+          eyebrow="Paso a paso"
+          title="¿Cómo funciona el proceso de despacho?"
+          copy="Un flujo ordenado y transparente desde que confirmas tu pedido hasta que lo recibes en tus manos."
+        />
+
+        <div class="shipping-steps-grid">
+          <div class="shipping-step-card">
+            <span class="step-num">01</span>
+            <h4>Coordinación por WhatsApp</h4>
+            <p>
+              Confirmamos la disponibilidad de tu fragancia, tus datos de contacto y la 
+              agencia o dirección exacta de destino en tu ciudad.
+            </p>
+          </div>
+
+          <div class="shipping-step-card">
+            <span class="step-num">02</span>
+            <h4>Embalaje de alta resistencia</h4>
+            <p>
+              Cada botella se acondiciona con doble capa de poliburbuja y sello hermético 
+              para amortiguar impactos durante el trayecto interprovincial.
+            </p>
+          </div>
+
+          <div class="shipping-step-card highlight-step">
+            <span class="step-num">03</span>
+            <h4>Despacho de los Jueves</h4>
+            <p>
+              Todos los pedidos semanales se entregan a la agencia cada jueves. En la tarde 
+              te compartimos la foto de tu guía oficial o código de seguimiento.
+            </p>
+          </div>
+        </div>
+
+        {/* Aviso Temporada Alta (Diciembre) */}
+        <div class="december-notice-card">
+          <div class="december-notice-icon">
+            <Icon name="sparkles" size={24} />
+          </div>
+          <div class="december-notice-text">
+            <strong>Temporada de fiestas (Diciembre)</strong>
+            <p>
+              Durante el mes de diciembre, las agencias de encomienda en todo el Perú registran 
+              una saturación logística extraordinaria. Te sugerimos realizar tus compras con al 
+              menos <strong>una semana de anticipación</strong> para asegurar que tus fragancias 
+              lleguen a tiempo para tus ocasiones especiales.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* 4. Métodos de Pago Seguros */}
+    <section class="shipping-section payments-section">
+      <div class="shipping-container">
+        <SectionTitle
+          eyebrow="Flexibilidad y seguridad"
+          title="Métodos de pago aceptados"
+          copy="Brindamos canales directos sin comisiones ocultas para que tu experiencia sea cómoda y segura."
+        />
+
+        <div class="payments-cards-grid">
+          <div class="payment-card">
+            <div class="payment-card-header">
+              <span class="payment-tag">Inmediato · Sin comisión</span>
+              <h4>Billeteras Digitales</h4>
+            </div>
+            <p>
+              Transfiere al instante desde tu teléfono móvil mediante <strong>Yape</strong> o <strong>Plin</strong>. 
+              Confirmación rápida y sin esperas.
+            </p>
+            <div class="payment-brands">
+              <span class="brand-pill yape">Yape</span>
+              <span class="brand-pill plin">Plin</span>
+            </div>
+          </div>
+
+          <div class="payment-card">
+            <div class="payment-card-header">
+              <span class="payment-tag">Banca por Internet</span>
+              <h4>Transferencias Bancarias</h4>
+            </div>
+            <p>
+              Depósitos y transferencias directas o interbancarias (CCI) desde tus cuentas en los 
+              principales bancos del país.
+            </p>
+            <div class="payment-brands">
+              <span class="brand-pill bank">BCP</span>
+              <span class="brand-pill bank">BBVA</span>
+              <span class="brand-pill bank">Interbank</span>
+            </div>
+          </div>
+
+          <div class="payment-card">
+            <div class="payment-card-header">
+              <span class="payment-tag">En tienda física</span>
+              <h4>Tarjetero Visa Presencial</h4>
+            </div>
+            <p>
+              Aceptamos tarjetas de débito y crédito Visa mediante terminal POS en nuestro espacio físico 
+              en Tacna (Mercadillo Bolognesi Int. D-312).
+            </p>
+            <div class="payment-brands">
+              <span class="brand-pill visa">Visa POS</span>
+              <span class="brand-pill cash">Efectivo en tienda</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* 5. Cierre & Asesoría Directa */}
+    <section class="shipping-cta-section">
+      <div class="shipping-container">
+        <div class="shipping-cta-box">
+          <span class="eyebrow">Asistencia personalizada</span>
+          <h3>¿Deseas consultar el costo exacto a tu localidad?</h3>
+          <p>
+            Indícanos tu ciudad o distrito y te informaremos al instante la tarifa de envío, 
+            la agencia más cercana y el tiempo de llegada estimado.
+          </p>
+          <div class="cta-actions">
+            <a
+              href={cotizarEnvioWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-shipping-wa"
+            >
+              <Icon name="whatsapp" size={18} />
+              Consultar costo de envío por WhatsApp
+            </a>
+            <a href="/perfumes" class="btn-shipping-catalog">
+              Ver catálogo de fragancias
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

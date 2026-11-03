@@ -124,7 +124,16 @@ export default function CartDrawer({ phone }: Props) {
                 <span>Subtotal</span>
                 <strong>{formatPrice(total)}</strong>
               </div>
-              <p>El costo de envío se coordina por WhatsApp.</p>
+              <p>
+                El costo de envío se coordina por WhatsApp.{" "}
+                <a
+                  href="/envios"
+                  onClick={closeCart}
+                  style={{ color: "var(--gold-deep)", textDecoration: "underline" }}
+                >
+                  Ver políticas de envío
+                </a>
+              </p>
               <button
                 className="btn btn-gold full"
                 onClick={handleSendWhatsApp}

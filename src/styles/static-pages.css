@@ -975,3 +975,559 @@
   .faq-list button strong { font-size: 15px; }
   .location-map-card { min-height: 280px; }
 }
+
+
+/* ==========================================================================
+   4. ENVÍOS Y PAGOS (LOGÍSTICA EDITORIAL NACIONAL)
+   ========================================================================== */
+.shipping-view {
+  background: var(--ivory);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.shipping-hero {
+  border-bottom: 1px solid var(--line);
+  background: #fdfcf9;
+}
+
+.shipping-hero-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 85px 24px 50px;
+}
+
+.shipping-hero-inner .eyebrow {
+  color: var(--gold-deep);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.shipping-hero-inner h1 {
+  font-family: var(--serif);
+  font-size: clamp(32px, 4.2vw, 52px);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+.shipping-hero-copy {
+  color: #4a4742;
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 640px;
+  margin: 0 auto 36px;
+}
+
+.shipping-pillars-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 22px 28px;
+  border-radius: 4px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.pillar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  flex: 1;
+}
+
+.pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ivory);
+  color: var(--gold-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #ebdcc6;
+}
+
+.pillar-item strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pillar-item span {
+  display: block;
+  font-size: 12px;
+  color: #6b6863;
+  margin-top: 2px;
+}
+
+.shipping-section {
+  padding: 70px 24px;
+}
+
+.couriers-section {
+  background: var(--ivory);
+}
+
+.schedule-section {
+  background: #ffffff;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.payments-section {
+  background: var(--ivory);
+}
+
+.shipping-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Couriers Interactive Tabs */
+.courier-interactive-card {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+  margin-top: 28px;
+}
+
+.courier-tabs-nav {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  background: #fdfcf9;
+}
+
+.courier-tab-btn {
+  flex: 1;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.courier-tab-btn:hover {
+  background: #f7f5ef;
+}
+
+.courier-tab-btn.active {
+  background: #ffffff;
+  border-bottom: 2px solid var(--ink);
+}
+
+.courier-logo-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 3px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.courier-logo-badge.shalom {
+  background: #e02424;
+  color: #ffffff;
+}
+
+.courier-logo-badge.olva {
+  background: #00875a;
+  color: #ffffff;
+}
+
+.courier-tab-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.courier-tab-content {
+  padding: 38px 36px;
+}
+
+.courier-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.courier-badge-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  display: block;
+}
+
+.courier-title {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 4px 0 0;
+}
+
+.courier-speed {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--ivory);
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.courier-description {
+  font-size: 14px;
+  color: #5a5752;
+  line-height: 1.65;
+  margin-bottom: 28px;
+  max-width: 760px;
+}
+
+.courier-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.spec-box {
+  padding: 18px 20px;
+  background: #faf9f6;
+  border: 1px solid #ede8de;
+  border-radius: 3px;
+}
+
+.spec-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a857e;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.spec-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.spec-note {
+  font-size: 12px;
+  color: #66635e;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.courier-footer-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #736e67;
+  border-top: 1px dashed var(--line);
+  padding-top: 18px;
+}
+
+.courier-footer-tip svg {
+  color: var(--gold-deep);
+  flex-shrink: 0;
+}
+
+/* Shipping Steps Grid */
+.shipping-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
+.shipping-step-card {
+  padding: 30px 24px;
+  background: #fdfcf9;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.shipping-step-card.highlight-step {
+  border: 1px solid #d4c29d;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(150, 108, 40, 0.06);
+}
+
+.step-num {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--gold-deep);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.shipping-step-card h4 {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+
+.shipping-step-card p {
+  font-size: 13px;
+  color: #595651;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* December Notice Card */
+.december-notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 22px 28px;
+  background: #fff8eb;
+  border: 1px solid #eed8b3;
+  border-radius: 4px;
+}
+
+.december-notice-icon {
+  color: #a87a32;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.december-notice-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7a5416;
+  margin-bottom: 4px;
+}
+
+.december-notice-text p {
+  font-size: 13px;
+  color: #6b4d1b;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* Payment Cards Grid */
+.payments-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.payment-card {
+  padding: 28px 24px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.payment-card h4 {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+
+.payment-card p {
+  font-size: 13px;
+  color: #595651;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  flex-grow: 1;
+}
+
+.payment-brands {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.brand-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+}
+
+.brand-pill.yape {
+  background: #742284;
+  color: #ffffff;
+  border-color: #742284;
+}
+
+.brand-pill.plin {
+  background: #00bcd4;
+  color: #ffffff;
+  border-color: #00bcd4;
+}
+
+.brand-pill.bank {
+  background: #1a2738;
+  color: #ffffff;
+  border-color: #1a2738;
+}
+
+.brand-pill.visa {
+  background: #1a1f71;
+  color: #ffffff;
+  border-color: #1a1f71;
+}
+
+.brand-pill.cash {
+  background: #2e382d;
+  color: #ffffff;
+  border-color: #2e382d;
+}
+
+/* Shipping Closing CTA */
+.shipping-cta-section {
+  padding: 80px 24px;
+  background: #ffffff;
+  border-top: 1px solid var(--line);
+}
+
+.shipping-cta-box {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.shipping-cta-box .eyebrow {
+  color: var(--gold-deep);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.shipping-cta-box h3 {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 500;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+
+.shipping-cta-box p {
+  font-size: 15px;
+  color: #5a5752;
+  line-height: 1.7;
+  margin: 0 0 28px;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-shipping-wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 28px;
+  background: #25d366;
+  color: #0d0f0c;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .06em;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+
+.btn-shipping-wa:hover {
+  background: #1ebc57;
+}
+
+.btn-shipping-catalog {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  background: var(--ink);
+  color: var(--ivory);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-decoration: none;
+  border-radius: 2px;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+}
+
+.btn-shipping-catalog:hover {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* Shipping Specific Responsive Overrides */
+@media (max-width: 900px) {
+  .shipping-pillars-strip { flex-direction: column; gap: 16px; }
+  .shipping-steps-grid { grid-template-columns: 1fr; }
+  .payments-cards-grid { grid-template-columns: 1fr; }
+  .courier-specs-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .courier-tabs-nav { flex-direction: column; }
+  .courier-tab-btn { justify-content: flex-start; padding: 14px 18px; }
+  .courier-tab-content { padding: 26px 18px; }
+  .courier-header-row { flex-direction: column; align-items: flex-start; }
+  .shipping-hero-inner { padding: 55px 18px 35px; }
+  .shipping-section { padding: 50px 18px; }
+  .shipping-cta-box h3 { font-size: 26px; }
+  .cta-actions { flex-direction: column; }
+  .btn-shipping-wa, .btn-shipping-catalog { width: 100%; justify-content: center; }
+}
