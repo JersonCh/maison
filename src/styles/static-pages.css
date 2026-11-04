@@ -978,27 +978,29 @@
 
 
 /* ==========================================================================
-   4. ENVÍOS Y PAGOS (LOGÍSTICA EDITORIAL NACIONAL)
+   4. ENVÍOS Y PAGOS (LUXURY EDITORIAL · ALTA PERFUMERÍA)
    ========================================================================== */
-.shipping-view {
+.shipping-page-view {
   background: var(--ivory);
   color: var(--ink);
-  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-.shipping-hero {
-  border-bottom: 1px solid var(--line);
-  background: #fdfcf9;
-}
-
-.shipping-hero-inner {
-  max-width: 960px;
+/* 4.1 Hero Editorial Split */
+.shipping-hero-section {
+  max-width: 1240px;
   margin: 0 auto;
-  text-align: center;
-  padding: 85px 24px 50px;
+  padding: 110px 24px 105px;
 }
 
-.shipping-hero-inner .eyebrow {
+.shipping-hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.shipping-hero-content .eyebrow {
   color: var(--gold-deep);
   font-size: 11px;
   font-weight: 600;
@@ -1008,439 +1010,764 @@
   display: block;
 }
 
-.shipping-hero-inner h1 {
+.shipping-hero-content h1 {
   font-family: var(--serif);
-  font-size: clamp(32px, 4.2vw, 52px);
+  font-size: clamp(34px, 4.4vw, 56px);
   font-weight: 500;
-  line-height: 1.15;
+  line-height: 1.12;
   color: var(--ink);
-  margin: 0 0 16px;
+  margin: 0 0 20px;
 }
 
-.shipping-hero-copy {
+.shipping-hero-content h1 .text-gold {
+  color: #a87a32;
+  font-style: italic;
+}
+
+.shipping-hero-lead {
   color: #4a4742;
   font-size: 16px;
-  line-height: 1.7;
-  max-width: 640px;
-  margin: 0 auto 36px;
+  line-height: 1.75;
+  margin: 0 0 26px;
+  max-width: 540px;
 }
 
-.shipping-pillars-strip {
+.shipping-quick-features {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #4a4742;
   background: #ffffff;
   border: 1px solid var(--line);
-  padding: 22px 28px;
-  border-radius: 4px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  padding: 9px 18px;
+  border-radius: 3px;
+  width: fit-content;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.pillar-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  text-align: left;
-  flex: 1;
-}
-
-.pillar-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--ivory);
+.feature-pill svg {
   color: var(--gold-deep);
+  flex-shrink: 0;
+}
+
+.feature-pill strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.shipping-hero-actions {
   display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-shipping-primary {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid #ebdcc6;
+  gap: 8px;
+  padding: 13px 28px;
+  background: var(--ink);
+  color: var(--ivory);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
 
-.pillar-item strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
+.btn-shipping-primary:hover {
+  background: var(--gold);
   color: var(--ink);
 }
 
-.pillar-item span {
-  display: block;
+.btn-shipping-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border: 1px solid var(--line);
+  color: var(--ink);
   font-size: 12px;
-  color: #6b6863;
-  margin-top: 2px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: #ffffff;
+  transition: all 0.3s ease;
 }
 
-.shipping-section {
-  padding: 70px 24px;
+.btn-shipping-secondary:hover {
+  border-color: var(--gold);
+  color: #a87a32;
 }
 
-.couriers-section {
-  background: var(--ivory);
+/* Hero Media Wrap with Gold Frame */
+.shipping-hero-media-wrap {
+  position: relative;
+  max-width: 440px;
+  width: 100%;
+  justify-self: center;
 }
 
-.schedule-section {
+.shipping-hero-media-card {
+  position: relative;
+  z-index: 2;
+  height: 510px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+}
+
+.shipping-hero-media-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.shipping-media-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 22px 24px;
+  background: linear-gradient(to top, rgba(13, 15, 12, 0.88) 0%, rgba(13, 15, 12, 0.45) 60%, transparent 100%);
+  color: #ffffff;
+}
+
+.shipping-media-caption span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.shipping-media-caption p {
+  font-size: 13px;
+  margin: 0;
+  font-family: var(--serif);
+  color: #f5f3ee;
+}
+
+.shipping-accent-frame {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 18px;
+  left: 18px;
+  border: 1.5px solid #d4c29d;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 4.2 Shared Section Inner */
+.shipping-section-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* 4.3 Couriers Interactive Section */
+.shipping-couriers-section {
+  padding: 105px 0 115px;
   background: #ffffff;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
-.payments-section {
-  background: var(--ivory);
-}
-
-.shipping-container {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-/* Couriers Interactive Tabs */
 .courier-interactive-card {
+  background: #faf8f3;
   border: 1px solid var(--line);
-  background: #ffffff;
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.05);
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
-  margin-top: 28px;
+  margin-top: 40px;
 }
 
 .courier-tabs-nav {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   border-bottom: 1px solid var(--line);
-  background: #fdfcf9;
+  background: #f4f0e7;
 }
 
 .courier-tab-btn {
-  flex: 1;
-  padding: 18px 24px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: 18px;
+  padding: 22px 28px;
   border: none;
   background: transparent;
   cursor: pointer;
+  text-align: left;
   transition: all 0.25s ease;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
 }
 
 .courier-tab-btn:hover {
-  background: #f7f5ef;
+  background: #ebe5d8;
 }
 
 .courier-tab-btn.active {
-  background: #ffffff;
-  border-bottom: 2px solid var(--ink);
+  background: #faf8f3;
+  border-bottom-color: var(--ink);
 }
 
-.courier-logo-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 3px;
-  letter-spacing: .05em;
-  text-transform: uppercase;
+.tab-logo-wrap {
+  flex-shrink: 0;
 }
 
-.courier-logo-badge.shalom {
-  background: #e02424;
-  color: #ffffff;
+.tab-text-wrap {
+  display: flex;
+  flex-direction: column;
 }
 
-.courier-logo-badge.olva {
-  background: #00875a;
-  color: #ffffff;
-}
-
-.courier-tab-label {
-  font-size: 13px;
+.courier-tab-title {
+  font-family: var(--serif);
+  font-size: 17px;
   font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
   color: var(--ink);
 }
 
-.courier-tab-content {
-  padding: 38px 36px;
+.courier-tab-sub {
+  font-size: 12px;
+  color: #78746c;
+  margin-top: 2px;
 }
 
-.courier-header-row {
+.courier-tab-content {
+  padding: 42px 38px;
+}
+
+.courier-panel-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+  align-items: center;
+  margin-bottom: 20px;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
 }
 
-.courier-badge-tag {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--gold-deep);
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  display: block;
+.courier-title-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-.courier-title {
+.courier-title-group h3 {
   font-family: var(--serif);
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 500;
   color: var(--ink);
   margin: 4px 0 0;
 }
 
-.courier-speed {
-  font-size: 12px;
+.courier-highlight-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.courier-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  background: var(--ivory);
-  padding: 6px 14px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
 }
 
-.courier-description {
-  font-size: 14px;
-  color: #5a5752;
-  line-height: 1.65;
-  margin-bottom: 28px;
-  max-width: 760px;
+.courier-time-badge svg {
+  color: var(--gold-deep);
 }
 
-.courier-specs-grid {
+.courier-lead {
+  font-size: 15px;
+  color: #4a4742;
+  line-height: 1.7;
+  margin-bottom: 30px;
+  max-width: 820px;
+}
+
+.courier-features-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  margin-bottom: 26px;
+  gap: 22px;
 }
 
-.spec-box {
-  padding: 18px 20px;
-  background: #faf9f6;
+.feature-card {
+  display: flex;
+  gap: 16px;
+  padding: 22px 24px;
+  background: #ffffff;
   border: 1px solid #ede8de;
   border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.spec-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #8a857e;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  display: block;
-  margin-bottom: 6px;
-}
-
-.spec-val {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  display: block;
-  margin-bottom: 4px;
-}
-
-.spec-note {
-  font-size: 12px;
-  color: #66635e;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.courier-footer-tip {
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ivory);
+  border: 1px solid #ebdcc6;
+  color: var(--gold-deep);
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: #736e67;
-  border-top: 1px dashed var(--line);
-  padding-top: 18px;
-}
-
-.courier-footer-tip svg {
-  color: var(--gold-deep);
+  justify-content: center;
   flex-shrink: 0;
 }
 
-/* Shipping Steps Grid */
-.shipping-steps-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 32px;
-  margin-bottom: 32px;
-}
-
-.shipping-step-card {
-  padding: 30px 24px;
-  background: #fdfcf9;
-  border: 1px solid var(--line);
-  border-radius: 3px;
-}
-
-.shipping-step-card.highlight-step {
-  border: 1px solid #d4c29d;
-  background: #ffffff;
-  box-shadow: 0 4px 16px rgba(150, 108, 40, 0.06);
-}
-
-.step-num {
+.feature-title {
   font-family: var(--serif);
-  font-size: 28px;
-  font-weight: 500;
-  color: var(--gold-deep);
-  display: block;
-  margin-bottom: 12px;
-}
-
-.shipping-step-card h4 {
-  font-family: var(--serif);
-  font-size: 18px;
-  font-weight: 500;
-  margin: 0 0 10px;
-  color: var(--ink);
-}
-
-.shipping-step-card p {
-  font-size: 13px;
-  color: #595651;
-  line-height: 1.65;
-  margin: 0;
-}
-
-/* December Notice Card */
-.december-notice-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  padding: 22px 28px;
-  background: #fff8eb;
-  border: 1px solid #eed8b3;
-  border-radius: 4px;
-}
-
-.december-notice-icon {
-  color: #a87a32;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.december-notice-text strong {
-  display: block;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  color: #7a5416;
+  color: var(--ink);
+  display: block;
   margin-bottom: 4px;
 }
 
-.december-notice-text p {
+.feature-desc {
   font-size: 13px;
-  color: #6b4d1b;
-  line-height: 1.65;
+  color: #615d56;
+  line-height: 1.6;
   margin: 0;
 }
 
-/* Payment Cards Grid */
-.payments-cards-grid {
+/* 4.4 Packing Split Section */
+.shipping-packing-section {
+  padding: 110px 0 120px;
+  background: var(--ivory);
+  border-bottom: 1px solid var(--line);
+}
+
+.packing-split-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 32px;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 64px;
+  align-items: center;
 }
 
-.payment-card {
-  padding: 28px 24px;
-  background: #ffffff;
+.packing-media-column {
+  position: relative;
+}
+
+.packing-image-wrap {
+  height: 490px;
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 3px;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.05);
 }
 
-.payment-tag {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--gold-deep);
-  text-transform: uppercase;
-  letter-spacing: .12em;
+.packing-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
+}
+
+.packing-stat-card {
+  position: absolute;
+  bottom: -22px;
+  right: -22px;
+  background: var(--ink);
+  color: #ffffff;
+  padding: 22px 26px;
+  border: 1px solid var(--gold);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  max-width: 260px;
+}
+
+.packing-stat-card .stat-num {
+  font-family: var(--serif);
+  font-size: 36px;
+  color: var(--gold);
+  display: block;
+  line-height: 1;
   margin-bottom: 6px;
 }
 
-.payment-card h4 {
-  font-family: var(--serif);
-  font-size: 18px;
-  font-weight: 500;
-  margin: 0 0 12px;
-  color: var(--ink);
+.packing-stat-card .stat-label {
+  font-size: 12px;
+  color: #d0cecb;
+  line-height: 1.45;
+  display: block;
 }
 
-.payment-card p {
-  font-size: 13px;
-  color: #595651;
-  line-height: 1.6;
-  margin: 0 0 20px;
-  flex-grow: 1;
-}
-
-.payment-brands {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.brand-pill {
+.packing-text-column .eyebrow {
+  color: var(--gold-deep);
   font-size: 11px;
   font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 3px;
-  border: 1px solid var(--line);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: block;
 }
 
-.brand-pill.yape {
-  background: #742284;
-  color: #ffffff;
-  border-color: #742284;
+.packing-text-column h2 {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 16px;
 }
 
-.brand-pill.plin {
-  background: #00bcd4;
-  color: #ffffff;
-  border-color: #00bcd4;
+.packing-lead {
+  font-size: 15px;
+  color: #4a4742;
+  line-height: 1.7;
+  margin-bottom: 28px;
 }
 
-.brand-pill.bank {
-  background: #1a2738;
-  color: #ffffff;
-  border-color: #1a2738;
+.packing-steps-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.brand-pill.visa {
-  background: #1a1f71;
-  color: #ffffff;
-  border-color: #1a1f71;
-}
-
-.brand-pill.cash {
-  background: #2e382d;
-  color: #ffffff;
-  border-color: #2e382d;
-}
-
-/* Shipping Closing CTA */
-.shipping-cta-section {
-  padding: 80px 24px;
+.packing-step {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 20px 24px;
   background: #ffffff;
-  border-top: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
-.shipping-cta-box {
-  max-width: 680px;
-  margin: 0 auto;
+.step-badge {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gold-deep);
+  background: #faf8f3;
+  border: 1px solid #ebdcc6;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.packing-step h4 {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.packing-step p {
+  font-size: 13px;
+  color: #5a5752;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 4.5 Holiday Cutoff Calendar (Diciembre) */
+.shipping-holiday-section {
+  padding: 110px 0 120px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+}
+
+.holiday-header {
+  max-width: 740px;
+  margin: 0 auto 48px;
   text-align: center;
 }
 
-.shipping-cta-box .eyebrow {
+.holiday-header .eyebrow {
+  color: var(--gold-deep);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.holiday-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+
+.holiday-intro {
+  font-size: 15px;
+  color: #55524c;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.holiday-milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+}
+
+.holiday-milestone-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 32px 28px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.holiday-milestone-card.highlight {
+  border: 1px solid #d4c29d;
+  background: #ffffff;
+  box-shadow: 0 8px 25px rgba(150, 108, 40, 0.07);
+}
+
+.holiday-milestone-card.highlight::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gold-deep);
+  border-radius: 4px 4px 0 0;
+}
+
+.milestone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.milestone-num {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--gold-deep);
+}
+
+.milestone-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  background: var(--ivory);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: #6d6961;
+}
+
+.milestone-tag.gold {
+  background: #fbf5e8;
+  border-color: #ebd6b0;
+  color: #8c6320;
+}
+
+.holiday-milestone-card h4 {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.holiday-milestone-card p {
+  font-size: 13.5px;
+  color: #55524c;
+  line-height: 1.65;
+  margin: 0 0 24px;
+  flex-grow: 1;
+}
+
+.milestone-footer-note {
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #8a857d;
+}
+
+/* 4.6 Dark Luxury Payments Section */
+.shipping-payments-dark-section {
+  background: var(--ink) !important;
+  color: #ffffff;
+  padding: 95px 0 100px;
+  border-top: 1px solid #242823;
+}
+
+.payments-header .eyebrow.gold {
+  color: #d7ad57;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.payments-header h2 {
+  font-family: var(--serif);
+  font-size: clamp(32px, 3.8vw, 46px);
+  font-weight: 500;
+  margin: 0 0 14px;
+}
+
+.payments-sub {
+  color: #a3a19b;
+  font-size: 15px;
+  max-width: 580px;
+  margin: 0 auto 50px;
+  line-height: 1.65;
+}
+
+.payments-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 26px;
+}
+
+.payment-luxury-card {
+  background: #141713;
+  border: 1px solid #282d26;
+  padding: 32px 28px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.payment-luxury-card:hover {
+  border-color: #a87a32;
+  transform: translateY(-3px);
+}
+
+.payment-top-bar {
+  margin-bottom: 14px;
+}
+
+.payment-category {
+  font-size: 10px;
+  font-weight: 700;
+  color: #d7ad57;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.payment-luxury-card h4 {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0 0 12px;
+}
+
+.payment-luxury-card p {
+  font-size: 13px;
+  color: #9c9a94;
+  line-height: 1.65;
+  margin: 0 0 24px;
+  flex-grow: 1;
+}
+
+.payment-logos-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.payment-logos-group.wrap {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.logo-text-pill {
+  padding: 6px 14px;
+  border: 1px solid #3d453a;
+  border-radius: 4px;
+  background: #1c221b;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d5d3ce;
+}
+
+.payment-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #a8a6a0;
+  border-top: 1px solid #232822;
+  padding-top: 16px;
+}
+
+.payment-card-footer svg {
+  color: #d7ad57;
+}
+
+/* 4.7 Closing CTA */
+.shipping-closing-cta {
+  padding: 85px 0 95px;
+  background: var(--ivory);
+}
+
+.closing-cta-card {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 50px 40px;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.closing-cta-card .eyebrow {
   color: var(--gold-deep);
   font-size: 11px;
   font-weight: 600;
@@ -1450,7 +1777,7 @@
   display: block;
 }
 
-.shipping-cta-box h3 {
+.closing-cta-card h2 {
   font-family: var(--serif);
   font-size: 32px;
   font-weight: 500;
@@ -1458,28 +1785,28 @@
   color: var(--ink);
 }
 
-.shipping-cta-box p {
+.closing-cta-card p {
   font-size: 15px;
   color: #5a5752;
   line-height: 1.7;
-  margin: 0 0 28px;
+  margin: 0 0 30px;
 }
 
-.cta-actions {
+.closing-actions-row {
   display: flex;
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.btn-shipping-wa {
+.btn-cta-whatsapp {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 13px 28px;
+  padding: 14px 28px;
   background: #25d366;
   color: #0d0f0c;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
   letter-spacing: .06em;
   text-decoration: none;
@@ -1487,15 +1814,15 @@
   transition: all 0.25s ease;
 }
 
-.btn-shipping-wa:hover {
+.btn-cta-whatsapp:hover {
   background: #1ebc57;
 }
 
-.btn-shipping-catalog {
+.btn-cta-catalog {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 13px 26px;
+  padding: 14px 26px;
   background: var(--ink);
   color: var(--ivory);
   font-weight: 600;
@@ -1507,27 +1834,34 @@
   transition: all 0.25s ease;
 }
 
-.btn-shipping-catalog:hover {
+.btn-cta-catalog:hover {
   background: var(--gold);
   color: var(--ink);
 }
 
-/* Shipping Specific Responsive Overrides */
-@media (max-width: 900px) {
-  .shipping-pillars-strip { flex-direction: column; gap: 16px; }
-  .shipping-steps-grid { grid-template-columns: 1fr; }
-  .payments-cards-grid { grid-template-columns: 1fr; }
-  .courier-specs-grid { grid-template-columns: 1fr; }
+/* 4.8 Responsive Overrides */
+@media (max-width: 1050px) {
+  .shipping-hero-grid { grid-template-columns: 1fr; gap: 45px; }
+  .shipping-hero-media-wrap { max-width: 400px; }
+  .packing-split-grid { grid-template-columns: 1fr; gap: 40px; }
+  .packing-stat-card { right: 0; bottom: -15px; }
+  .payments-cards-row { grid-template-columns: 1fr; }
+  .holiday-milestones-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 780px) {
+  .courier-features-grid { grid-template-columns: 1fr; }
+  .courier-tab-content { padding: 30px 22px; }
+  .packing-image-wrap { height: 380px; }
+  .holiday-milestone-card { padding: 24px 20px; }
 }
 
 @media (max-width: 640px) {
-  .courier-tabs-nav { flex-direction: column; }
-  .courier-tab-btn { justify-content: flex-start; padding: 14px 18px; }
-  .courier-tab-content { padding: 26px 18px; }
-  .courier-header-row { flex-direction: column; align-items: flex-start; }
-  .shipping-hero-inner { padding: 55px 18px 35px; }
-  .shipping-section { padding: 50px 18px; }
-  .shipping-cta-box h3 { font-size: 26px; }
-  .cta-actions { flex-direction: column; }
-  .btn-shipping-wa, .btn-shipping-catalog { width: 100%; justify-content: center; }
+  .courier-tabs-nav { grid-template-columns: 1fr; }
+  .courier-tab-btn { padding: 16px 20px; }
+  .shipping-hero-content h1 { font-size: 34px; }
+  .shipping-hero-actions { flex-direction: column; }
+  .closing-actions-row { flex-direction: column; }
+  .btn-cta-whatsapp, .btn-cta-catalog { width: 100%; justify-content: center; }
+  .closing-cta-card { padding: 35px 20px; }
 }

@@ -156,7 +156,7 @@ export default function CatalogBrowser({
   // 6. Filtrado y ordenamiento de productos
   const filtered = useMemo(() => {
     const result = initialProducts.filter((p) => {
-      if (p.active === false) return false;
+      if (!p.active) return false;
       if (
         search &&
         !`${p.brand} ${p.name}`.toLowerCase().includes(search.toLowerCase())
@@ -180,7 +180,7 @@ export default function CatalogBrowser({
       if (minProductPrice > maxPrice) return false;
 
       // Disponibilidad
-      if (available && p.active === false) return false;
+      if (available && !p.active) return false;
       return true;
     });
 

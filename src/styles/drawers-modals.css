@@ -46,8 +46,29 @@
 .mobile-drawer { display: none; }
 
 @media (max-width: 780px) {
-  .mobile-drawer { display: block; left: 0; right: auto; padding: 25px; transform: translateX(-105%); }
+  .mobile-drawer { display: block; left: 0; right: auto; padding: 25px; transform: translateX(-105%); overflow-y: auto; max-height: 100vh; }
   .drawer-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
   .drawer-top img { width: auto; max-width: 100px; height: 68px; object-fit: contain; object-position: left center; }
-  .mobile-drawer > button { width: 100%; display: flex; justify-content: space-between; align-items: center; border: 0; border-bottom: 1px solid var(--line); padding: 17px 0; background: none; font-family: var(--serif); font-size: 19px; }
+  .mobile-drawer > button,
+  .mobile-drawer > a,
+  .mobile-drawer-link {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 16px 0;
+    background: none;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .mobile-drawer > button:hover,
+  .mobile-drawer > a:hover,
+  .mobile-drawer-link:hover {
+    color: var(--gold-deep);
+  }
 }

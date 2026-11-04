@@ -15,6 +15,7 @@ const navLinks = [
     { label: "Nosotros", href: "/nosotros" },
     { label: "Contacto", href: "/contacto" },
     { label: "Preguntas frecuentes", href: "/faq" },
+    { label: "Envíos y pagos", href: "/envios" },
     { label: "Acceso administrativo", href: "/admin" },
 ];
 
@@ -26,7 +27,7 @@ export default function MobileDrawer() {
         <>
             <div className={`mobile-drawer ${isOpen ? "open" : ""}`}>
                 <div className="drawer-top">
-                    <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
+                    <img src="/assets/maison-logo.jpeg" alt="Maison des Parfums" />
                     <button
                         onClick={closeMobileMenu}
                         aria-label="Cerrar menú"
