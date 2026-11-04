@@ -141,8 +141,11 @@ export default function ProductDetailInteractive({ product, phone }: Props) {
             <Icon name="check" /> Producto original
           </span>
           <span>
-            <Icon name="check" /> Asesoría personalizada
+            <Icon name="check" size={14} /> Asesoría personalizada
           </span>
+          <a href="/envios" className="assurance-shipping-link">
+            <Icon name="truck" size={14} /> Envíos los jueves a todo el Perú ↗
+          </a>
         </div>
       </div>
     </section>

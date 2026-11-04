@@ -55,8 +55,11 @@
   color: var(--ink);
   transform: scale(1.1);
 }
-.detail-assurances { display: flex; justify-content: space-around; margin-top: 22px; color: var(--muted); font-size: 9px; }
-.detail-assurances span { display: flex; align-items: center; gap: 6px; }
+.detail-assurances { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); color: #6b6862; font-size: 11px; }
+.detail-assurances span, .detail-assurances a { display: inline-flex; align-items: center; gap: 6px; color: #55524c; text-decoration: none; }
+.detail-assurances svg { color: var(--gold-deep); }
+.detail-assurances a.assurance-shipping-link { color: var(--gold-deep); font-weight: 500; transition: color 0.2s ease; }
+.detail-assurances a.assurance-shipping-link:hover { color: var(--ink); text-decoration: underline; }
 .notes-section { padding: 90px 8%; background: var(--ink); color: var(--white); }
 .notes-section .section-title { margin: auto; text-align: center; }
 .notes-grid { max-width: 950px; margin: 50px auto 0; display: grid; grid-template-columns: repeat(3, 1fr); }
