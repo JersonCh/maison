@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { obtenerProductosBoutique } from "@/lib/db";
+import { obtenerProductosTienda } from "@/lib/db";
 
 export const prerender = false;
 
@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ locals }) => {
       );
     }
 
-    const productos = await obtenerProductosBoutique(db);
+    const productos = await obtenerProductosTienda(db);
 
     return new Response(JSON.stringify(productos), {
       status: 200,

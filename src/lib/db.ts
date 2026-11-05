@@ -923,7 +923,7 @@ export async function archivarOEliminarProducto(
 }
 
 // =============================================================================
-// 6. ADAPTADOR Y CONSULTAS PARA LA TIENDA PÚBLICA (FRONTEND BOUTIQUE)
+// 6. ADAPTADOR Y CONSULTAS PARA LA TIENDA PÚBLICA (FRONTEND TIENDA OFICIAL)
 // =============================================================================
 
 /**
@@ -932,7 +932,7 @@ export async function archivarOEliminarProducto(
  * Si la base de datos no está disponible o falla, utiliza el catálogo
  * estático de respaldo para garantizar cero caídas en la tienda.
  */
-export async function obtenerProductosBoutique(
+export async function obtenerProductosTienda(
   db?: D1Database,
 ): Promise<Product[]> {
   if (!db) {
@@ -1040,7 +1040,7 @@ export async function obtenerProductosBoutique(
       };
     });
   } catch (error) {
-    console.error("Error al consultar productos de D1 para boutique:", error);
+    console.error("Error al consultar productos de D1 para la tienda:", error);
     return [];
   }
 }
@@ -1049,7 +1049,7 @@ export async function obtenerProductosBoutique(
  * Obtiene la ficha de detalle de un perfume por su slug desde Cloudflare D1
  * adaptada al frontend con su pirámide olfativa y variantes completas.
  */
-export async function obtenerDetalleProductoBoutique(
+export async function obtenerDetalleProductoTienda(
   slug: string,
   db?: D1Database,
 ): Promise<{

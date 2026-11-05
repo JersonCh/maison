@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function AdminDashboard({ }: Props) {
-  const [logged, setLogged] = useState(false);
+  const [logged, setLogged] = useState(true);
   const [section, setSection] = useState("dashboard");
   const [cargando, setCargando] = useState(false);
 
@@ -322,7 +322,7 @@ export default function AdminDashboard({ }: Props) {
                 <article key={m.id}>
                   <span>{m.nombre.slice(0, 2).toUpperCase()}</span>
                   <strong>{m.nombre}</strong>
-                  <span style={{ fontSize: "8px", color: "var(--muted)" }}>Activa</span>
+                  <span style={{ fontSize: "12px", color: "var(--muted)" }}>Activa</span>
                 </article>
               ))}
             </div>
@@ -347,7 +347,7 @@ export default function AdminDashboard({ }: Props) {
                 <article key={item}>
                   <span>HD</span>
                   <strong>{item}</strong>
-                  <span style={{ fontSize: "8px", color: "var(--gold)" }}>Activo</span>
+                  <span style={{ fontSize: "12px", color: "var(--gold-deep)", fontWeight: 600 }}>Activo</span>
                 </article>
               ))}
             </div>
@@ -411,6 +411,13 @@ function SettingsSection() {
   const [tiktok, setTiktok] = useState("");
   const [horario, setHorario] = useState("");
   const [email, setEmail] = useState("");
+
+  // Barra de anuncios superior
+  const [anuncioTexto, setAnuncioTexto] = useState(
+    "🚚 Despachos los jueves a todo el Perú por Shalom y Olva Courier · Fragancias 100% originales"
+  );
+  const [anuncioActivo, setAnuncioActivo] = useState(true);
+
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState("");
 
@@ -427,6 +434,10 @@ function SettingsSection() {
           if (datos.tiktok_url) setTiktok(datos.tiktok_url);
           if (datos.horario_comercial) setHorario(datos.horario_comercial);
           if (datos.email_contacto) setEmail(datos.email_contacto);
+          if (datos.anuncio_superior_texto) setAnuncioTexto(datos.anuncio_superior_texto);
+          if (datos.anuncio_superior_activo !== undefined) {
+            setAnuncioActivo(datos.anuncio_superior_activo !== "0");
+          }
         }
       } catch (error) {
         console.error("Error al cargar configuración:", error);
@@ -446,6 +457,8 @@ function SettingsSection() {
         tiktok_url: tiktok,
         horario_comercial: horario,
         email_contacto: email,
+        anuncio_superior_texto: anuncioTexto,
+        anuncio_superior_activo: anuncioActivo ? "1" : "0",
       };
 
       const respuesta = await fetch("/api/config", {
@@ -468,12 +481,117 @@ function SettingsSection() {
     }
   };
 
+  const previewParts = (anuncioTexto || "").split(" · ");
+
   return (
     <div className="settings-card">
+      {/* 1. BARRA DE ANUNCIOS SUPERIOR */}
+      <header>
+        <small className="eyebrow">Cabecera de la tienda</small>
+        <h2>Barra de anuncios superior</h2>
+        <p>Controla el mensaje destacado visible en la parte más alta de la tienda (sobre el menú y el logotipo).</p>
+      </header>
+
+      <div
+        style={{
+          background: "var(--white)",
+          border: "1px solid var(--line)",
+          borderRadius: "4px",
+          padding: "22px 24px",
+          marginTop: "16px",
+          marginBottom: "40px",
+        }}
+      >
+        <label
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "12px",
+            margin: "0 0 16px 0",
+            cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: 600,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--ink)",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={anuncioActivo}
+            onChange={(e) => setAnuncioActivo(e.target.checked)}
+            style={{ width: "18px", height: "18px", accentColor: "var(--gold)", cursor: "pointer" }}
+          />
+          Mostrar barra de anuncios en la cabecera
+        </label>
+
+        {anuncioActivo ? (
+          <>
+            <label style={{ display: "flex", flexDirection: "column", gap: "8px", margin: "16px 0 8px 0" }}>
+              <span style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink)" }}>
+                Texto del anuncio (Usa « · » para separar frases)
+              </span>
+              <input
+                type="text"
+                value={anuncioTexto}
+                onChange={(e) => setAnuncioTexto(e.target.value)}
+                placeholder="Ej. 🚚 Despachos los jueves a todo el Perú por Shalom y Olva Courier · Fragancias 100% originales"
+                style={{ width: "100%", padding: "11px 14px", fontSize: "13.5px" }}
+              />
+            </label>
+            <p style={{ fontSize: "12.5px", color: "var(--muted)", margin: "6px 0 16px 0", lineHeight: 1.5 }}>
+              💡 <strong>Tip de diseño:</strong> Separa las frases con <code> · </code> (espacio, punto medio, espacio). En computadoras se muestran todas las frases con puntos de separación; en teléfonos móviles se muestra prioritariamente la primera frase para mantener el diseño limpio.
+            </p>
+
+            {/* VISTA PREVIA EN VIVO */}
+            <div style={{ marginTop: "16px" }}>
+              <span style={{ fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", display: "block", marginBottom: "6px" }}>
+                Vista previa en vivo:
+              </span>
+              <div
+                style={{
+                  background: "var(--gold)",
+                  color: "var(--ink)",
+                  minHeight: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "12px",
+                  padding: "6px 16px",
+                  borderRadius: "2px",
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  overflow: "hidden",
+                  textAlign: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {previewParts.map((part, idx, arr) => (
+                  <span key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "12px" }}>
+                    {part}
+                    {idx < arr.length - 1 && (
+                      <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--ink)", display: "inline-block" }} />
+                    )}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <p style={{ fontSize: "13px", color: "var(--muted)", margin: "8px 0 0 0", fontStyle: "italic" }}>
+            ⚠ La barra de anuncios está desactivada y no se mostrará a los visitantes en la tienda web.
+          </p>
+        )}
+      </div>
+
+      {/* 2. CANALES DE ATENCIÓN Y CONTACTO */}
       <header>
         <small className="eyebrow">Canales de atención</small>
-        <h2>Configuración comercial</h2>
-        <p>Configura el número oficial de WhatsApp y canales de atención de la tienda.</p>
+        <h2>Canales de contacto y redes</h2>
+        <p>Configura el número oficial de WhatsApp para recepción de pedidos y redes sociales.</p>
       </header>
 
       <label>

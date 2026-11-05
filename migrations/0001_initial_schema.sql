@@ -350,16 +350,23 @@ END;
 -- -----------------------------------------------------------------------------
 
 INSERT OR IGNORE INTO configuracion_tienda (clave, valor, descripcion, categoria) VALUES
-('whatsapp_pedidos', '51999999999', 'Número de WhatsApp que recibe las órdenes de compra', 'contacto'),
+('whatsapp_pedidos', '954159831', 'Número de WhatsApp que recibe las órdenes de compra', 'contacto'),
 ('whatsapp_mensaje_intro', 'Hola Maison des Parfums, deseo solicitar el siguiente pedido:', 'Encabezado del mensaje de compra', 'contacto'),
-('instagram_url', 'https://instagram.com/maisondesparfums', 'Enlace al perfil de Instagram', 'redes'),
-('facebook_url', 'https://facebook.com/maisondesparfums', 'Enlace al perfil de Facebook', 'redes'),
-('tiktok_url', 'https://tiktok.com/@maisondesparfums', 'Enlace al canal de TikTok', 'redes'),
+('instagram_url', 'https://www.instagram.com/maisondesparfums.pe', 'Enlace al perfil de Instagram', 'redes'),
+('facebook_url', 'https://www.facebook.com/people/Maison-des-parfums/100048439826477', 'Enlace al perfil de Facebook', 'redes'),
+('tiktok_url', 'https://www.tiktok.com/@maisondesparfums.pe', 'Enlace al canal de TikTok', 'redes'),
 ('horario_comercial', 'Lunes a sábado · 10:00 am - 8:00 pm', 'Horario de atención al cliente', 'contacto'),
-('email_contacto', 'contacto@maisondesparfums.pe', 'Correo electrónico de contacto y atención', 'contacto'),
-('anuncio_superior_texto', 'Fragancias 100% Originales · Envíos a todo el Perú · Atención personalizada por WhatsApp', 'Texto de la barra de anuncios superior', 'anuncios'),
-('anuncio_superior_activo', '1', '1: visible, 0: oculto', 'anuncios');
+('email_contacto', 'maisondesparfums.peru@gmail.com', 'Correo electrónico de contacto y atención', 'contacto'),
+('anuncio_superior_texto', '🚚 Despachos los jueves a todo el Perú por Shalom y Olva Courier · Fragancias 100% originales', 'Texto de la barra de anuncios superior', 'anuncios'),
+('anuncio_superior_activo', '1', '1: visible, 0: oculto', 'anuncios'),
+('direccion_local', 'Asoc. Centro Comercial Mercadillo Bolognesi', 'Nombre del centro comercial o galería', 'ubicacion'),
+('direccion_interior', 'Int. D-312 · 1ra Fila', 'Número de stand o interior', 'ubicacion'),
+('direccion_avenida', 'Av. Crnl. Mendoza Nº 1945', 'Avenida o calle principal', 'ubicacion'),
+('direccion_ciudad', 'Tacna, Perú', 'Ciudad y país de la sede física', 'ubicacion'),
+('google_maps_link', 'https://maps.app.goo.gl/XDkotmawNbUdNEyb7', 'Enlace directo para abrir en Google Maps', 'ubicacion'),
+('mapa_embed_url', 'https://maps.google.com/maps?q=Mercadillo+Bolognesi,+Av.+Coronel+Mendoza,+Tacna&t=&z=17&ie=UTF8&iwloc=&output=embed', 'URL para incrustar mapa interactivo', 'ubicacion'),
+('waze_link', 'https://waze.com/ul?q=Mercadillo+Bolognesi+Tacna', 'Enlace directo para navegación en Waze', 'ubicacion');
 
 -- Almacén principal por defecto
 INSERT OR IGNORE INTO almacenes (id, nombre, ubicacion, activo) VALUES
-(1, 'Boutique Principal Lima', 'Lima, Perú', 1);
+(1, 'Sede Principal Tacna', 'Tacna, Perú', 1);

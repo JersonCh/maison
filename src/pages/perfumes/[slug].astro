@@ -4,8 +4,8 @@ import ProductDetailInteractive from "@/components/product/ProductDetailInteract
 import SectionTitle from "@/components/ui/SectionTitle.astro";
 import ProductCard from "@/components/product/ProductCard.astro";
 import {
-  obtenerDetalleProductoBoutique,
-  obtenerProductosBoutique,
+  obtenerDetalleProductoTienda,
+  obtenerProductosTienda,
   obtenerConfiguracionTienda,
 } from "@/lib/db";
 
@@ -18,7 +18,7 @@ if (!slug) {
   return Astro.redirect("/perfumes");
 }
 
-const resultado = await obtenerDetalleProductoBoutique(slug as string, db);
+const resultado = await obtenerDetalleProductoTienda(slug as string, db);
 
 if (!resultado) {
   return Astro.redirect("/perfumes");
@@ -30,7 +30,7 @@ const storeConfig = db ? await obtenerConfiguracionTienda(db) : {};
 const whatsappPhone = storeConfig.whatsapp_pedidos || "954159831";
 
 // Obtener fragancias afines desde D1
-const todosLosProductos = await obtenerProductosBoutique(db);
+const todosLosProductos = await obtenerProductosTienda(db);
 const related = todosLosProductos
   .filter(
     (p) =>

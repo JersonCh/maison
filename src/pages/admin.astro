@@ -10,5 +10,21 @@ export const prerender = false;
   noindex={true}
   hideChrome={true}
 >
-  <AdminDashboard client:only="react" />
+  <AdminDashboard client:only="react">
+    <div
+      slot="fallback"
+      style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0d0f0c; color: #d7ad57; font-family: sans-serif;"
+    >
+      <img
+        src="/assets/logo-no-fondo300.png"
+        alt="Maison des Parfums"
+        style="width: 180px; margin-bottom: 24px; opacity: 0.9;"
+      />
+      <div
+        style="font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase; color: #a8a29e;"
+      >
+        Cargando Panel Administrativo...
+      </div>
+    </div>
+  </AdminDashboard>
 </Layout>

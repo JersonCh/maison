@@ -6,14 +6,14 @@ import ProductCard from "@/components/product/ProductCard.astro";
 import Icon from "@/components/ui/Icon";
 import HeroCrossfadeCarousel from "@/components/home/HeroCrossfadeCarousel";
 import { categoryImages } from "@/data/products";
-import { obtenerProductosBoutique, obtenerBannersPorUbicacion } from "@/lib/db";
+import { obtenerProductosTienda, obtenerBannersPorUbicacion } from "@/lib/db";
 import type { BannerSlide } from "@/types/database";
 import type { Gender } from "@/types/product";
 
 export const prerender = false;
 
 const db = Astro.locals.runtime?.env?.DB;
-const allProducts = await obtenerProductosBoutique(db);
+const allProducts = await obtenerProductosTienda(db);
 
 // Banners dinámicos de la base de datos con respaldo luxury por defecto
 const bannersDb = db ? await obtenerBannersPorUbicacion(db, "hero_home") : [];
@@ -124,9 +124,7 @@ const websiteSchema = {
           eyebrow="Selección Maison"
           title="Fragancias destacadas"
         />
-        <a href="/perfumes">
-          Ver toda la colección <Icon name="arrow" />
-        </a>
+        <a href="/perfumes" class="section-link">Ver toda la colección <Icon name="arrow" size={16} /></a>
       </div>
       <div class="product-grid">
         {featuredProducts.map((product) => <ProductCard product={product} />)}
@@ -161,9 +159,7 @@ const websiteSchema = {
     <section class="products-section new-section">
       <div class="section-heading-row">
         <SectionTitle eyebrow="Recién llegados" title="Nuevos ingresos" />
-        <a href="/perfumes">
-          Ver novedades <Icon name="arrow" />
-        </a>
+        <a href="/perfumes" class="section-link">Ver novedades <Icon name="arrow" size={16} /></a>
       </div>
       <div class="product-grid four">
         {recentProducts.map((product) => <ProductCard product={product} />)}

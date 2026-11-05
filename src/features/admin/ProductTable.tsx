@@ -133,8 +133,8 @@ export default function ProductTable({
               setPaginaActual(1);
             }}
             style={{
-              padding: "9px 12px",
-              fontSize: "9px",
+              padding: "10px 14px",
+              fontSize: "13px",
               border: "1px solid #dcdad3",
               background: "#fff",
               cursor: "pointer",
@@ -171,7 +171,7 @@ export default function ProductTable({
               padding: "45px",
               textAlign: "center",
               color: "var(--muted)",
-              fontSize: "11px",
+              fontSize: "14px",
             }}
           >
             No se encontraron perfumes que coincidan con la búsqueda o filtro.
@@ -202,7 +202,7 @@ export default function ProductTable({
 
               <span>{p.genero}</span>
 
-              <span style={{ fontSize: "8.5px" }}>
+              <span style={{ fontSize: "13px", lineHeight: "1.5" }}>
                 <div>
                   <strong>50ml:</strong> S/ {p.precio_50ml.toLocaleString("es-PE")}
                   {p.precio_referencia_50ml && (
@@ -217,7 +217,7 @@ export default function ProductTable({
                 </div>
               </span>
 
-              <span style={{ fontSize: "8px", color: "var(--gold)" }}>
+              <span style={{ fontSize: "12.5px", color: "var(--gold-deep)", fontWeight: 500 }}>
                 {p.imagenes.length} {p.imagenes.length === 1 ? "foto" : "fotos"}
               </span>
 
