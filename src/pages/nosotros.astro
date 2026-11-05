@@ -11,6 +11,13 @@ const config = db ? await obtenerConfiguracionTienda(db) : {};
 
 const rawPhone = config.whatsapp_pedidos || "954159831";
 const targetPhone = normalizarTelefonoWhatsApp(rawPhone);
+const tiktokVideos = [
+  "https://www.tiktok.com/@maisondesparfums.pe/video/7502872077028953350",
+  "https://www.tiktok.com/@maisondesparfums.pe/video/7576680989179645185",
+  "https://www.tiktok.com/@maisondesparfums.pe/video/7614882201385143569",
+  "https://www.tiktok.com/@maisondesparfums.pe/video/7503668417862307078",
+];
+
 const tiktokUrl =
   config.tiktok_url || "https://tiktok.com/@maisondesparfums.pe";
 const whatsappUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(
@@ -161,7 +168,7 @@ const description =
         <div class="community-grid">
           {/* Tarjeta UGC 1: Unboxing */}
           <a
-            href={tiktokUrl}
+            href={tiktokVideos[0]}
             target="_blank"
             rel="noopener noreferrer"
             class="community-card"
@@ -184,7 +191,7 @@ const description =
 
           {/* Tarjeta UGC 2: Reseña */}
           <a
-            href={tiktokUrl}
+            href={tiktokVideos[1]}
             target="_blank"
             rel="noopener noreferrer"
             class="community-card"
@@ -209,7 +216,7 @@ const description =
 
           {/* Tarjeta UGC 3: Favoritos */}
           <a
-            href={tiktokUrl}
+            href={tiktokVideos[2]}
             target="_blank"
             rel="noopener noreferrer"
             class="community-card"
@@ -234,7 +241,7 @@ const description =
 
           {/* Tarjeta UGC 4: Estética & Notas */}
           <a
-            href={tiktokUrl}
+            href={tiktokVideos[3]}
             target="_blank"
             rel="noopener noreferrer"
             class="community-card"
