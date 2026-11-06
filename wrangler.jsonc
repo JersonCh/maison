@@ -10,7 +10,7 @@
     {
       "binding": "DB",
       "database_name": "maison-db",
-      "database_id": "local-maison-db",
+      "database_id": "c33f19a2-76cc-4b7f-800d-5b1ca2f1c029",
       "migrations_dir": "migrations"
     }
   ],
