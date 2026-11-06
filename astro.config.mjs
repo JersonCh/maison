@@ -43,6 +43,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@': path.resolve('./src'),
+        'react-dom/server': 'react-dom/server.edge',
       },
     },
     server: {
