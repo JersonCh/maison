@@ -5,6 +5,8 @@ import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
 
+const isBuild = process.argv.includes('build') || process.env.NODE_ENV === 'production';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://maison.pe',
@@ -43,7 +45,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@': path.resolve('./src'),
-        'react-dom/server': 'react-dom/server.edge',
+        ...(isBuild ? { 'react-dom/server': 'react-dom/server.edge' } : {}),
       },
     },
     server: {
