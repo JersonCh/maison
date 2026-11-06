@@ -9,6 +9,7 @@ import type {
   DatosFormularioProducto,
 } from "@/types/database";
 import type { Gender, Product, ProductVariant } from "@/types/product";
+import { products as fallbackProducts } from "@/data/products";
 
 // =============================================================================
 // 1. CONFIGURACIÓN COMERCIAL DE LA TIENDA
@@ -21,15 +22,20 @@ import type { Gender, Product, ProductVariant } from "@/types/product";
 export async function obtenerConfiguracionTienda(
   db: D1Database,
 ): Promise<Record<string, string>> {
-  const { results } = await db
-    .prepare("SELECT clave, valor FROM configuracion_tienda")
-    .all<{ clave: string; valor: string }>();
+  try {
+    const { results } = await db
+      .prepare("SELECT clave, valor FROM configuracion_tienda")
+      .all<{ clave: string; valor: string }>();
 
-  const configuracion: Record<string, string> = {};
-  for (const fila of results) {
-    configuracion[fila.clave] = fila.valor;
+    const configuracion: Record<string, string> = {};
+    for (const fila of results) {
+      configuracion[fila.clave] = fila.valor;
+    }
+    return configuracion;
+  } catch (error) {
+    console.warn("No se pudo obtener configuracion_tienda de D1 (usando valores por defecto):", error);
+    return {};
   }
-  return configuracion;
 }
 
 /**
@@ -331,20 +337,25 @@ export async function obtenerBannersPorUbicacion(
   db: D1Database,
   ubicacion: string,
 ): Promise<BannerSlide[]> {
-  const { results } = await db
-    .prepare(
-      `SELECT id, ubicacion, titulo, subtitulo, texto_boton, enlace_url, 
-              imagen_desktop_key AS imagen_desktop, 
-              imagen_mobile_key AS imagen_mobile, 
-              orden
-       FROM banners
-       WHERE ubicacion = ? AND activo = 1
-       ORDER BY orden ASC`,
-    )
-    .bind(ubicacion)
-    .all<BannerSlide>();
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT id, ubicacion, titulo, subtitulo, texto_boton, enlace_url, 
+                imagen_desktop_key AS imagen_desktop, 
+                imagen_mobile_key AS imagen_mobile, 
+                orden
+         FROM banners
+         WHERE ubicacion = ? AND activo = 1
+         ORDER BY orden ASC`,
+      )
+      .bind(ubicacion)
+      .all<BannerSlide>();
 
-  return results;
+    return results;
+  } catch (error) {
+    console.warn("No se pudo obtener banners de D1 (usando banners editoriales de respaldo):", error);
+    return [];
+  }
 }
 
 // =============================================================================
@@ -936,7 +947,7 @@ export async function obtenerProductosTienda(
   db?: D1Database,
 ): Promise<Product[]> {
   if (!db) {
-    return [];
+    return fallbackProducts;
   }
 
   try {
@@ -961,6 +972,10 @@ export async function obtenerProductosTienda(
         ORDER BY p.id ASC`,
       )
       .all<any>();
+
+    if (!productos || productos.length === 0) {
+      return fallbackProducts;
+    }
 
     if (!productos || productos.length === 0) {
       return [];
@@ -1040,8 +1055,8 @@ export async function obtenerProductosTienda(
       };
     });
   } catch (error) {
-    console.error("Error al consultar productos de D1 para la tienda:", error);
-    return [];
+    console.warn("No se pudieron consultar productos de D1 (usando catálogo de respaldo):", error);
+    return fallbackProducts;
   }
 }
 
@@ -1074,12 +1089,28 @@ export async function obtenerDetalleProductoTienda(
   };
 
   if (!db) {
+    const fallback = fallbackProducts.find((p) => p.slug === slug);
+    if (fallback) {
+      return {
+        producto: fallback,
+        piramide: piramidePorDefecto,
+        caracteristicas: caracteristicasPorDefecto,
+      };
+    }
     return null;
   }
 
   try {
     const detalleDb = await obtenerDetalleProductoPorSlug(db, slug);
     if (!detalleDb) {
+      const fallback = fallbackProducts.find((p) => p.slug === slug);
+      if (fallback) {
+        return {
+          producto: fallback,
+          piramide: piramidePorDefecto,
+          caracteristicas: caracteristicasPorDefecto,
+        };
+      }
       return null;
     }
 
@@ -1125,7 +1156,15 @@ export async function obtenerDetalleProductoTienda(
       },
     };
   } catch (error) {
-    console.error("Error al obtener detalle de D1 para slug:", slug, error);
+    console.warn("No se pudo obtener detalle de D1 para slug (usando producto de respaldo):", slug, error);
+    const fallback = fallbackProducts.find((p) => p.slug === slug);
+    if (fallback) {
+      return {
+        producto: fallback,
+        piramide: piramidePorDefecto,
+        caracteristicas: caracteristicasPorDefecto,
+      };
+    }
     return null;
   }
 }
