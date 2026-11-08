@@ -97,6 +97,7 @@ export interface MarcaItem {
   id: number;
   nombre: string;
   slug: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
 }
 
 export interface FamiliaOlfativaItem {
@@ -115,6 +116,9 @@ export interface ProductoAdminItem {
   marca_id: number;
   marca: string;
   tipo_comercial?: "disenador" | "arabe" | "nicho";
+  tiene_decants?: boolean;
+  precio_decant_5ml?: number | null;
+  precio_decant_10ml?: number | null;
   genero: Gender;
   concentracion: string;
   familia_olfativa_id: number | null;
@@ -137,11 +141,15 @@ export interface ProductoAdminItem {
  * Admite de 1 a 3 fotos (Portada obligatoria, empaque y detalle opcionales).
  */
 export interface DatosFormularioProducto {
+  id?: number;
   nombre: string;
   slug?: string;
   marca_id?: number;
   nueva_marca?: string;
   tipo_comercial?: "disenador" | "arabe" | "nicho";
+  tiene_decants?: boolean;
+  precio_decant_5ml?: number | null;
+  precio_decant_10ml?: number | null;
   genero: Gender;
   concentracion: string;
   familia_olfativa_id?: number | null;
