@@ -380,10 +380,28 @@ function normalizarTextoParaSlug(texto: string): string {
 export async function obtenerMarcasDisponibles(
   db: D1Database,
 ): Promise<MarcaItem[]> {
-  const { results } = await db
-    .prepare("SELECT id, nombre, slug FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
-    .all<MarcaItem>();
-  return results;
+  try {
+    const { results } = await db
+      .prepare("SELECT id, nombre, slug, tipo_comercial FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
+      .all<any>();
+    return results.map((r) => ({
+      id: r.id,
+      nombre: r.nombre,
+      slug: r.slug,
+      tipo_comercial: inferirTipoComercial(r.nombre, r.tipo_comercial),
+    }));
+  } catch (err) {
+    // Si la columna tipo_comercial aún no existe en marcas
+    const { results } = await db
+      .prepare("SELECT id, nombre, slug FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
+      .all<any>();
+    return results.map((r) => ({
+      id: r.id,
+      nombre: r.nombre,
+      slug: r.slug,
+      tipo_comercial: inferirTipoComercial(r.nombre),
+    }));
+  }
 }
 
 /**
@@ -478,6 +496,9 @@ export async function obtenerProductosParaAdmin(
     const vars = mapaVariantes.get(p.id) || [];
     const v50 = vars.find((v) => Math.round(v.tamano_ml) === 50) || vars[0];
     const v100 = vars.find((v) => Math.round(v.tamano_ml) === 100) || vars[1] || vars[0];
+    const vDecant5 = vars.find((v) => Math.round(v.tamano_ml) === 5);
+    const vDecant10 = vars.find((v) => Math.round(v.tamano_ml) === 10);
+    const tieneDecants = Boolean(vDecant5 || vDecant10 || vars.some((v) => v.tamano_ml <= 15));
 
     const imgs = mapaImagenes.get(p.id) || [];
     // Fotos registradas (al menos 1 portada, hasta 3 fotos)
@@ -489,6 +510,10 @@ export async function obtenerProductosParaAdmin(
       slug: p.slug,
       marca_id: p.marca_id,
       marca: p.marca,
+      tipo_comercial: inferirTipoComercial(p.marca, p.marca_tipo),
+      tiene_decants: tieneDecants,
+      precio_decant_5ml: vDecant5 ? Math.round(vDecant5.precio_centimos / 100) : null,
+      precio_decant_10ml: vDecant10 ? Math.round(vDecant10.precio_centimos / 100) : null,
       genero: p.genero as Gender,
       concentracion: p.concentracion,
       familia_olfativa_id: p.familia_olfativa_id,
@@ -517,10 +542,12 @@ export async function asegurarMarca(
   db: D1Database,
   marcaId?: number,
   nuevaMarcaNombre?: string,
+  tipoComercial?: string,
 ): Promise<number> {
   if (nuevaMarcaNombre && nuevaMarcaNombre.trim()) {
     const nombreLimpio = nuevaMarcaNombre.trim();
     const slug = normalizarTextoParaSlug(nombreLimpio);
+    const tipoFinal = inferirTipoComercial(nombreLimpio, tipoComercial);
 
     // Verificar si ya existe por nombre o slug
     const existente = await db
@@ -528,19 +555,46 @@ export async function asegurarMarca(
       .bind(nombreLimpio, slug)
       .first<{ id: number }>();
 
-    if (existente) return existente.id;
+    if (existente) {
+      if (tipoFinal) {
+        try {
+          await db
+            .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
+            .bind(tipoFinal, existente.id)
+            .run();
+        } catch {}
+      }
+      return existente.id;
+    }
 
-    // Crear la nueva marca
-    await db
-      .prepare("INSERT INTO marcas (nombre, slug, activo) VALUES (?, ?, 1)")
-      .bind(nombreLimpio, slug)
-      .run();
+    // Crear la nueva marca con su clasificación
+    try {
+      await db
+        .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, activo) VALUES (?, ?, ?, 1)")
+        .bind(nombreLimpio, slug, tipoFinal)
+        .run();
+    } catch {
+      await db
+        .prepare("INSERT INTO marcas (nombre, slug, activo) VALUES (?, ?, 1)")
+        .bind(nombreLimpio, slug)
+        .run();
+    }
 
     const nueva = await db
       .prepare("SELECT last_insert_rowid() AS id")
       .first<{ id: number }>();
 
     return nueva?.id || 1;
+  }
+
+  // Si la marca ya existía y el admin seleccionó un tipoComercial, sincronizarlo
+  if (marcaId && tipoComercial) {
+    try {
+      await db
+        .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
+        .bind(tipoComercial, marcaId)
+        .run();
+    } catch {}
   }
 
   return marcaId || 1;
@@ -622,7 +676,12 @@ export async function crearNuevoProductoEnDb(
   db: D1Database,
   datos: DatosFormularioProducto,
 ): Promise<number> {
-  const marcaIdFinal = await asegurarMarca(db, datos.marca_id, datos.nueva_marca);
+  const marcaIdFinal = await asegurarMarca(
+    db,
+    datos.marca_id,
+    datos.nueva_marca,
+    datos.tipo_comercial,
+  );
   const familiaIdFinal = await asegurarFamiliaOlfativa(
     db,
     datos.familia_olfativa_id,
@@ -674,7 +733,7 @@ export async function crearNuevoProductoEnDb(
       .run();
   }
 
-  // 3. Crear las 2 variantes estándar: 50 ml y 100 ml con precios en céntimos
+  // 3. Crear las variantes: 50 ml y 100 ml regulares + decants opcionales
   const precio50Centimos = Math.round(Number(datos.precio_50ml || 0) * 100);
   const precio100Centimos = Math.round(Number(datos.precio_100ml || 0) * 100);
   const precioRef50Centimos = datos.precio_referencia_50ml
@@ -709,7 +768,62 @@ export async function crearNuevoProductoEnDb(
       ),
   ];
 
+  // Variantes de decants si fueron habilitadas
+  if (datos.tiene_decants) {
+    if (datos.precio_decant_5ml && Number(datos.precio_decant_5ml) > 0) {
+      sentenciasVariantes.push(
+        db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+            ) VALUES (?, ?, 5, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          )
+          .bind(
+            productoId,
+            `DEC-${productoId}-5ML`,
+            Math.round(Number(datos.precio_decant_5ml) * 100),
+          ),
+      );
+    }
+
+    if (datos.precio_decant_10ml && Number(datos.precio_decant_10ml) > 0) {
+      sentenciasVariantes.push(
+        db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+            ) VALUES (?, ?, 10, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          )
+          .bind(
+            productoId,
+            `DEC-${productoId}-10ML`,
+            Math.round(Number(datos.precio_decant_10ml) * 100),
+          ),
+      );
+    }
+  }
+
   await db.batch(sentenciasVariantes);
+
+  // 4. Asociar a categorías comerciales en producto_categorias
+  try {
+    const catId = datos.tipo_comercial === "arabe" ? 2 : datos.tipo_comercial === "nicho" ? 3 : 1;
+    await db
+      .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
+      .bind(productoId, catId)
+      .run();
+
+    if (datos.tiene_decants) {
+      await db
+        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, 4)")
+        .bind(productoId, 4)
+        .run();
+    }
+  } catch (err) {
+    // Si la tabla producto_categorias aún no existe en el esquema remoto, continuar sin error
+  }
 
   // 4. Insertar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
   const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
@@ -743,7 +857,12 @@ export async function actualizarProductoEnDb(
   productoId: number,
   datos: DatosFormularioProducto,
 ): Promise<boolean> {
-  const marcaIdFinal = await asegurarMarca(db, datos.marca_id, datos.nueva_marca);
+  const marcaIdFinal = await asegurarMarca(
+    db,
+    datos.marca_id,
+    datos.nueva_marca,
+    datos.tipo_comercial,
+  );
   const familiaIdFinal = await asegurarFamiliaOlfativa(
     db,
     datos.familia_olfativa_id,
@@ -854,6 +973,90 @@ export async function actualizarProductoEnDb(
       .bind(productoId, `MDP-${productoId}-100ML`, precio100Centimos)
       .run();
   }
+
+  // Actualizar o crear decants si corresponde
+  if (datos.tiene_decants) {
+    if (datos.precio_decant_5ml && Number(datos.precio_decant_5ml) > 0) {
+      const p5 = Math.round(Number(datos.precio_decant_5ml) * 100);
+      const res5 = await db
+        .prepare(
+          `UPDATE variantes_producto 
+           SET precio_centimos = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+           WHERE producto_id = ? AND tamano_ml = 5`,
+        )
+        .bind(p5, productoId)
+        .run();
+
+      if (res5.meta.changes === 0) {
+        await db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+            ) VALUES (?, ?, 5, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          )
+          .bind(productoId, `DEC-${productoId}-5ML`, p5)
+          .run();
+      }
+    } else {
+      await db
+        .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml = 5")
+        .bind(productoId)
+        .run();
+    }
+
+    if (datos.precio_decant_10ml && Number(datos.precio_decant_10ml) > 0) {
+      const p10 = Math.round(Number(datos.precio_decant_10ml) * 100);
+      const res10 = await db
+        .prepare(
+          `UPDATE variantes_producto 
+           SET precio_centimos = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+           WHERE producto_id = ? AND tamano_ml = 10`,
+        )
+        .bind(p10, productoId)
+        .run();
+
+      if (res10.meta.changes === 0) {
+        await db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+            ) VALUES (?, ?, 10, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          )
+          .bind(productoId, `DEC-${productoId}-10ML`, p10)
+          .run();
+      }
+    } else {
+      await db
+        .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml = 10")
+        .bind(productoId)
+        .run();
+    }
+  } else {
+    // Si desactivó decants, eliminar las presentaciones fraccionadas de decants
+    await db
+      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml IN (5, 10)")
+      .bind(productoId)
+      .run();
+  }
+
+  // Sincronizar tabla relacional producto_categorias
+  try {
+    await db.prepare("DELETE FROM producto_categorias WHERE producto_id = ?").bind(productoId).run();
+    const catId = datos.tipo_comercial === "arabe" ? 2 : datos.tipo_comercial === "nicho" ? 3 : 1;
+    await db
+      .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
+      .bind(productoId, catId)
+      .run();
+
+    if (datos.tiene_decants) {
+      await db
+        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, 4)")
+        .bind(productoId, 4)
+        .run();
+    }
+  } catch (err) {}
 
   // 4. Actualizar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
   await db

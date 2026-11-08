@@ -21,6 +21,7 @@ export default function ProductTable({
 }: Props) {
   const [busqueda, setBusqueda] = useState("");
   const [filtroGenero, setFiltroGenero] = useState<string>("todos");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [paginaActual, setPaginaActual] = useState(1);
 
   // Filtrado de productos
@@ -35,9 +36,16 @@ export default function ProductTable({
         filtroGenero === "todos" ||
         p.genero.toLowerCase() === filtroGenero.toLowerCase();
 
-      return coincideTexto && coincideGenero;
+      const coincideTipo =
+        filtroTipo === "todos"
+          ? true
+          : filtroTipo === "decant"
+            ? Boolean(p.tiene_decants || p.precio_decant_5ml || p.precio_decant_10ml)
+            : p.tipo_comercial === filtroTipo;
+
+      return coincideTexto && coincideGenero && coincideTipo;
     });
-  }, [products, busqueda, filtroGenero]);
+  }, [products, busqueda, filtroGenero, filtroTipo]);
 
   // Cálculo de páginas
   const totalPaginas = Math.max(
@@ -145,6 +153,27 @@ export default function ProductTable({
             <option value="hombre">Hombre</option>
             <option value="mujer">Mujer</option>
           </select>
+
+          <select
+            value={filtroTipo}
+            onChange={(e) => {
+              setFiltroTipo(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 14px",
+              fontSize: "13px",
+              border: "1px solid #dcdad3",
+              background: "#fff",
+              cursor: "pointer",
+            }}
+          >
+            <option value="todos">Todas las líneas</option>
+            <option value="disenador">Diseñador</option>
+            <option value="arabe">Árabes</option>
+            <option value="nicho">Nichos</option>
+            <option value="decant">✦ Con Decants</option>
+          </select>
         </div>
 
         <button type="button" className="btn btn-gold" onClick={onAddNew}>
@@ -197,6 +226,47 @@ export default function ProductTable({
                   <small>
                     {p.marca} · {p.concentracion}
                   </small>
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "4px" }}>
+                    <span
+                      style={{
+                        fontSize: "9.5px",
+                        letterSpacing: "0.05em",
+                        padding: "1px 6px",
+                        borderRadius: "3px",
+                        textTransform: "uppercase",
+                        fontWeight: 600,
+                        background:
+                          p.tipo_comercial === "arabe"
+                            ? "rgba(16, 185, 129, 0.12)"
+                            : p.tipo_comercial === "nicho"
+                              ? "rgba(147, 51, 234, 0.12)"
+                              : "rgba(215, 173, 87, 0.15)",
+                        color:
+                          p.tipo_comercial === "arabe"
+                            ? "#059669"
+                            : p.tipo_comercial === "nicho"
+                              ? "#7c3aed"
+                              : "#9a7828",
+                      }}
+                    >
+                      {p.tipo_comercial === "arabe" ? "Árabe" : p.tipo_comercial === "nicho" ? "Nicho" : "Diseñador"}
+                    </span>
+                    {p.tiene_decants && (
+                      <span
+                        style={{
+                          fontSize: "9.5px",
+                          padding: "1px 5px",
+                          borderRadius: "3px",
+                          fontWeight: 600,
+                          background: "#f1f5f9",
+                          color: "#475569",
+                          border: "1px solid #cbd5e1",
+                        }}
+                      >
+                        ✦ Decants
+                      </span>
+                    )}
+                  </div>
                 </b>
               </span>
 
@@ -215,6 +285,13 @@ export default function ProductTable({
                   <strong>100ml:</strong> S/{" "}
                   {p.precio_100ml.toLocaleString("es-PE")}
                 </div>
+                {(p.precio_decant_5ml || p.precio_decant_10ml) && (
+                  <div style={{ color: "#b48c36", fontSize: "11.5px", marginTop: "3px", fontWeight: 500 }}>
+                    Decant: {p.precio_decant_5ml ? `5ml S/${p.precio_decant_5ml}` : ""}
+                    {p.precio_decant_5ml && p.precio_decant_10ml ? " · " : ""}
+                    {p.precio_decant_10ml ? `10ml S/${p.precio_decant_10ml}` : ""}
+                  </div>
+                )}
               </span>
 
               <span style={{ fontSize: "12.5px", color: "var(--gold-deep)", fontWeight: 500 }}>

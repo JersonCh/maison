@@ -693,9 +693,77 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 20px;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 18px;
+  padding-bottom: 16px;
+}
+
+/* Pestañas del Modal (Opción B) */
+.modal-tabs-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #ebe9e3;
+  padding-bottom: 0;
+  overflow-x: auto;
+}
+.modal-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: all 0.2s ease;
+  margin-bottom: -1px;
+  white-space: nowrap;
+}
+.modal-tab-btn:hover {
+  color: var(--ink);
+  background: rgba(215, 173, 87, 0.05);
+}
+.modal-tab-btn.active {
+  color: var(--gold-deep);
+  border-bottom-color: var(--gold);
+  font-weight: 600;
+}
+.modal-tab-btn .tab-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #eae8e2;
+  font-size: 11px;
+  color: #555;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.modal-tab-btn.active .tab-num {
+  background: var(--gold);
+  color: #000;
+}
+
+.modal-actions-split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+}
+.modal-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .modal-head small {
   color: var(--gold-deep);
