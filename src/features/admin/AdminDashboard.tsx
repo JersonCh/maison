@@ -6,7 +6,7 @@ import type {
 } from "@/types/database";
 import Icon from "@/components/ui/Icon";
 import ProductTable from "./ProductTable";
-import ProductFormModal from "./ProductFormModal";
+import ProductFormPage from "./ProductFormPage";
 
 interface Props {
   initialProducts?: any[];
@@ -22,8 +22,8 @@ export default function AdminDashboard({ }: Props) {
   const [marcas, setMarcas] = useState<MarcaItem[]>([]);
   const [familias, setFamilias] = useState<FamiliaOlfativaItem[]>([]);
 
-  // Estados del modal de producto
-  const [modalAbierto, setModalAbierto] = useState(false);
+  // Estados de vista de producto (Página dedicada - Opción A)
+  const [vistaProducto, setVistaProducto] = useState<"tabla" | "formulario">("tabla");
   const [productoEnEdicion, setProductoEnEdicion] = useState<ProductoAdminItem | null>(null);
 
   // Notificación tipo toast
@@ -74,12 +74,12 @@ export default function AdminDashboard({ }: Props) {
   // Manejadores de acciones del CRUD
   const manejarAbrirCreacion = () => {
     setProductoEnEdicion(null);
-    setModalAbierto(true);
+    setVistaProducto("formulario");
   };
 
   const manejarAbrirEdicion = (producto: ProductoAdminItem) => {
     setProductoEnEdicion(producto);
-    setModalAbierto(true);
+    setVistaProducto("formulario");
   };
 
   const manejarAlternarVisibilidad = async (id: number, actualActivo: boolean) => {
@@ -196,7 +196,10 @@ export default function AdminDashboard({ }: Props) {
             <button
               className={section === item[0] ? "active" : ""}
               key={item[0]}
-              onClick={() => setSection(item[0])}
+              onClick={() => {
+                setSection(item[0]);
+                setVistaProducto("tabla");
+              }}
               type="button"
             >
               <i />
@@ -211,18 +214,20 @@ export default function AdminDashboard({ }: Props) {
 
       {/* CONTENIDO PRINCIPAL */}
       <section className="admin-content">
-        <header>
-          <div>
-            <p>Maison des Parfums · Panel de Control</p>
-            <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
-          </div>
-          <div className="admin-user">
-            <span>AD</span>
-            <p>
-              Administrador<small>Maison des Parfums</small>
-            </p>
-          </div>
-        </header>
+        {!(section === "products" && vistaProducto === "formulario") && (
+          <header>
+            <div>
+              <p>Maison des Parfums · Panel de Control</p>
+              <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
+            </div>
+            <div className="admin-user">
+              <span>AD</span>
+              <p>
+                Administrador<small>Maison des Parfums</small>
+              </p>
+            </div>
+          </header>
+        )}
 
         {/* 1. SECCIÓN DASHBOARD */}
         {section === "dashboard" && (
@@ -298,15 +303,33 @@ export default function AdminDashboard({ }: Props) {
           </>
         )}
 
-        {/* 2. SECCIÓN PRODUCTOS / CATÁLOGO (CRUD COMPLETO) */}
+        {/* 2. SECCIÓN PRODUCTOS / CATÁLOGO (CRUD COMPLETO CON PÁGINA DEDICADA) */}
         {section === "products" && (
-          <ProductTable
-            products={productos}
-            onEdit={manejarAbrirEdicion}
-            onToggleActive={manejarAlternarVisibilidad}
-            onDelete={manejarEliminarOArchivar}
-            onAddNew={manejarAbrirCreacion}
-          />
+          vistaProducto === "formulario" ? (
+            <ProductFormPage
+              key={productoEnEdicion?.id ?? "nuevo"}
+              initialProduct={productoEnEdicion}
+              marcasDisponibles={marcas}
+              familiasDisponibles={familias}
+              onBack={() => {
+                setVistaProducto("tabla");
+                setProductoEnEdicion(null);
+              }}
+              onSuccess={(mensaje) => {
+                mostrarToast(mensaje);
+                cargarProductos();
+              }}
+              onReloadMetadata={cargarMetadatos}
+            />
+          ) : (
+            <ProductTable
+              products={productos}
+              onEdit={manejarAbrirEdicion}
+              onToggleActive={manejarAlternarVisibilidad}
+              onDelete={manejarEliminarOArchivar}
+              onAddNew={manejarAbrirCreacion}
+            />
+          )
         )}
 
         {/* 3. SECCIÓN MARCAS Y FAMILIAS */}
@@ -357,24 +380,6 @@ export default function AdminDashboard({ }: Props) {
         {/* 5. SECCIÓN CONFIGURACIÓN COMERCIAL */}
         {section === "settings" && <SettingsSection />}
       </section>
-
-      {/* MODAL RESPONSABILIDAD ÚNICA: CREACIÓN / EDICIÓN */}
-      <ProductFormModal
-        key={productoEnEdicion?.id ?? "nuevo"}
-        isOpen={modalAbierto}
-        onClose={() => {
-          setModalAbierto(false);
-          setProductoEnEdicion(null);
-        }}
-        onSuccess={(mensaje) => {
-          mostrarToast(mensaje);
-          cargarProductos();
-        }}
-        initialProduct={productoEnEdicion}
-        marcasDisponibles={marcas}
-        familiasDisponibles={familias}
-        onReloadMetadata={cargarMetadatos}
-      />
 
       {/* TOAST DE FEEDBACK VISUAL */}
       {toastMensaje && (
