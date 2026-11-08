@@ -99,33 +99,45 @@ INSERT OR IGNORE INTO variantes_producto (producto_id, sku, tamano_ml, precio_ce
 (32, 'MB-EXP-50', 50, 46000, 1, 0, 'venta_regular', 1),
 (32, 'MB-EXP-100', 100, 59000, 0, 0, 'venta_regular', 1);
 
--- 11. Registrar variantes de DECANTS (5 ml y 10 ml)
+-- 11. Registrar variantes de DECANTS (3 ml, 5 ml y 10 ml)
 INSERT OR IGNORE INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, activo) VALUES
 -- Nicho
+(1, 'DEC-BR540-3', 3, 6500, 0, 0, 'venta_regular', 1),
 (1, 'DEC-BR540-5', 5, 9500, 0, 0, 'venta_regular', 1),
 (1, 'DEC-BR540-10', 10, 17500, 0, 0, 'venta_regular', 1),
+(4, 'DEC-AV-3', 3, 7500, 0, 0, 'venta_regular', 1),
 (4, 'DEC-AV-5', 5, 11500, 0, 0, 'venta_regular', 1),
 (4, 'DEC-AV-10', 10, 21000, 0, 0, 'venta_regular', 1),
+(5, 'DEC-OW-3', 3, 6000, 0, 0, 'venta_regular', 1),
 (5, 'DEC-OW-5', 5, 9000, 0, 0, 'venta_regular', 1),
 (5, 'DEC-OW-10', 10, 16500, 0, 0, 'venta_regular', 1),
+(8, 'DEC-DEL-3', 3, 7000, 0, 0, 'venta_regular', 1),
 (8, 'DEC-DEL-5', 5, 11000, 0, 0, 'venta_regular', 1),
 (8, 'DEC-DEL-10', 10, 20000, 0, 0, 'venta_regular', 1),
+(14, 'DEC-S33-3', 3, 6500, 0, 0, 'venta_regular', 1),
 (14, 'DEC-S33-5', 5, 9500, 0, 0, 'venta_regular', 1),
 (14, 'DEC-S33-10', 10, 17000, 0, 0, 'venta_regular', 1),
 -- Diseñador
+(2, 'DEC-SE-3', 3, 5000, 0, 0, 'venta_regular', 1),
 (2, 'DEC-SE-5', 5, 7500, 0, 0, 'venta_regular', 1),
 (2, 'DEC-SE-10', 10, 13500, 0, 0, 'venta_regular', 1),
+(27, 'DEC-1M-3', 3, 3200, 0, 0, 'venta_regular', 1),
 (27, 'DEC-1M-5', 5, 4800, 0, 0, 'venta_regular', 1),
 (27, 'DEC-1M-10', 10, 8500, 0, 0, 'venta_regular', 1),
+(29, 'DEC-GRP-3', 3, 3800, 0, 0, 'venta_regular', 1),
 (29, 'DEC-GRP-5', 5, 5500, 0, 0, 'venta_regular', 1),
 (29, 'DEC-GRP-10', 10, 9500, 0, 0, 'venta_regular', 1),
+(30, 'DEC-PAR-3', 3, 3800, 0, 0, 'venta_regular', 1),
 (30, 'DEC-PAR-5', 5, 5500, 0, 0, 'venta_regular', 1),
 (30, 'DEC-PAR-10', 10, 9500, 0, 0, 'venta_regular', 1),
+(32, 'DEC-EXP-3', 3, 3000, 0, 0, 'venta_regular', 1),
 (32, 'DEC-EXP-5', 5, 4500, 0, 0, 'venta_regular', 1),
 (32, 'DEC-EXP-10', 10, 8000, 0, 0, 'venta_regular', 1),
 -- Árabes
+(21, 'DEC-KHM-3', 3, 2500, 0, 0, 'venta_regular', 1),
 (21, 'DEC-KHM-5', 5, 3500, 0, 0, 'venta_regular', 1),
 (21, 'DEC-KHM-10', 10, 6000, 0, 0, 'venta_regular', 1),
+(22, 'DEC-CDNI-3', 3, 2000, 0, 0, 'venta_regular', 1),
 (22, 'DEC-CDNI-5', 5, 3000, 0, 0, 'venta_regular', 1),
 (22, 'DEC-CDNI-10', 10, 5500, 0, 0, 'venta_regular', 1);
 

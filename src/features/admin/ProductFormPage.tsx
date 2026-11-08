@@ -76,13 +76,17 @@ export default function ProductFormPage({
     initialProduct?.precio_referencia_50ml ?? "",
   );
 
-  // Presentaciones de Decants (5ml y 10ml)
+  // Presentaciones de Decants (3ml, 5ml y 10ml)
   const [tieneDecants, setTieneDecants] = useState<boolean>(
     Boolean(
       initialProduct?.tiene_decants ||
+        initialProduct?.precio_decant_3ml ||
         initialProduct?.precio_decant_5ml ||
         initialProduct?.precio_decant_10ml,
     ),
+  );
+  const [precioDecant3ml, setPrecioDecant3ml] = useState<number | "">(
+    initialProduct?.precio_decant_3ml ?? "",
   );
   const [precioDecant5ml, setPrecioDecant5ml] = useState<number | "">(
     initialProduct?.precio_decant_5ml ?? "",
@@ -166,9 +170,16 @@ export default function ProductFormPage({
       return;
     }
 
-    if (tieneDecants && (!precioDecant5ml || Number(precioDecant5ml) <= 0)) {
-      setErrorValidacion("Si habilitas decants, el precio de la muestra de 5 ml es obligatorio.");
-      return;
+    if (tieneDecants) {
+      const p3 = Number(precioDecant3ml);
+      const p5 = Number(precioDecant5ml);
+      const p10 = Number(precioDecant10ml);
+      if ((!p3 || p3 <= 0) && (!p5 || p5 <= 0) && (!p10 || p10 <= 0)) {
+        setErrorValidacion(
+          "Si habilitas decants, ingresa el precio para al menos una de las presentaciones (3 ml, 5 ml o 10 ml).",
+        );
+        return;
+      }
     }
 
     setGuardando(true);
@@ -181,6 +192,7 @@ export default function ProductFormPage({
         nueva_marca: modoNuevaMarca ? nuevaMarca.trim() : undefined,
         tipo_comercial: tipoComercial,
         tiene_decants: tieneDecants,
+        precio_decant_3ml: tieneDecants && precioDecant3ml !== "" ? Number(precioDecant3ml) : null,
         precio_decant_5ml: tieneDecants && precioDecant5ml !== "" ? Number(precioDecant5ml) : null,
         precio_decant_10ml: tieneDecants && precioDecant10ml !== "" ? Number(precioDecant10ml) : null,
         genero,
@@ -507,39 +519,6 @@ export default function ProductFormPage({
                 </select>
               </label>
 
-              <div>
-                <label>
-                  Familia olfativa
-                  {!modoNuevaFamilia ? (
-                    <select
-                      value={familiaId || ""}
-                      onChange={(e) => setFamiliaId(Number(e.target.value) || null)}
-                    >
-                      {familiasDisponibles.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      placeholder="Ej. Cuero oriental, Chipre especiado"
-                      value={nuevaFamilia}
-                      onChange={(e) => setNuevaFamilia(e.target.value)}
-                    />
-                  )}
-                </label>
-                <button
-                  type="button"
-                  className="toggle-field-btn"
-                  onClick={() => setModoNuevaFamilia(!modoNuevaFamilia)}
-                >
-                  {modoNuevaFamilia
-                    ? "← Elegir familia existente"
-                    : "+ Crear nueva familia"}
-                </button>
-              </div>
-
               <label>
                 País de origen
                 <input
@@ -655,7 +634,7 @@ export default function ProductFormPage({
                     onChange={(e) => setTieneDecants(e.target.checked)}
                   />
                   <span style={{ fontSize: "14px", color: "var(--foreground)" }}>
-                    Habilitar venta en decants (5 ml y 10 ml)
+                    Habilitar venta en decants (3 ml, 5 ml y 10 ml)
                   </span>
                 </label>
 
@@ -663,19 +642,34 @@ export default function ProductFormPage({
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
                       gap: "16px",
                       marginTop: "16px",
                       paddingLeft: "30px",
                     }}
                   >
                     <label>
-                      Precio Decant 5 ml (S/) *
+                      Precio Decant 3 ml (S/)
                       <input
                         type="number"
                         min="1"
                         step="1"
-                        required={tieneDecants}
+                        placeholder="Ej. 30"
+                        value={precioDecant3ml}
+                        onChange={(e) =>
+                          setPrecioDecant3ml(
+                            e.target.value === "" ? "" : Number(e.target.value),
+                          )
+                        }
+                      />
+                    </label>
+
+                    <label>
+                      Precio Decant 5 ml (S/)
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
                         placeholder="Ej. 45"
                         value={precioDecant5ml}
                         onChange={(e) =>
@@ -687,7 +681,7 @@ export default function ProductFormPage({
                     </label>
 
                     <label>
-                      Precio Decant 10 ml (S/) (Opcional)
+                      Precio Decant 10 ml (S/)
                       <input
                         type="number"
                         min="1"

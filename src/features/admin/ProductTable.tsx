@@ -28,7 +28,7 @@ export default function ProductTable({
   const productosFiltrados = useMemo(() => {
     return products.filter((p) => {
       const coincideTexto =
-        `${p.marca} ${p.nombre} ${p.familia_olfativa}`
+        `${p.marca} ${p.nombre}`
           .toLowerCase()
           .includes(busqueda.toLowerCase());
 
@@ -40,7 +40,12 @@ export default function ProductTable({
         filtroTipo === "todos"
           ? true
           : filtroTipo === "decant"
-            ? Boolean(p.tiene_decants || p.precio_decant_5ml || p.precio_decant_10ml)
+            ? Boolean(
+                p.tiene_decants ||
+                  p.precio_decant_3ml ||
+                  p.precio_decant_5ml ||
+                  p.precio_decant_10ml,
+              )
             : p.tipo_comercial === filtroTipo;
 
       return coincideTexto && coincideGenero && coincideTipo;
@@ -285,11 +290,13 @@ export default function ProductTable({
                   <strong>100ml:</strong> S/{" "}
                   {p.precio_100ml.toLocaleString("es-PE")}
                 </div>
-                {(p.precio_decant_5ml || p.precio_decant_10ml) && (
+                {(p.precio_decant_3ml || p.precio_decant_5ml || p.precio_decant_10ml) && (
                   <div style={{ color: "#b48c36", fontSize: "11.5px", marginTop: "3px", fontWeight: 500 }}>
-                    Decant: {p.precio_decant_5ml ? `5ml S/${p.precio_decant_5ml}` : ""}
-                    {p.precio_decant_5ml && p.precio_decant_10ml ? " · " : ""}
-                    {p.precio_decant_10ml ? `10ml S/${p.precio_decant_10ml}` : ""}
+                    Decant: {[
+                      p.precio_decant_3ml ? `3ml S/${p.precio_decant_3ml}` : null,
+                      p.precio_decant_5ml ? `5ml S/${p.precio_decant_5ml}` : null,
+                      p.precio_decant_10ml ? `10ml S/${p.precio_decant_10ml}` : null,
+                    ].filter(Boolean).join(" · ")}
                   </div>
                 )}
               </span>

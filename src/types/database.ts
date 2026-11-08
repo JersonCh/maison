@@ -117,6 +117,7 @@ export interface ProductoAdminItem {
   marca: string;
   tipo_comercial?: "disenador" | "arabe" | "nicho";
   tiene_decants?: boolean;
+  precio_decant_3ml?: number | null;
   precio_decant_5ml?: number | null;
   precio_decant_10ml?: number | null;
   genero: Gender;
@@ -148,6 +149,7 @@ export interface DatosFormularioProducto {
   nueva_marca?: string;
   tipo_comercial?: "disenador" | "arabe" | "nicho";
   tiene_decants?: boolean;
+  precio_decant_3ml?: number | null;
   precio_decant_5ml?: number | null;
   precio_decant_10ml?: number | null;
   genero: Gender;

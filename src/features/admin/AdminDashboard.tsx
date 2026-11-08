@@ -180,7 +180,7 @@ export default function AdminDashboard({ }: Props) {
   const menu = [
     ["dashboard", "Inicio"],
     ["products", "Productos y Catálogo"],
-    ["brands", "Marcas y Familias"],
+    ["brands", "Casas de Perfumería"],
     ["banners", "Banners y Carruseles"],
     ["settings", "Configuración Comercial"],
   ];
@@ -238,11 +238,19 @@ export default function AdminDashboard({ }: Props) {
                 value={productos.length}
                 note={`${productos.filter((p) => p.activo).length} activos`}
               />
-              <Stat label="Casas de Perfumería" value={marcas.length} note="Marcas verificadas" />
+              <Stat label="Casas de Perfumería" value={marcas.length} note="Marcas registradas" />
               <Stat
-                label="Familias olfativas"
-                value={familias.length}
-                note="Composiciones"
+                label="Con Decants"
+                value={
+                  productos.filter(
+                    (p) =>
+                      p.tiene_decants ||
+                      p.precio_decant_3ml ||
+                      p.precio_decant_5ml ||
+                      p.precio_decant_10ml,
+                  ).length
+                }
+                note="Muestras disponibles"
               />
               <Stat
                 label="Destacados en Home"
@@ -332,13 +340,13 @@ export default function AdminDashboard({ }: Props) {
           )
         )}
 
-        {/* 3. SECCIÓN MARCAS Y FAMILIAS */}
+        {/* 3. SECCIÓN MARCAS / CASAS */}
         {section === "brands" && (
           <div className="admin-placeholder">
             <header>
-              <small className="eyebrow">Catálogo · Clasificaciones</small>
-              <h2>Casas de Perfumería y Familias</h2>
-              <p>Casas de perfumería y clasificaciones olfativas del catálogo.</p>
+              <small className="eyebrow">Catálogo</small>
+              <h2>Casas de Perfumería</h2>
+              <p>Marcas y casas de perfumería registradas en el catálogo.</p>
             </header>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "25px" }}>
               {marcas.slice(0, 12).map((m) => (

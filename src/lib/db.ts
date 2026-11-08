@@ -496,9 +496,12 @@ export async function obtenerProductosParaAdmin(
     const vars = mapaVariantes.get(p.id) || [];
     const v50 = vars.find((v) => Math.round(v.tamano_ml) === 50) || vars[0];
     const v100 = vars.find((v) => Math.round(v.tamano_ml) === 100) || vars[1] || vars[0];
+    const vDecant3 = vars.find((v) => Math.round(v.tamano_ml) === 3);
     const vDecant5 = vars.find((v) => Math.round(v.tamano_ml) === 5);
     const vDecant10 = vars.find((v) => Math.round(v.tamano_ml) === 10);
-    const tieneDecants = Boolean(vDecant5 || vDecant10 || vars.some((v) => v.tamano_ml <= 15));
+    const tieneDecants = Boolean(
+      vDecant3 || vDecant5 || vDecant10 || vars.some((v) => v.tamano_ml <= 15),
+    );
 
     const imgs = mapaImagenes.get(p.id) || [];
     // Fotos registradas (al menos 1 portada, hasta 3 fotos)
@@ -512,6 +515,7 @@ export async function obtenerProductosParaAdmin(
       marca: p.marca,
       tipo_comercial: inferirTipoComercial(p.marca, p.marca_tipo),
       tiene_decants: tieneDecants,
+      precio_decant_3ml: vDecant3 ? Math.round(vDecant3.precio_centimos / 100) : null,
       precio_decant_5ml: vDecant5 ? Math.round(vDecant5.precio_centimos / 100) : null,
       precio_decant_10ml: vDecant10 ? Math.round(vDecant10.precio_centimos / 100) : null,
       genero: p.genero as Gender,
@@ -770,6 +774,23 @@ export async function crearNuevoProductoEnDb(
 
   // Variantes de decants si fueron habilitadas
   if (datos.tiene_decants) {
+    if (datos.precio_decant_3ml && Number(datos.precio_decant_3ml) > 0) {
+      sentenciasVariantes.push(
+        db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+            ) VALUES (?, ?, 3, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          )
+          .bind(
+            productoId,
+            `DEC-${productoId}-3ML`,
+            Math.round(Number(datos.precio_decant_3ml) * 100),
+          ),
+      );
+    }
+
     if (datos.precio_decant_5ml && Number(datos.precio_decant_5ml) > 0) {
       sentenciasVariantes.push(
         db
@@ -976,6 +997,35 @@ export async function actualizarProductoEnDb(
 
   // Actualizar o crear decants si corresponde
   if (datos.tiene_decants) {
+    if (datos.precio_decant_3ml && Number(datos.precio_decant_3ml) > 0) {
+      const p3 = Math.round(Number(datos.precio_decant_3ml) * 100);
+      const res3 = await db
+        .prepare(
+          `UPDATE variantes_producto 
+           SET precio_centimos = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+           WHERE producto_id = ? AND tamano_ml = 3`,
+        )
+        .bind(p3, productoId)
+        .run();
+
+      if (res3.meta.changes === 0) {
+        await db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
+            ) VALUES (?, ?, 3, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          )
+          .bind(productoId, `DEC-${productoId}-3ML`, p3)
+          .run();
+      }
+    } else {
+      await db
+        .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml = 3")
+        .bind(productoId)
+        .run();
+    }
+
     if (datos.precio_decant_5ml && Number(datos.precio_decant_5ml) > 0) {
       const p5 = Math.round(Number(datos.precio_decant_5ml) * 100);
       const res5 = await db
@@ -1036,7 +1086,7 @@ export async function actualizarProductoEnDb(
   } else {
     // Si desactivó decants, eliminar las presentaciones fraccionadas de decants
     await db
-      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml IN (5, 10)")
+      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml IN (3, 5, 10)")
       .bind(productoId)
       .run();
   }

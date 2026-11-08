@@ -33,9 +33,12 @@ const createProduct = (
     image: string,
     flags: Partial<Product> = {},
     commercialType: CommercialType = "disenador",
-    decantPrices?: { decant5ml?: number; decant10ml?: number },
+    decantPrices?: { decant3ml?: number; decant5ml?: number; decant10ml?: number },
 ): Product => {
     const variants: ProductVariant[] = [];
+    if (decantPrices?.decant3ml) {
+        variants.push({ size: "3 ml (Decant)", price: decantPrices.decant3ml, isDecant: true });
+    }
     if (decantPrices?.decant5ml) {
         variants.push({ size: "5 ml (Decant)", price: decantPrices.decant5ml, isDecant: true });
     }
