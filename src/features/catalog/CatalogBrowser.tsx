@@ -33,7 +33,6 @@ export default function CatalogBrowser({
   const [brand, setBrand] = useState(initialBrand);
   const [tipo, setTipo] = useState(initialTipo);
   const [formato, setFormato] = useState(initialFormato);
-  const [family, setFamily] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [available, setAvailable] = useState(false);
   const [sort, setSort] = useState("relevance");
@@ -124,7 +123,6 @@ export default function CatalogBrowser({
     if (tipo) params.set("tipo", tipo);
     if (formato) params.set("formato", formato);
     if (search) params.set("q", search);
-    if (family) params.set("familia", family);
     if (selectedSize) params.set("presentacion", selectedSize);
     if (maxPrice < globalMaxPrice) params.set("precio_max", maxPrice.toString());
     if (currentPage > 1) params.set("pagina", currentPage.toString());
@@ -153,7 +151,7 @@ export default function CatalogBrowser({
         link.classList.add("active");
       }
     });
-  }, [gender, brand, tipo, formato, search, family, selectedSize, maxPrice, currentPage, globalMaxPrice]);
+  }, [gender, brand, tipo, formato, search, selectedSize, maxPrice, currentPage, globalMaxPrice]);
 
   // Filtrar marcas disponibles según la línea seleccionada (Diseñador, Árabe, Nicho)
   const brands = useMemo(() => {
@@ -175,11 +173,6 @@ export default function CatalogBrowser({
       }
     }
   }, [tipo, brand, initialProducts]);
-
-  const families = useMemo(
-    () => [...new Set(initialProducts.map((p) => p.family))].sort(),
-    [initialProducts],
-  );
 
   // 6. Filtrado y ordenamiento de productos
   const filtered = useMemo(() => {
@@ -209,7 +202,6 @@ export default function CatalogBrowser({
         if (!hasFullBottle) return false;
       }
 
-      if (family && p.family !== family) return false;
       if (
         selectedSize &&
         !p.variants.some(
@@ -237,7 +229,7 @@ export default function CatalogBrowser({
     }
 
     return result;
-  }, [initialProducts, search, gender, brand, tipo, formato, family, selectedSize, maxPrice, available, sort]);
+  }, [initialProducts, search, gender, brand, tipo, formato, selectedSize, maxPrice, available, sort]);
 
   // 7. Cálculo de paginación (9 productos por página)
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -275,7 +267,6 @@ export default function CatalogBrowser({
     setBrand("");
     setTipo("");
     setFormato("");
-    setFamily("");
     setSelectedSize("");
     setMaxPrice(globalMaxPrice);
     setAvailable(false);
@@ -289,7 +280,6 @@ export default function CatalogBrowser({
       brand ||
       tipo ||
       formato ||
-      family ||
       selectedSize ||
       maxPrice < globalMaxPrice ||
       available,
@@ -476,25 +466,6 @@ export default function CatalogBrowser({
             </select>
           </div>
 
-          {/* Filtro Familia Olfativa */}
-          <div className="filter-group">
-            <label>Familia olfativa</label>
-            <select
-              value={family}
-              onChange={(e) => {
-                setFamily(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="">Todas</option>
-              {families.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Filtro Precio Máximo Dinámico */}
           <div className="filter-group">
             <label>
@@ -635,19 +606,6 @@ export default function CatalogBrowser({
                   }}
                 >
                   {brand} <span className="remove-x">✕</span>
-                </button>
-              )}
-
-              {family && (
-                <button
-                  type="button"
-                  className="filter-chip"
-                  onClick={() => {
-                    setFamily("");
-                    setCurrentPage(1);
-                  }}
-                >
-                  {family} <span className="remove-x">✕</span>
                 </button>
               )}
 
