@@ -323,11 +323,11 @@ export default function ProductFormPage({
           <section className="admin-card">
             <div className="admin-card-header">
               <div>
-                <span className="card-badge">Paso 1</span>
-                <h2 className="admin-card-title">Identidad Olfativa y Composición</h2>
+                <span className="card-badge">General</span>
+                <h2 className="admin-card-title">Información del perfume</h2>
               </div>
               <span className="admin-card-subtitle">
-                Datos oficiales de la casa de perfumería
+                Datos principales y características
               </span>
             </div>
 
@@ -362,7 +362,7 @@ export default function ProductFormPage({
 
                   <div className="permalink-actions">
                     {esEdicion && !modoEditarSlug && (
-                      <span className="permalink-badge">SEO Fijo</span>
+                      <span className="permalink-badge">Enlace activo</span>
                     )}
 
                     {!modoEditarSlug && (
@@ -574,11 +574,11 @@ export default function ProductFormPage({
           <section className="admin-card">
             <div className="admin-card-header">
               <div>
-                <span className="card-badge">Paso 2</span>
-                <h2 className="admin-card-title">Presentaciones, Precios y Decants</h2>
+                <span className="card-badge">Formatos</span>
+                <h2 className="admin-card-title">Precios y presentaciones</h2>
               </div>
               <span className="admin-card-subtitle">
-                Tarifas oficiales en Soles (PEN)
+                Precios oficiales en Soles (S/)
               </span>
             </div>
 
@@ -632,7 +632,7 @@ export default function ProductFormPage({
                 className="full-field"
                 style={{
                   marginTop: "8px",
-                  padding: "18px 20px",
+                  padding: "16px 20px",
                   background: "rgba(215, 173, 87, 0.05)",
                   border: "1px solid rgba(215, 173, 87, 0.25)",
                   borderRadius: "8px",
@@ -655,19 +655,9 @@ export default function ProductFormPage({
                     onChange={(e) => setTieneDecants(e.target.checked)}
                   />
                   <span style={{ fontSize: "14px", color: "var(--foreground)" }}>
-                    Habilitar venta fraccionada (Decants y atomizadores de viaje)
+                    Habilitar venta en decants (5 ml y 10 ml)
                   </span>
                 </label>
-                <p
-                  style={{
-                    margin: "8px 0 0 30px",
-                    fontSize: "12.5px",
-                    color: "var(--muted)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Permite a los clientes solicitar muestras en formato de viaje de 5 ml y 10 ml. Al marcarse, este perfume se incluirá automáticamente en la sección <strong>Decants</strong> del catálogo público.
-                </p>
 
                 {tieneDecants && (
                   <div
@@ -721,11 +711,11 @@ export default function ProductFormPage({
           <section className="admin-card">
             <div className="admin-card-header">
               <div>
-                <span className="card-badge">Paso 3</span>
-                <h2 className="admin-card-title">Galería de Fragancia (Cloudflare R2)</h2>
+                <span className="card-badge">Imágenes</span>
+                <h2 className="admin-card-title">Galería de fotos</h2>
               </div>
               <span className="admin-card-subtitle">
-                Portada obligatoria · Empaque y detalle opcionales
+                Foto principal y vistas secundarias
               </span>
             </div>
 
@@ -735,7 +725,7 @@ export default function ProductFormPage({
               {/* Foto 1: Portada (Obligatoria) */}
               <div className="photo-slot-card">
                 <div className="photo-slot-header">
-                  <span className="photo-slot-title">1. Portada / Frasco *</span>
+                  <span className="photo-slot-title">1. Portada principal *</span>
                   <span className="photo-slot-badge principal">Obligatoria</span>
                 </div>
                 <div className="photo-slot-preview">
@@ -787,7 +777,7 @@ export default function ProductFormPage({
               {/* Foto 2: Caja y Empaque (Opcional) */}
               <div className="photo-slot-card">
                 <div className="photo-slot-header">
-                  <span className="photo-slot-title">2. Caja / Empaque</span>
+                  <span className="photo-slot-title">2. Caja o empaque</span>
                   <span className="photo-slot-badge">Opcional</span>
                 </div>
                 <div className="photo-slot-preview">
@@ -838,7 +828,7 @@ export default function ProductFormPage({
               {/* Foto 3: Detalle y Contexto (Opcional) */}
               <div className="photo-slot-card">
                 <div className="photo-slot-header">
-                  <span className="photo-slot-title">3. Detalle / Contexto</span>
+                  <span className="photo-slot-title">3. Vista secundaria</span>
                   <span className="photo-slot-badge">Opcional</span>
                 </div>
                 <div className="photo-slot-preview">
@@ -999,22 +989,6 @@ export default function ProductFormPage({
                 Ver ficha en la tienda pública ↗
               </a>
             )}
-          </section>
-
-          {/* CARD GUÍA EDITORIAL */}
-          <section className="admin-card editorial-guide-card">
-            <h3 className="sidebar-card-title">Directrices de Marca</h3>
-            <ul className="editorial-guide-list">
-              <li>
-                <strong>Términos de producto:</strong> Usar <em>selección</em>, <em>colección</em> o <em>catálogo</em>.
-              </li>
-              <li>
-                <strong>Sede física:</strong> Usar siempre <em>tienda física</em> o <em>nuestro espacio</em>.
-              </li>
-              <li>
-                <strong>Línea comercial:</strong> Clasifica con precisión entre Diseñador, Árabe o Nicho para el filtrado facetado.
-              </li>
-            </ul>
           </section>
         </aside>
       </div>
