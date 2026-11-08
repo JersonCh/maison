@@ -42,12 +42,14 @@ export interface ProductoCatalogo {
   concentracion: string;
   marca: string;
   marca_slug: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
   familia_olfativa: string;
   imagen_principal: string;
   precio_minimo_centimos: number;
   precio_referencia_centimos: number | null;
   tamano_predeterminado_ml: number;
   es_destacado: boolean;
+  tiene_decants?: boolean;
 }
 
 export interface ProductoDetalleCompleto {
@@ -57,6 +59,7 @@ export interface ProductoDetalleCompleto {
   descripcion: string;
   genero: Gender;
   concentracion: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
   anio_lanzamiento: number | null;
   pais_origen: string | null;
   ocasion_uso: string | null;
@@ -111,6 +114,7 @@ export interface ProductoAdminItem {
   slug: string;
   marca_id: number;
   marca: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
   genero: Gender;
   concentracion: string;
   familia_olfativa_id: number | null;
@@ -137,6 +141,7 @@ export interface DatosFormularioProducto {
   slug?: string;
   marca_id?: number;
   nueva_marca?: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
   genero: Gender;
   concentracion: string;
   familia_olfativa_id?: number | null;

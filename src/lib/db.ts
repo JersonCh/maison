@@ -8,7 +8,7 @@ import type {
   ProductoAdminItem,
   DatosFormularioProducto,
 } from "@/types/database";
-import type { Gender, Product, ProductVariant } from "@/types/product";
+import type { Gender, Product, ProductVariant, CommercialType } from "@/types/product";
 import { products as fallbackProducts } from "@/data/products";
 
 // =============================================================================
@@ -938,6 +938,51 @@ export async function archivarOEliminarProducto(
 // =============================================================================
 
 /**
+ * Deduce o normaliza el tipo comercial de una fragancia (diseñador, arabe, nicho)
+ * garantizando compatibilidad 100% incluso si Cloudflare D1 aún no tiene la columna creada.
+ */
+export function inferirTipoComercial(marca: string, tipoDb?: string | null): CommercialType {
+  if (tipoDb === "arabe" || tipoDb === "nicho" || tipoDb === "disenador") {
+    return tipoDb as CommercialType;
+  }
+  const marcaLower = (marca || "").toLowerCase();
+  const marcasArabes = [
+    "lattafa",
+    "armaf",
+    "afnan",
+    "rasasi",
+    "al haramain",
+    "swiss arabian",
+    "orientica",
+    "paris corner",
+    "fragrance world",
+    "alhambra",
+  ];
+  const marcasNichos = [
+    "creed",
+    "parfums de marly",
+    "maison francis kurkdjian",
+    "mfk",
+    "byredo",
+    "le labo",
+    "diptyque",
+    "tom ford",
+    "jo malone",
+    "xerjoff",
+    "amouage",
+    "kilian",
+    "roja",
+    "initio",
+    "nishane",
+    "montale",
+    "mancera",
+  ];
+  if (marcasArabes.some((m) => marcaLower.includes(m))) return "arabe";
+  if (marcasNichos.some((m) => marcaLower.includes(m))) return "nicho";
+  return "disenador";
+}
+
+/**
  * Obtiene todos los productos publicados desde Cloudflare D1 adaptados
  * al modelo de dominio `Product` que consume el frontend público.
  * Si la base de datos no está disponible o falla, utiliza el catálogo
@@ -977,10 +1022,6 @@ export async function obtenerProductosTienda(
       return fallbackProducts;
     }
 
-    if (!productos || productos.length === 0) {
-      return [];
-    }
-
     // 2. Consultar variantes activas
     const { results: variantes } = await db
       .prepare(
@@ -1009,8 +1050,9 @@ export async function obtenerProductosTienda(
         mapaVariantes.set(v.producto_id, []);
       }
       mapaVariantes.get(v.producto_id)!.push({
-        size: `${v.tamano_ml} ml`,
+        size: `${v.tamano_ml} ml${v.tamano_ml <= 15 ? " (Decant)" : ""}`,
         price: Math.round(v.precio_centimos / 100),
+        isDecant: v.tamano_ml <= 15,
       });
 
       if (v.precio_referencia_centimos && v.precio_referencia_centimos > v.precio_centimos) {
@@ -1032,8 +1074,8 @@ export async function obtenerProductosTienda(
       const fotos = mapaImagenes.get(p.id) || [];
       const imagenPrincipal = fotos[0] || "/assets/logo-no-fondo300.png";
       const listaVariantes = mapaVariantes.get(p.id) || [
-        { size: "50 ml", price: 490 },
-        { size: "100 ml", price: 620 },
+        { size: "50 ml", price: 490, isDecant: false },
+        { size: "100 ml", price: 620, isDecant: false },
       ];
       const precioAnterior = mapaPreciosReferencia.get(p.id);
 
@@ -1044,6 +1086,7 @@ export async function obtenerProductosTienda(
         name: p.nombre,
         gender: p.genero as Gender,
         family: p.familia_olfativa,
+        commercialType: inferirTipoComercial(p.marca, p.marca_tipo),
         description: p.descripcion,
         image: imagenPrincipal,
         gallery: fotos.length > 0 ? fotos : [imagenPrincipal],

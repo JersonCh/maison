@@ -8,6 +8,8 @@ interface Props {
   initialProducts: Product[];
   initialGender?: string;
   initialBrand?: string;
+  initialTipo?: string;
+  initialFormato?: string;
   initialQuery?: string;
   initialPage?: number;
 }
@@ -18,6 +20,8 @@ export default function CatalogBrowser({
   initialProducts,
   initialGender = "",
   initialBrand = "",
+  initialTipo = "",
+  initialFormato = "",
   initialQuery = "",
   initialPage = 1,
 }: Props) {
@@ -27,6 +31,8 @@ export default function CatalogBrowser({
 
   const [gender, setGender] = useState(initialGender);
   const [brand, setBrand] = useState(initialBrand);
+  const [tipo, setTipo] = useState(initialTipo);
+  const [formato, setFormato] = useState(initialFormato);
   const [family, setFamily] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [available, setAvailable] = useState(false);
@@ -89,6 +95,8 @@ export default function CatalogBrowser({
     const params = new URLSearchParams(window.location.search);
     const paramGender = params.get("genero") || "";
     const paramBrand = params.get("marca") || "";
+    const paramTipo = params.get("tipo") || "";
+    const paramFormato = params.get("formato") || "";
     const paramQuery = params.get("q") || "";
     const paramPage = parseInt(params.get("pagina") || params.get("page") || "1", 10);
     const paramSize = params.get("presentacion") || "";
@@ -96,6 +104,8 @@ export default function CatalogBrowser({
 
     if (paramGender) setGender(paramGender);
     if (paramBrand) setBrand(paramBrand);
+    if (paramTipo) setTipo(paramTipo);
+    if (paramFormato) setFormato(paramFormato);
     if (paramQuery) {
       setSearchInput(paramQuery);
       setSearch(paramQuery);
@@ -111,6 +121,8 @@ export default function CatalogBrowser({
     const params = new URLSearchParams();
     if (gender) params.set("genero", gender);
     if (brand) params.set("marca", brand);
+    if (tipo) params.set("tipo", tipo);
+    if (formato) params.set("formato", formato);
     if (search) params.set("q", search);
     if (family) params.set("familia", family);
     if (selectedSize) params.set("presentacion", selectedSize);
@@ -141,7 +153,7 @@ export default function CatalogBrowser({
         link.classList.add("active");
       }
     });
-  }, [gender, brand, search, family, selectedSize, maxPrice, currentPage, globalMaxPrice]);
+  }, [gender, brand, tipo, formato, search, family, selectedSize, maxPrice, currentPage, globalMaxPrice]);
 
   const brands = useMemo(
     () => [...new Set(initialProducts.map((p) => p.brand))].sort(),
@@ -165,6 +177,22 @@ export default function CatalogBrowser({
       }
       if (gender && p.gender !== gender) return false;
       if (brand && p.brand !== brand) return false;
+      if (tipo && p.commercialType !== tipo) return false;
+
+      // Filtro de formato: Decants vs Frascos
+      if (formato === "decant") {
+        const hasDecant = p.variants.some(
+          (v) =>
+            v.isDecant ||
+            v.size.toLowerCase().includes("decant") ||
+            (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
+        );
+        if (!hasDecant) return false;
+      } else if (formato === "frasco") {
+        const hasFullBottle = p.variants.some((v) => parseFloat(v.size) >= 30);
+        if (!hasFullBottle) return false;
+      }
+
       if (family && p.family !== family) return false;
       if (
         selectedSize &&
@@ -193,7 +221,7 @@ export default function CatalogBrowser({
     }
 
     return result;
-  }, [initialProducts, search, gender, brand, family, selectedSize, maxPrice, available, sort]);
+  }, [initialProducts, search, gender, brand, tipo, formato, family, selectedSize, maxPrice, available, sort]);
 
   // 7. Cálculo de paginación (9 productos por página)
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -229,6 +257,8 @@ export default function CatalogBrowser({
     setSearch("");
     setGender("");
     setBrand("");
+    setTipo("");
+    setFormato("");
     setFamily("");
     setSelectedSize("");
     setMaxPrice(globalMaxPrice);
@@ -241,17 +271,46 @@ export default function CatalogBrowser({
     search ||
       gender ||
       brand ||
+      tipo ||
+      formato ||
       family ||
       selectedSize ||
       maxPrice < globalMaxPrice ||
       available,
   );
 
-  const pageTitle = gender
-    ? gender.toLowerCase() === "unisex"
-      ? "Perfumes Unisex"
-      : `Perfumes para ${gender.toLowerCase()}`
-    : "Todos los perfumes";
+  const pageTitle = useMemo(() => {
+    if (formato === "decant") {
+      if (gender) return `Decants para ${gender.toLowerCase()}`;
+      if (tipo === "nicho") return "Decants de Perfumes Nicho";
+      if (tipo === "arabe") return "Decants de Perfumería Árabe";
+      if (tipo === "disenador") return "Decants de Diseñador";
+      return "Decants y muestras de viaje";
+    }
+
+    if (tipo === "disenador") {
+      if (gender) return `Perfumes de Diseñador para ${gender.toLowerCase()}`;
+      return "Perfumes de Diseñador";
+    }
+
+    if (tipo === "arabe") {
+      if (gender) return `Perfumes Árabes para ${gender.toLowerCase()}`;
+      return "Alta Perfumería Árabe";
+    }
+
+    if (tipo === "nicho") {
+      if (gender) return `Perfumes Nicho para ${gender.toLowerCase()}`;
+      return "Perfumes de Autor y Nicho";
+    }
+
+    if (gender) {
+      return gender.toLowerCase() === "unisex"
+        ? "Perfumes Unisex"
+        : `Perfumes para ${gender.toLowerCase()}`;
+    }
+
+    return "Todos los perfumes";
+  }, [gender, tipo, formato]);
 
   return (
     <main className="catalog-page">
@@ -346,6 +405,39 @@ export default function CatalogBrowser({
               <option value="Hombre">Hombre</option>
               <option value="Mujer">Mujer</option>
               <option value="Unisex">Unisex</option>
+            </select>
+          </div>
+
+          {/* Filtro Línea / Gama Comercial */}
+          <div className="filter-group">
+            <label>Línea / Gama</label>
+            <select
+              value={tipo}
+              onChange={(e) => {
+                setTipo(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="">Todas las líneas</option>
+              <option value="disenador">Diseñador (Grandes firmas)</option>
+              <option value="arabe">Árabes (Tradición y fijación)</option>
+              <option value="nicho">Nichos (Perfumería de autor)</option>
+            </select>
+          </div>
+
+          {/* Filtro Formato de compra */}
+          <div className="filter-group">
+            <label>Formato de compra</label>
+            <select
+              value={formato}
+              onChange={(e) => {
+                setFormato(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="">Todos los formatos</option>
+              <option value="frasco">Frascos completos (50ml / 100ml)</option>
+              <option value="decant">Decants y muestras (3ml / 5ml / 10ml)</option>
             </select>
           </div>
 
@@ -488,6 +580,32 @@ export default function CatalogBrowser({
                   }}
                 >
                   {gender} <span className="remove-x">✕</span>
+                </button>
+              )}
+
+              {tipo && (
+                <button
+                  type="button"
+                  className="filter-chip"
+                  onClick={() => {
+                    setTipo("");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Línea: {tipo === "disenador" ? "Diseñador" : tipo === "arabe" ? "Árabe" : "Nicho"} <span className="remove-x">✕</span>
+                </button>
+              )}
+
+              {formato && (
+                <button
+                  type="button"
+                  className="filter-chip"
+                  onClick={() => {
+                    setFormato("");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Formato: {formato === "decant" ? "Decants de viaje" : "Frascos completos"} <span className="remove-x">✕</span>
                 </button>
               )}
 
