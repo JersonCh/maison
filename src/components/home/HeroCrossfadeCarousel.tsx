@@ -9,7 +9,7 @@ interface Props {
 
 export default function HeroCrossfadeCarousel({
   slides,
-  intervalMs = 6000,
+  intervalMs = 5000,
 }: Props) {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
