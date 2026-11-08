@@ -1267,7 +1267,7 @@ export async function obtenerProductosTienda(
         LEFT JOIN producto_familias_olfativas pf ON p.id = pf.producto_id
         LEFT JOIN familias_olfativas f ON pf.familia_olfativa_id = f.id
         WHERE p.estado = 'publicado'
-        ORDER BY p.id ASC`,
+        ORDER BY p.id DESC`,
       )
       .all<any>();
 
@@ -1346,8 +1346,9 @@ export async function obtenerProductosTienda(
         variants: listaVariantes,
         oldPrice: precioAnterior,
         featured: Boolean(p.es_destacado),
-        recent: index >= productos.length - 4,
+        recent: index < 4,
         active: true,
+        createdAt: p.created_at,
       };
     });
   } catch (error) {

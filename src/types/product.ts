@@ -24,4 +24,5 @@ export interface Product {
     featured?: boolean;
     recent?: boolean;
     active?: boolean;
+    createdAt?: string;
 }

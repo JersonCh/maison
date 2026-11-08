@@ -55,10 +55,43 @@ const defaultHeroSlides: BannerSlide[] = [
 
 const heroSlides = bannersDb && bannersDb.length > 0 ? bannersDb : defaultHeroSlides;
 
-const featuredProducts = allProducts.filter((p) => p.featured).slice(0, 5);
-const recentProducts = allProducts
-  .filter((p) => p.recent || !p.featured)
-  .slice(0, 4);
+// Selección Híbrida Inteligente para la portada:
+// 1. Productos ordenados por último ingreso (más recientes primero)
+const latestProducts = [...allProducts].sort((a, b) => {
+  if (a.createdAt && b.createdAt) {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  }
+  return b.id - a.id;
+});
+
+// 2. Priorizar los perfumes expresamente marcados como destacados en el gestor
+const explicitlyFeatured = latestProducts.filter((p) => p.featured);
+
+const featuredSet = new Set<number>();
+const featuredProducts: typeof allProducts = [];
+
+for (const p of explicitlyFeatured) {
+  if (featuredProducts.length < 5) {
+    featuredProducts.push(p);
+    featuredSet.add(p.id);
+  }
+}
+
+// 3. Si faltan cupos para completar 5, rellenar automáticamente con los últimos ingresos
+for (const p of latestProducts) {
+  if (featuredProducts.length >= 5) break;
+  if (!featuredSet.has(p.id)) {
+    featuredProducts.push(p);
+    featuredSet.add(p.id);
+  }
+}
+
+// 4. Sección "Nuevos ingresos" (4 perfumes más recientes, evitando repetir los ya destacados)
+const recentCandidates = latestProducts.filter((p) => !featuredSet.has(p.id));
+const recentProducts = recentCandidates.length >= 4
+  ? recentCandidates.slice(0, 4)
+  : latestProducts.slice(0, 4);
+
 const categories: Gender[] = ["Hombre", "Mujer", "Unisex"];
 
 const commercialCategories = [
