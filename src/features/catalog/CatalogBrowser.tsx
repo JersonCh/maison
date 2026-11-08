@@ -155,10 +155,26 @@ export default function CatalogBrowser({
     });
   }, [gender, brand, tipo, formato, search, family, selectedSize, maxPrice, currentPage, globalMaxPrice]);
 
-  const brands = useMemo(
-    () => [...new Set(initialProducts.map((p) => p.brand))].sort(),
-    [initialProducts],
-  );
+  // Filtrar marcas disponibles según la línea seleccionada (Diseñador, Árabe, Nicho)
+  const brands = useMemo(() => {
+    let prods = initialProducts;
+    if (tipo) {
+      prods = prods.filter((p) => p.commercialType === tipo);
+    }
+    return [...new Set(prods.map((p) => p.brand))].sort();
+  }, [initialProducts, tipo]);
+
+  // Si cambia la línea comercial y la marca seleccionada no pertenece a ella, resetear marca
+  useEffect(() => {
+    if (brand && tipo) {
+      const brandValida = initialProducts.some(
+        (p) => p.brand.toLowerCase() === brand.toLowerCase() && p.commercialType === tipo,
+      );
+      if (!brandValida) {
+        setBrand("");
+      }
+    }
+  }, [tipo, brand, initialProducts]);
 
   const families = useMemo(
     () => [...new Set(initialProducts.map((p) => p.family))].sort(),
