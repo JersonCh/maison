@@ -25,6 +25,7 @@ export type IconName =
     | "truck"
     | "box"
     | "clock"
+    | "creditCard"
     | "play";
 
 const filledIcons = new Set<IconName>([
@@ -118,6 +119,12 @@ const paths: Record<IconName, ReactNode> = {
         <>
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 6 12 12 16 14" />
+        </>
+    ),
+    creditCard: (
+        <>
+            <rect width="20" height="14" x="2" y="5" rx="2" />
+            <line x1="2" x2="22" y1="10" y2="10" />
         </>
     ),
     play: <polygon points="6 3 20 12 6 21 6 3" />,
