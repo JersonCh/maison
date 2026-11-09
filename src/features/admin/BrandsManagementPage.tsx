@@ -224,48 +224,21 @@ export default function BrandsManagementPage({
   };
 
   return (
-    <div className="brands-page-container">
-      {/* 1. CABECERA EDITORIAL */}
+    <div className="brands-page-container" style={{ paddingTop: "28px" }}>
+      {/* 1. BARRA SUPERIOR DE ACCIONES */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-end",
+          alignItems: "center",
           flexWrap: "wrap",
-          gap: "18px",
-          marginBottom: "28px",
+          gap: "14px",
+          marginBottom: "26px",
         }}
       >
-        <div>
-          <small
-            style={{
-              color: "var(--gold-deep)",
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              fontSize: "11px",
-              fontWeight: 600,
-              display: "block",
-              marginBottom: "4px",
-            }}
-          >
-            Catálogo Oficial
-          </small>
-          <h1
-            style={{
-              margin: 0,
-              fontFamily: "var(--serif)",
-              fontSize: "30px",
-              color: "var(--ink)",
-              fontWeight: 400,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Casas de Perfumería
-          </h1>
-          <p style={{ margin: "6px 0 0 0", color: "var(--muted)", fontSize: "13.5px" }}>
-            Gestión de firmas olfativas y clasificación por líneas comerciales del catálogo.
-          </p>
-        </div>
+        <p style={{ margin: 0, color: "var(--muted)", fontSize: "13.5px" }}>
+          Gestión de marcas y clasificación por líneas comerciales del catálogo oficial.
+        </p>
 
         <button
           type="button"
@@ -275,12 +248,13 @@ export default function BrandsManagementPage({
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
-            padding: "11px 22px",
+            padding: "10px 20px",
             fontWeight: 600,
+            fontSize: "12.5px",
             letterSpacing: "0.03em",
           }}
         >
-          <Icon name="plus" size={15} />
+          <Icon name="plus" size={14} />
           Nueva Casa de Perfumería
         </button>
       </div>
@@ -1191,8 +1165,8 @@ export default function BrandsManagementPage({
                   {eliminando
                     ? "Procesando..."
                     : marcaAEliminar.total_productos > 0
-                    ? "Transferir fragancias y retirar"
-                    : "Retirar firma"}
+                      ? "Transferir fragancias y retirar"
+                      : "Retirar firma"}
                 </button>
               </div>
             </div>
@@ -1202,3 +1176,4 @@ export default function BrandsManagementPage({
     </div>
   );
 }
+
