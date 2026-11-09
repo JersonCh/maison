@@ -8,6 +8,7 @@ interface Props {
   onToggleActive: (id: number, currentActive: boolean) => Promise<void>;
   onDelete: (id: number, name: string) => Promise<void>;
   onAddNew: () => void;
+  onOpenImportCsv?: () => void;
 }
 
 const ITEMS_PER_PAGE = 8;
@@ -18,6 +19,7 @@ export default function ProductTable({
   onToggleActive,
   onDelete,
   onAddNew,
+  onOpenImportCsv,
 }: Props) {
   const [busqueda, setBusqueda] = useState("");
   const [filtroGenero, setFiltroGenero] = useState<string>("todos");
@@ -181,9 +183,29 @@ export default function ProductTable({
           </select>
         </div>
 
-        <button type="button" className="btn btn-gold" onClick={onAddNew}>
-          <Icon name="plus" /> Nueva fragancia
-        </button>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {onOpenImportCsv && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{
+                borderColor: "var(--gold)",
+                color: "var(--ink)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "var(--white)",
+              }}
+              onClick={onOpenImportCsv}
+              title="Importar catálogo masivamente desde archivo CSV"
+            >
+              📥 Importar CSV
+            </button>
+          )}
+          <button type="button" className="btn btn-gold" onClick={onAddNew}>
+            <Icon name="plus" /> Nueva fragancia
+          </button>
+        </div>
       </div>
 
       <div className="admin-table">
@@ -302,7 +324,24 @@ export default function ProductTable({
               </span>
 
               <span style={{ fontSize: "12.5px", color: "var(--gold-deep)", fontWeight: 500 }}>
-                {p.imagenes.length} {p.imagenes.length === 1 ? "foto" : "fotos"}
+                {p.imagenes.length === 1 && p.imagenes[0].includes("logo-no-fondo300") ? (
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      color: "#b45309",
+                      background: "#fffbeb",
+                      border: "1px solid #fde68a",
+                      padding: "2px 6px",
+                      borderRadius: "3px",
+                      fontWeight: 600,
+                    }}
+                    title="Fragancia importada: pendiente de subir fotos en alta resolución"
+                  >
+                    📷 Foto inicial
+                  </span>
+                ) : (
+                  `${p.imagenes.length} ${p.imagenes.length === 1 ? "foto" : "fotos"}`
+                )}
               </span>
 
               <span>

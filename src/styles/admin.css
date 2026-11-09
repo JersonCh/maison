@@ -1605,3 +1605,34 @@
     grid-column: auto;
   }
 }
+
+/* =============================================================================
+   8. MODAL DE IMPORTACIÓN MASIVA DESDE CSV
+   ============================================================================= */
+.csv-modal-card {
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .csv-modal-card {
+    max-height: 96vh !important;
+  }
+  .csv-modal-card .modal-head {
+    padding: 16px 20px !important;
+  }
+  .csv-modal-card > div:nth-child(3) {
+    padding: 16px 20px !important;
+  }
+}
+

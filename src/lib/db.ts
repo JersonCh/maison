@@ -9,6 +9,7 @@ import type {
   DatosFormularioProducto,
 } from "@/types/database";
 import type { Gender, Product, ProductVariant, CommercialType } from "@/types/product";
+import type { FilaCsvProcesada } from "@/lib/csvHelper";
 import { products as fallbackProducts } from "@/data/products";
 
 // =============================================================================
@@ -1449,5 +1450,228 @@ export async function obtenerDetalleProductoTienda(
     }
     return null;
   }
+}
+
+// =============================================================================
+// 7. IMPORTACIÓN MASIVA DESDE ARCHIVO CSV
+// =============================================================================
+
+export interface ResultadoImportacionCsv {
+  creados: number;
+  actualizados: number;
+  omitidos: number;
+  errores: string[];
+}
+
+/**
+ * Importa un lote de perfumes validados desde CSV directamente a Cloudflare D1.
+ * Maneja resolución de marcas, variantes regulares (50ml/100ml), decants (3ml/5ml/10ml)
+ * e imagen insignia inicial de forma atómica y protegida.
+ */
+export async function importarProductosCsvEnDb(
+  db: D1Database,
+  filas: FilaCsvProcesada[],
+  modoDuplicados: "omitir" | "actualizar",
+): Promise<ResultadoImportacionCsv> {
+  let creados = 0;
+  let actualizados = 0;
+  let omitidos = 0;
+  const errores: string[] = [];
+
+  for (const fila of filas) {
+    if (!fila.esValido) {
+      omitidos++;
+      continue;
+    }
+
+    try {
+      // 1. Manejo de duplicados existentes
+      if (fila.idProductoExistente && modoDuplicados === "omitir") {
+        omitidos++;
+        continue;
+      }
+
+      if (fila.idProductoExistente && modoDuplicados === "actualizar") {
+        const id = fila.idProductoExistente;
+        const p50Cent = Math.round(fila.precio_50ml * 100);
+        const p100Cent = Math.round(fila.precio_100ml * 100);
+
+        await db
+          .prepare(
+            `UPDATE variantes_producto 
+             SET precio_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
+             WHERE producto_id = ? AND tamano_ml = 50`,
+          )
+          .bind(p50Cent, id)
+          .run();
+
+        await db
+          .prepare(
+            `UPDATE variantes_producto 
+             SET precio_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
+             WHERE producto_id = ? AND tamano_ml = 100`,
+          )
+          .bind(p100Cent, id)
+          .run();
+
+        if (fila.tiene_decants) {
+          const sentenciasDecants = [];
+          if (fila.precio_decant_3ml && fila.precio_decant_3ml > 0) {
+            sentenciasDecants.push(
+              db
+                .prepare(
+                  `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
+                   VALUES (?, ?, 3, ?, 0, 0, 'venta_regular', 'decant', 1)
+                   ON CONFLICT(id) DO UPDATE SET precio_centimos = excluded.precio_centimos`,
+                )
+                .bind(id, `DEC-${id}-3ML`, Math.round(fila.precio_decant_3ml * 100)),
+            );
+          }
+          if (fila.precio_decant_5ml && fila.precio_decant_5ml > 0) {
+            sentenciasDecants.push(
+              db
+                .prepare(
+                  `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
+                   VALUES (?, ?, 5, ?, 0, 0, 'venta_regular', 'decant', 1)
+                   ON CONFLICT(id) DO UPDATE SET precio_centimos = excluded.precio_centimos`,
+                )
+                .bind(id, `DEC-${id}-5ML`, Math.round(fila.precio_decant_5ml * 100)),
+            );
+          }
+          if (fila.precio_decant_10ml && fila.precio_decant_10ml > 0) {
+            sentenciasDecants.push(
+              db
+                .prepare(
+                  `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
+                   VALUES (?, ?, 10, ?, 0, 0, 'venta_regular', 'decant', 1)
+                   ON CONFLICT(id) DO UPDATE SET precio_centimos = excluded.precio_centimos`,
+                )
+                .bind(id, `DEC-${id}-10ML`, Math.round(fila.precio_decant_10ml * 100)),
+            );
+          }
+          if (sentenciasDecants.length > 0) {
+            await db.batch(sentenciasDecants);
+          }
+        }
+
+        actualizados++;
+        continue;
+      }
+
+      // 2. Creación de nueva fragancia
+      const marcaIdFinal = await asegurarMarca(db, undefined, fila.marca, fila.linea_comercial);
+      const slugFinal = await generarSlugUnico(db, `${fila.marca} ${fila.nombre}`);
+
+      await db
+        .prepare(
+          `INSERT INTO productos (
+            marca_id, nombre, slug, descripcion, genero, concentracion, 
+            pais_origen, ocasion_uso, estado, es_destacado, etiqueta_destacada, publicado_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'publicado', 0, 'ninguna', CURRENT_TIMESTAMP)`,
+        )
+        .bind(
+          marcaIdFinal,
+          fila.nombre.trim(),
+          slugFinal,
+          `Fragancia ${fila.nombre} de ${fila.marca}. Concentración ${fila.concentracion}. Procedencia: ${fila.pais_origen}.`,
+          fila.genero,
+          fila.concentracion,
+          fila.pais_origen,
+          fila.ocasion_uso,
+        )
+        .run();
+
+      const prodFila = await db.prepare("SELECT last_insert_rowid() AS id").first<{ id: number }>();
+      if (!prodFila?.id) {
+        throw new Error(`No se pudo obtener el identificador para "${fila.nombre}"`);
+      }
+      const nuevoId = prodFila.id;
+
+      // 3. Crear variantes obligatorias de 50 ml y 100 ml en frasco
+      const p50Cent = Math.round(fila.precio_50ml * 100);
+      const p100Cent = Math.round(fila.precio_100ml * 100);
+
+      const batchVariantes = [
+        db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 50, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
+          )
+          .bind(nuevoId, `MDP-${nuevoId}-50ML`, p50Cent),
+        db
+          .prepare(
+            `INSERT INTO variantes_producto (
+              producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 100, ?, 0, 0, 'venta_regular', 'frasco', 1)`,
+          )
+          .bind(nuevoId, `MDP-${nuevoId}-100ML`, p100Cent),
+      ];
+
+      // Variantes de decants
+      if (fila.tiene_decants) {
+        if (fila.precio_decant_3ml && fila.precio_decant_3ml > 0) {
+          batchVariantes.push(
+            db
+              .prepare(
+                `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
+                 VALUES (?, ?, 3, ?, 0, 0, 'venta_regular', 'decant', 1)`,
+              )
+              .bind(nuevoId, `DEC-${nuevoId}-3ML`, Math.round(fila.precio_decant_3ml * 100)),
+          );
+        }
+        if (fila.precio_decant_5ml && fila.precio_decant_5ml > 0) {
+          batchVariantes.push(
+            db
+              .prepare(
+                `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
+                 VALUES (?, ?, 5, ?, 0, 0, 'venta_regular', 'decant', 1)`,
+              )
+              .bind(nuevoId, `DEC-${nuevoId}-5ML`, Math.round(fila.precio_decant_5ml * 100)),
+          );
+        }
+        if (fila.precio_decant_10ml && fila.precio_decant_10ml > 0) {
+          batchVariantes.push(
+            db
+              .prepare(
+                `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
+                 VALUES (?, ?, 10, ?, 0, 0, 'venta_regular', 'decant', 1)`,
+              )
+              .bind(nuevoId, `DEC-${nuevoId}-10ML`, Math.round(fila.precio_decant_10ml * 100)),
+          );
+        }
+      }
+
+      await db.batch(batchVariantes);
+
+      // 4. Asociación de categorías comerciales
+      const catId = fila.linea_comercial === "arabe" ? 2 : fila.linea_comercial === "nicho" ? 3 : 1;
+      const batchCategorias = [
+        db.prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)").bind(nuevoId, catId),
+      ];
+      if (fila.tiene_decants) {
+        batchCategorias.push(
+          db.prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, 4)").bind(nuevoId, 4),
+        );
+      }
+      await db.batch(batchCategorias);
+
+      // 5. Imagen de portada inicial por defecto (sin URLs externas)
+      await db
+        .prepare(
+          `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
+           VALUES (?, ?, ?, 0, 1)`,
+        )
+        .bind(nuevoId, "/assets/logo-no-fondo300.png", `${fila.marca} ${fila.nombre} - Foto inicial`)
+        .run();
+
+      creados++;
+    } catch (err: any) {
+      console.error(`Error al procesar fila #${fila.filaNumero} (${fila.nombre}):`, err);
+      errores.push(`Fila #${fila.filaNumero} (${fila.nombre}): ${err.message || "Error desconocido"}`);
+    }
+  }
+
+  return { creados, actualizados, omitidos, errores };
 }
 

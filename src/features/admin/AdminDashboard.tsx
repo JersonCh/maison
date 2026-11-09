@@ -7,6 +7,7 @@ import type {
 import Icon from "@/components/ui/Icon";
 import ProductTable from "./ProductTable";
 import ProductFormPage from "./ProductFormPage";
+import CsvImportModal from "./CsvImportModal";
 
 interface Props {
   initialProducts?: any[];
@@ -25,6 +26,9 @@ export default function AdminDashboard({ }: Props) {
   // Estados de vista de producto (Página dedicada - Opción A)
   const [vistaProducto, setVistaProducto] = useState<"tabla" | "formulario">("tabla");
   const [productoEnEdicion, setProductoEnEdicion] = useState<ProductoAdminItem | null>(null);
+
+  // Modal de importación masiva CSV
+  const [mostrarModalCsv, setMostrarModalCsv] = useState(false);
 
   // Notificación tipo toast
   const [toastMensaje, setToastMensaje] = useState("");
@@ -336,6 +340,7 @@ export default function AdminDashboard({ }: Props) {
               onToggleActive={manejarAlternarVisibilidad}
               onDelete={manejarEliminarOArchivar}
               onAddNew={manejarAbrirCreacion}
+              onOpenImportCsv={() => setMostrarModalCsv(true)}
             />
           )
         )}
@@ -388,6 +393,19 @@ export default function AdminDashboard({ }: Props) {
         {/* 5. SECCIÓN CONFIGURACIÓN COMERCIAL */}
         {section === "settings" && <SettingsSection />}
       </section>
+
+      {/* MODAL DE IMPORTACIÓN MASIVA CSV */}
+      <CsvImportModal
+        marcas={marcas}
+        productos={productos}
+        isOpen={mostrarModalCsv}
+        onClose={() => setMostrarModalCsv(false)}
+        onSuccess={(mensaje) => {
+          mostrarToast(mensaje);
+          cargarProductos();
+          cargarMetadatos();
+        }}
+      />
 
       {/* TOAST DE FEEDBACK VISUAL */}
       {toastMensaje && (
