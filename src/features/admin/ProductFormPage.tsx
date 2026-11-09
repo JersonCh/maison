@@ -16,6 +16,7 @@ interface Props {
   onBack: () => void;
   onSuccess: (mensaje: string) => void;
   onReloadMetadata?: () => Promise<void>;
+  onOpenImportCsv?: () => void;
 }
 
 const PAISES_ORIGEN_COMBO = [
@@ -51,6 +52,7 @@ export default function ProductFormPage({
   onBack,
   onSuccess,
   onReloadMetadata,
+  onOpenImportCsv,
 }: Props) {
   const esEdicion = Boolean(initialProduct?.id);
 
@@ -92,7 +94,7 @@ export default function ProductFormPage({
   const [modoPaisPersonalizado, setModoPaisPersonalizado] = useState(
     Boolean(
       initialProduct?.pais_origen &&
-        !PAISES_ORIGEN_COMBO.includes(initialProduct.pais_origen),
+      !PAISES_ORIGEN_COMBO.includes(initialProduct.pais_origen),
     ),
   );
   const [ocasionUso, setOcasionUso] = useState(
@@ -101,7 +103,7 @@ export default function ProductFormPage({
   const [modoOcasionPersonalizada, setModoOcasionPersonalizada] = useState(
     Boolean(
       initialProduct?.ocasion_uso &&
-        !OCASIONES_USO_COMBO.includes(initialProduct.ocasion_uso),
+      !OCASIONES_USO_COMBO.includes(initialProduct.ocasion_uso),
     ),
   );
 
@@ -120,9 +122,9 @@ export default function ProductFormPage({
   const [tieneDecants, setTieneDecants] = useState<boolean>(
     Boolean(
       initialProduct?.tiene_decants ||
-        initialProduct?.precio_decant_3ml ||
-        initialProduct?.precio_decant_5ml ||
-        initialProduct?.precio_decant_10ml,
+      initialProduct?.precio_decant_3ml ||
+      initialProduct?.precio_decant_5ml ||
+      initialProduct?.precio_decant_10ml,
     ),
   );
   const [precioDecant3ml, setPrecioDecant3ml] = useState<number | "">(
@@ -138,7 +140,7 @@ export default function ProductFormPage({
   // Fotos: Portada obligatoria, caja y detalle opcionales
   const [fotoPortada, setFotoPortada] = useState(
     initialProduct?.imagenes[0] ||
-      "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=900&q=85",
+    "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=900&q=85",
   );
   const [fotoCaja, setFotoCaja] = useState(initialProduct?.imagenes[1] || "");
   const [fotoDetalle, setFotoDetalle] = useState(initialProduct?.imagenes[2] || "");
@@ -379,6 +381,24 @@ export default function ProductFormPage({
           >
             Descartar
           </button>
+          {!esEdicion && onOpenImportCsv && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{
+                borderColor: "var(--gold)",
+                color: "var(--ink)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "var(--white)",
+              }}
+              onClick={onOpenImportCsv}
+              title="Importar catálogo masivamente desde archivo CSV"
+            >
+              📥 Importar CSV
+            </button>
+          )}
           {!esEdicion && (
             <button
               type="button"

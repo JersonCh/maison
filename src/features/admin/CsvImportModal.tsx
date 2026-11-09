@@ -1,15 +1,15 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { MarcaItem, ProductoAdminItem } from "@/types/database";
 import {
   procesarContenidoCsv,
   descargarPlantillaCsv,
   type FilaCsvProcesada,
 } from "@/lib/csvHelper";
-import Icon from "@/components/ui/Icon";
 
 interface Props {
-  marcas: MarcaItem[];
-  productos: ProductoAdminItem[];
+  marcas?: MarcaItem[];
+  productos?: ProductoAdminItem[];
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (mensaje: string) => void;
@@ -18,12 +18,13 @@ interface Props {
 type FiltroVistaPreview = "todos" | "validos" | "duplicados" | "errores";
 
 export default function CsvImportModal({
-  marcas,
-  productos,
+  marcas = [],
+  productos = [],
   isOpen,
   onClose,
   onSuccess,
 }: Props) {
+  const [mounted, setMounted] = useState(false);
   const [paso, setPaso] = useState<1 | 2 | 3>(1);
   const [nombreArchivo, setNombreArchivo] = useState("");
   const [tamanoArchivo, setTamanoArchivo] = useState("");
@@ -44,7 +45,11 @@ export default function CsvImportModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted || typeof document === "undefined") return null;
 
   // Manejo de lectura de archivo
   const procesarArchivo = (file: File) => {
@@ -170,20 +175,25 @@ export default function CsvImportModal({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
       className="admin-modal"
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 9999,
+        zIndex: 999999,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         overflowY: "auto",
         padding: "20px",
-        background: "rgba(5, 6, 5, 0.72)",
-        backdropFilter: "blur(4px)",
+        background: "rgba(5, 6, 5, 0.78)",
+        backdropFilter: "blur(6px)",
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !importando) {
+          onClose();
+        }
       }}
     >
       <div
@@ -929,7 +939,8 @@ export default function CsvImportModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
