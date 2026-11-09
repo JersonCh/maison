@@ -35,7 +35,7 @@ const related = todosLosProductos
   .filter(
     (p) =>
       p.id !== product.id &&
-      (p.family === product.family || p.brand === product.brand),
+      (p.gender === product.gender || p.brand === product.brand),
   )
   .slice(0, 4);
 
@@ -47,7 +47,7 @@ if (related.length < 4) {
 }
 
 const pageTitle = `${product.name} - ${product.brand} | Maison des Parfums`;
-const pageDescription = `${product.name} de ${product.brand}. Familia olfativa ${product.family}. ${product.description}`;
+const pageDescription = `${product.name} de ${product.brand}. Concentración ${caracteristicas.concentracion}. ${product.description}`;
 const productSchema = {
   "@context": "https://schema.org/",
   "@type": "Product",
@@ -124,8 +124,8 @@ const productSchema = {
       </div>
       <dl>
         <div>
-          <dt>Familia olfativa</dt>
-          <dd>{product.family}</dd>
+          <dt>Género</dt>
+          <dd>{product.gender}</dd>
         </div>
         <div>
           <dt>Concentración</dt>

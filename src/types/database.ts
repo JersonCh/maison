@@ -10,6 +10,7 @@ export interface VarianteDb {
   es_predeterminada: number;
   controla_stock: number;
   modalidad_disponibilidad: string;
+  tipo_presentacion?: "frasco" | "decant";
   activo: number;
 }
 
@@ -72,6 +73,7 @@ export interface ProductoDetalleCompleto {
     precio_centimos: number;
     precio_referencia_centimos: number | null;
     es_predeterminada: boolean;
+    tipo_presentacion?: "frasco" | "decant";
   }[];
   galeria_imagenes: string[];
   piramide_olfativa: PiramideOlfativa;
@@ -128,6 +130,7 @@ export interface ProductoAdminItem {
   pais_origen: string | null;
   ocasion_uso: string | null;
   es_destacado: boolean;
+  etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
   activo: boolean;
   estado: "borrador" | "publicado" | "archivado";
   precio_50ml: number; // En Soles
@@ -163,6 +166,7 @@ export interface DatosFormularioProducto {
   precio_100ml: number; // En Soles
   precio_referencia_50ml?: number | null; // En Soles
   es_destacado: boolean;
+  etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
   activo: boolean;
   fotos: string[]; // [Foto 1: Portada obligatoria, Foto 2?: Caja opcional, Foto 3?: Detalle opcional]
   stock?: number;

@@ -81,6 +81,7 @@ export async function obtenerProductosCatalogo(
       p.es_destacado,
       m.nombre AS marca,
       m.slug AS marca_slug,
+      m.tipo_comercial,
       COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
       COALESCE(
         (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
@@ -122,6 +123,7 @@ export async function obtenerProductosCatalogo(
     concentracion: fila.concentracion,
     marca: fila.marca,
     marca_slug: fila.marca_slug,
+    tipo_comercial: normalizarTipoComercial(fila.tipo_comercial),
     familia_olfativa: fila.familia_olfativa,
     imagen_principal: fila.imagen_principal,
     precio_minimo_centimos: fila.precio_minimo_centimos || 0,
@@ -169,7 +171,7 @@ export async function obtenerDetalleProductoPorSlug(
   // Variantes de tamaño y precio
   const { results: variantes } = await db
     .prepare(
-      `SELECT id, tamano_ml, precio_centimos, precio_referencia_centimos, es_predeterminada
+      `SELECT id, tamano_ml, precio_centimos, precio_referencia_centimos, es_predeterminada, tipo_presentacion
        FROM variantes_producto
        WHERE producto_id = ? AND activo = 1
        ORDER BY tamano_ml ASC`,
@@ -235,6 +237,7 @@ export async function obtenerDetalleProductoPorSlug(
       precio_centimos: v.precio_centimos,
       precio_referencia_centimos: v.precio_referencia_centimos,
       es_predeterminada: Boolean(v.es_predeterminada),
+      tipo_presentacion: (v.tipo_presentacion as "frasco" | "decant") || "frasco",
     })),
     galeria_imagenes: imagenes.map((img) => img.clave_archivo),
     piramide_olfativa: piramide,
@@ -380,28 +383,15 @@ function normalizarTextoParaSlug(texto: string): string {
 export async function obtenerMarcasDisponibles(
   db: D1Database,
 ): Promise<MarcaItem[]> {
-  try {
-    const { results } = await db
-      .prepare("SELECT id, nombre, slug, tipo_comercial FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
-      .all<any>();
-    return results.map((r) => ({
-      id: r.id,
-      nombre: r.nombre,
-      slug: r.slug,
-      tipo_comercial: inferirTipoComercial(r.nombre, r.tipo_comercial),
-    }));
-  } catch (err) {
-    // Si la columna tipo_comercial aún no existe en marcas
-    const { results } = await db
-      .prepare("SELECT id, nombre, slug FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
-      .all<any>();
-    return results.map((r) => ({
-      id: r.id,
-      nombre: r.nombre,
-      slug: r.slug,
-      tipo_comercial: inferirTipoComercial(r.nombre),
-    }));
-  }
+  const { results } = await db
+    .prepare("SELECT id, nombre, slug, tipo_comercial FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
+    .all<any>();
+  return results.map((r) => ({
+    id: r.id,
+    nombre: r.nombre,
+    slug: r.slug,
+    tipo_comercial: normalizarTipoComercial(r.tipo_comercial),
+  }));
 }
 
 /**
@@ -432,6 +422,7 @@ export async function obtenerProductosParaAdmin(
         p.slug,
         p.marca_id,
         m.nombre AS marca,
+        m.tipo_comercial,
         p.genero,
         p.concentracion,
         pf.familia_olfativa_id,
@@ -440,6 +431,7 @@ export async function obtenerProductosParaAdmin(
         p.pais_origen,
         p.ocasion_uso,
         p.es_destacado,
+        p.etiqueta_destacada,
         p.estado
       FROM productos p
       JOIN marcas m ON p.marca_id = m.id
@@ -455,7 +447,7 @@ export async function obtenerProductosParaAdmin(
   // 2. Obtener variantes de todos los productos en una sola consulta
   const { results: variantes } = await db
     .prepare(
-      `SELECT producto_id, tamano_ml, precio_centimos, precio_referencia_centimos
+      `SELECT producto_id, tamano_ml, precio_centimos, precio_referencia_centimos, tipo_presentacion
        FROM variantes_producto
        WHERE activo = 1`,
     )
@@ -464,6 +456,7 @@ export async function obtenerProductosParaAdmin(
       tamano_ml: number;
       precio_centimos: number;
       precio_referencia_centimos: number | null;
+      tipo_presentacion: string;
     }>();
 
   // 3. Obtener imágenes de todos los productos en una sola consulta
@@ -499,9 +492,7 @@ export async function obtenerProductosParaAdmin(
     const vDecant3 = vars.find((v) => Math.round(v.tamano_ml) === 3);
     const vDecant5 = vars.find((v) => Math.round(v.tamano_ml) === 5);
     const vDecant10 = vars.find((v) => Math.round(v.tamano_ml) === 10);
-    const tieneDecants = Boolean(
-      vDecant3 || vDecant5 || vDecant10 || vars.some((v) => v.tamano_ml <= 15),
-    );
+    const tieneDecants = vars.some((v) => v.tipo_presentacion === "decant");
 
     const imgs = mapaImagenes.get(p.id) || [];
     // Fotos registradas (al menos 1 portada, hasta 3 fotos)
@@ -513,7 +504,7 @@ export async function obtenerProductosParaAdmin(
       slug: p.slug,
       marca_id: p.marca_id,
       marca: p.marca,
-      tipo_comercial: inferirTipoComercial(p.marca, p.marca_tipo),
+      tipo_comercial: normalizarTipoComercial(p.tipo_comercial),
       tiene_decants: tieneDecants,
       precio_decant_3ml: vDecant3 ? Math.round(vDecant3.precio_centimos / 100) : null,
       precio_decant_5ml: vDecant5 ? Math.round(vDecant5.precio_centimos / 100) : null,
@@ -551,7 +542,7 @@ export async function asegurarMarca(
   if (nuevaMarcaNombre && nuevaMarcaNombre.trim()) {
     const nombreLimpio = nuevaMarcaNombre.trim();
     const slug = normalizarTextoParaSlug(nombreLimpio);
-    const tipoFinal = inferirTipoComercial(nombreLimpio, tipoComercial);
+    const tipoFinal = normalizarTipoComercial(tipoComercial);
 
     // Verificar si ya existe por nombre o slug
     const existente = await db
@@ -560,7 +551,7 @@ export async function asegurarMarca(
       .first<{ id: number }>();
 
     if (existente) {
-      if (tipoFinal) {
+      if (tipoComercial) {
         try {
           await db
             .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
@@ -572,23 +563,26 @@ export async function asegurarMarca(
     }
 
     // Crear la nueva marca con su clasificación
-    try {
-      await db
-        .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, activo) VALUES (?, ?, ?, 1)")
-        .bind(nombreLimpio, slug, tipoFinal)
-        .run();
-    } catch {
-      await db
-        .prepare("INSERT INTO marcas (nombre, slug, activo) VALUES (?, ?, 1)")
-        .bind(nombreLimpio, slug)
-        .run();
-    }
+    await db
+      .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, activo) VALUES (?, ?, ?, 1)")
+      .bind(nombreLimpio, slug, tipoFinal)
+      .run();
 
     const nueva = await db
       .prepare("SELECT last_insert_rowid() AS id")
       .first<{ id: number }>();
 
     return nueva?.id || 1;
+  }
+
+  // Si se seleccionó una marca existente y se especificó un tipo comercial, actualizarla
+  if (marcaId && tipoComercial) {
+    try {
+      await db
+        .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
+        .bind(normalizarTipoComercial(tipoComercial), marcaId)
+        .run();
+    } catch {}
   }
 
   // Si la marca ya existía y el admin seleccionó un tipoComercial, sincronizarlo
@@ -691,17 +685,27 @@ export async function crearNuevoProductoEnDb(
     datos.familia_olfativa_id,
     datos.nueva_familia,
   );
-  const slugFinal = await generarSlugUnico(db, datos.slug?.trim() || datos.nombre);
+  // Obtener nombre de la marca para generar slug SEO limpio (ej. dior-sauvage) si no vino explícito
+  let baseSlug = datos.slug?.trim();
+  if (!baseSlug) {
+    const marcaFila = await db
+      .prepare("SELECT nombre FROM marcas WHERE id = ?")
+      .bind(marcaIdFinal)
+      .first<{ nombre: string }>();
+    baseSlug = `${marcaFila?.nombre || ""} ${datos.nombre}`.trim();
+  }
+  const slugFinal = await generarSlugUnico(db, baseSlug);
   const estadoFinal = datos.activo ? "publicado" : "borrador";
   const esDestacado = datos.es_destacado ? 1 : 0;
+  const etiquetaDestacada = datos.etiqueta_destacada || "ninguna";
 
   // 1. Insertar producto principal
   await db
     .prepare(
       `INSERT INTO productos (
         marca_id, nombre, slug, descripcion, genero, concentracion, 
-        pais_origen, ocasion_uso, estado, es_destacado, publicado_en
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        pais_origen, ocasion_uso, estado, es_destacado, etiqueta_destacada, publicado_en
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
     )
     .bind(
       marcaIdFinal,
@@ -714,6 +718,7 @@ export async function crearNuevoProductoEnDb(
       datos.ocasion_uso?.trim() || "Ocasiones especiales y uso distinguido",
       estadoFinal,
       esDestacado,
+      etiquetaDestacada,
     )
     .run();
 
@@ -749,8 +754,8 @@ export async function crearNuevoProductoEnDb(
       .prepare(
         `INSERT INTO variantes_producto (
           producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 1)`,
+          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
       )
       .bind(
         productoId,
@@ -762,8 +767,8 @@ export async function crearNuevoProductoEnDb(
       .prepare(
         `INSERT INTO variantes_producto (
           producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 'frasco', 1)`,
       )
       .bind(
         productoId,
@@ -780,8 +785,8 @@ export async function crearNuevoProductoEnDb(
           .prepare(
             `INSERT INTO variantes_producto (
               producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-            ) VALUES (?, ?, 3, ?, NULL, 0, 0, 'venta_regular', 1)`,
+              es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 3, ?, NULL, 0, 0, 'venta_regular', 'decant', 1)`,
           )
           .bind(
             productoId,
@@ -797,8 +802,8 @@ export async function crearNuevoProductoEnDb(
           .prepare(
             `INSERT INTO variantes_producto (
               producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-            ) VALUES (?, ?, 5, ?, NULL, 0, 0, 'venta_regular', 1)`,
+              es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 5, ?, NULL, 0, 0, 'venta_regular', 'decant', 1)`,
           )
           .bind(
             productoId,
@@ -814,8 +819,8 @@ export async function crearNuevoProductoEnDb(
           .prepare(
             `INSERT INTO variantes_producto (
               producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-            ) VALUES (?, ?, 10, ?, NULL, 0, 0, 'venta_regular', 1)`,
+              es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 10, ?, NULL, 0, 0, 'venta_regular', 'decant', 1)`,
           )
           .bind(
             productoId,
@@ -905,13 +910,14 @@ export async function actualizarProductoEnDb(
   }
   const estadoFinal = datos.activo ? "publicado" : "borrador";
   const esDestacado = datos.es_destacado ? 1 : 0;
+  const etiquetaDestacada = datos.etiqueta_destacada || "ninguna";
 
   // 1. Actualizar tabla productos
   await db
     .prepare(
       `UPDATE productos 
        SET marca_id = ?, nombre = ?, slug = ?, descripcion = ?, genero = ?, concentracion = ?,
-           pais_origen = ?, ocasion_uso = ?, estado = ?, es_destacado = ?, updated_at = CURRENT_TIMESTAMP
+           pais_origen = ?, ocasion_uso = ?, estado = ?, es_destacado = ?, etiqueta_destacada = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
     )
     .bind(
@@ -925,6 +931,7 @@ export async function actualizarProductoEnDb(
       datos.ocasion_uso?.trim() || "Ocasiones especiales y uso distinguido",
       estadoFinal,
       esDestacado,
+      etiquetaDestacada,
       productoId,
     )
     .run();
@@ -955,7 +962,7 @@ export async function actualizarProductoEnDb(
   const res50 = await db
     .prepare(
       `UPDATE variantes_producto 
-       SET precio_centimos = ?, precio_referencia_centimos = ?, updated_at = CURRENT_TIMESTAMP 
+       SET precio_centimos = ?, precio_referencia_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
        WHERE producto_id = ? AND tamano_ml = 50`,
     )
     .bind(precio50Centimos, precioRef50Centimos, productoId)
@@ -966,8 +973,8 @@ export async function actualizarProductoEnDb(
       .prepare(
         `INSERT INTO variantes_producto (
           producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 1)`,
+          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
       )
       .bind(productoId, `MDP-${productoId}-50ML`, precio50Centimos, precioRef50Centimos)
       .run();
@@ -977,7 +984,7 @@ export async function actualizarProductoEnDb(
   const res100 = await db
     .prepare(
       `UPDATE variantes_producto 
-       SET precio_centimos = ?, updated_at = CURRENT_TIMESTAMP 
+       SET precio_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
        WHERE producto_id = ? AND tamano_ml = 100`,
     )
     .bind(precio100Centimos, productoId)
@@ -988,8 +995,8 @@ export async function actualizarProductoEnDb(
       .prepare(
         `INSERT INTO variantes_producto (
           producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 1)`,
+          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 'frasco', 1)`,
       )
       .bind(productoId, `MDP-${productoId}-100ML`, precio100Centimos)
       .run();
@@ -1002,7 +1009,7 @@ export async function actualizarProductoEnDb(
       const res3 = await db
         .prepare(
           `UPDATE variantes_producto 
-           SET precio_centimos = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+           SET precio_centimos = ?, tipo_presentacion = 'decant', activo = 1, updated_at = CURRENT_TIMESTAMP 
            WHERE producto_id = ? AND tamano_ml = 3`,
         )
         .bind(p3, productoId)
@@ -1013,8 +1020,8 @@ export async function actualizarProductoEnDb(
           .prepare(
             `INSERT INTO variantes_producto (
               producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-            ) VALUES (?, ?, 3, ?, NULL, 0, 0, 'venta_regular', 1)`,
+              es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 3, ?, NULL, 0, 0, 'venta_regular', 'decant', 1)`,
           )
           .bind(productoId, `DEC-${productoId}-3ML`, p3)
           .run();
@@ -1031,7 +1038,7 @@ export async function actualizarProductoEnDb(
       const res5 = await db
         .prepare(
           `UPDATE variantes_producto 
-           SET precio_centimos = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+           SET precio_centimos = ?, tipo_presentacion = 'decant', activo = 1, updated_at = CURRENT_TIMESTAMP 
            WHERE producto_id = ? AND tamano_ml = 5`,
         )
         .bind(p5, productoId)
@@ -1042,8 +1049,8 @@ export async function actualizarProductoEnDb(
           .prepare(
             `INSERT INTO variantes_producto (
               producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-            ) VALUES (?, ?, 5, ?, NULL, 0, 0, 'venta_regular', 1)`,
+              es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 5, ?, NULL, 0, 0, 'venta_regular', 'decant', 1)`,
           )
           .bind(productoId, `DEC-${productoId}-5ML`, p5)
           .run();
@@ -1060,7 +1067,7 @@ export async function actualizarProductoEnDb(
       const res10 = await db
         .prepare(
           `UPDATE variantes_producto 
-           SET precio_centimos = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+           SET precio_centimos = ?, tipo_presentacion = 'decant', activo = 1, updated_at = CURRENT_TIMESTAMP 
            WHERE producto_id = ? AND tamano_ml = 10`,
         )
         .bind(p10, productoId)
@@ -1071,8 +1078,8 @@ export async function actualizarProductoEnDb(
           .prepare(
             `INSERT INTO variantes_producto (
               producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-              es_predeterminada, controla_stock, modalidad_disponibilidad, activo
-            ) VALUES (?, ?, 10, ?, NULL, 0, 0, 'venta_regular', 1)`,
+              es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+            ) VALUES (?, ?, 10, ?, NULL, 0, 0, 'venta_regular', 'decant', 1)`,
           )
           .bind(productoId, `DEC-${productoId}-10ML`, p10)
           .run();
@@ -1086,7 +1093,7 @@ export async function actualizarProductoEnDb(
   } else {
     // Si desactivó decants, eliminar las presentaciones fraccionadas de decants
     await db
-      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml IN (3, 5, 10)")
+      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tipo_presentacion = 'decant'")
       .bind(productoId)
       .run();
   }
@@ -1191,47 +1198,13 @@ export async function archivarOEliminarProducto(
 // =============================================================================
 
 /**
- * Deduce o normaliza el tipo comercial de una fragancia (diseñador, arabe, nicho)
- * garantizando compatibilidad 100% incluso si Cloudflare D1 aún no tiene la columna creada.
+ * Normaliza el tipo comercial obtenido de la base de datos (marcas.tipo_comercial).
+ * Todo proviene 100% de la base de datos sin lógica ni marcas hardcodeadas.
  */
-export function inferirTipoComercial(marca: string, tipoDb?: string | null): CommercialType {
+export function normalizarTipoComercial(tipoDb?: string | null): CommercialType {
   if (tipoDb === "arabe" || tipoDb === "nicho" || tipoDb === "disenador") {
     return tipoDb as CommercialType;
   }
-  const marcaLower = (marca || "").toLowerCase();
-  const marcasArabes = [
-    "lattafa",
-    "armaf",
-    "afnan",
-    "rasasi",
-    "al haramain",
-    "swiss arabian",
-    "orientica",
-    "paris corner",
-    "fragrance world",
-    "alhambra",
-  ];
-  const marcasNichos = [
-    "creed",
-    "parfums de marly",
-    "maison francis kurkdjian",
-    "mfk",
-    "byredo",
-    "le labo",
-    "diptyque",
-    "tom ford",
-    "jo malone",
-    "xerjoff",
-    "amouage",
-    "kilian",
-    "roja",
-    "initio",
-    "nishane",
-    "montale",
-    "mancera",
-  ];
-  if (marcasArabes.some((m) => marcaLower.includes(m))) return "arabe";
-  if (marcasNichos.some((m) => marcaLower.includes(m))) return "nicho";
   return "disenador";
 }
 
@@ -1257,10 +1230,12 @@ export async function obtenerProductosTienda(
           p.nombre,
           p.slug,
           m.nombre AS marca,
+          m.tipo_comercial,
           p.genero,
           COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
           COALESCE(p.descripcion, '') AS descripcion,
           p.es_destacado,
+          p.etiqueta_destacada,
           p.created_at
         FROM productos p
         JOIN marcas m ON p.marca_id = m.id
@@ -1278,7 +1253,7 @@ export async function obtenerProductosTienda(
     // 2. Consultar variantes activas
     const { results: variantes } = await db
       .prepare(
-        `SELECT producto_id, tamano_ml, precio_centimos, precio_referencia_centimos, es_predeterminada
+        `SELECT id, producto_id, tamano_ml, precio_centimos, precio_referencia_centimos, es_predeterminada, tipo_presentacion
          FROM variantes_producto
          WHERE activo = 1
          ORDER BY tamano_ml ASC`,
@@ -1302,10 +1277,11 @@ export async function obtenerProductosTienda(
       if (!mapaVariantes.has(v.producto_id)) {
         mapaVariantes.set(v.producto_id, []);
       }
+      const esDecant = v.tipo_presentacion === "decant";
       mapaVariantes.get(v.producto_id)!.push({
-        size: `${v.tamano_ml} ml${v.tamano_ml <= 15 ? " (Decant)" : ""}`,
+        size: `${v.tamano_ml} ml${esDecant ? " (Decant)" : ""}`,
         price: Math.round(v.precio_centimos / 100),
-        isDecant: v.tamano_ml <= 15,
+        isDecant: esDecant,
       });
 
       if (v.precio_referencia_centimos && v.precio_referencia_centimos > v.precio_centimos) {
@@ -1323,7 +1299,10 @@ export async function obtenerProductosTienda(
     }
 
     // Mapear al modelo Product que el frontend consume
-    return productos.map((p, index) => {
+    const ahora = Date.now();
+    const treintaDiasEnMs = 30 * 24 * 60 * 60 * 1000;
+
+    return productos.map((p) => {
       const fotos = mapaImagenes.get(p.id) || [];
       const imagenPrincipal = fotos[0] || "/assets/logo-no-fondo300.png";
       const listaVariantes = mapaVariantes.get(p.id) || [
@@ -1332,6 +1311,12 @@ export async function obtenerProductosTienda(
       ];
       const precioAnterior = mapaPreciosReferencia.get(p.id);
 
+      // Evaluación de novedad por fecha real (creado en últimos 30 días) o por etiqueta explícita
+      const fechaCreacion = p.created_at ? new Date(p.created_at).getTime() : 0;
+      const esReciente =
+        p.etiqueta_destacada === "nuevo" ||
+        (fechaCreacion > 0 && ahora - fechaCreacion <= treintaDiasEnMs);
+
       return {
         id: p.id,
         slug: p.slug,
@@ -1339,14 +1324,14 @@ export async function obtenerProductosTienda(
         name: p.nombre,
         gender: p.genero as Gender,
         family: p.familia_olfativa,
-        commercialType: inferirTipoComercial(p.marca, p.marca_tipo),
+        commercialType: normalizarTipoComercial(p.tipo_comercial),
         description: p.descripcion,
         image: imagenPrincipal,
         gallery: fotos.length > 0 ? fotos : [imagenPrincipal],
         variants: listaVariantes,
         oldPrice: precioAnterior,
         featured: Boolean(p.es_destacado),
-        recent: index < 4,
+        recent: esReciente,
         active: true,
         createdAt: p.created_at,
       };
