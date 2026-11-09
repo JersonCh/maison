@@ -301,18 +301,22 @@ export default function ProductTable({
               <span>{p.genero}</span>
 
               <span style={{ fontSize: "13px", lineHeight: "1.5" }}>
-                <div>
-                  <strong>50ml:</strong> S/ {p.precio_50ml.toLocaleString("es-PE")}
-                  {p.precio_referencia_50ml && (
-                    <del style={{ color: "#999", marginLeft: "4px" }}>
-                      S/ {p.precio_referencia_50ml.toLocaleString("es-PE")}
-                    </del>
-                  )}
-                </div>
-                <div>
-                  <strong>100ml:</strong> S/{" "}
-                  {p.precio_100ml.toLocaleString("es-PE")}
-                </div>
+                {p.precio_50ml && p.precio_50ml > 0 ? (
+                  <div>
+                    <strong>50ml:</strong> S/ {p.precio_50ml.toLocaleString("es-PE")}
+                    {p.precio_referencia_50ml ? (
+                      <del style={{ color: "#999", marginLeft: "4px" }}>
+                        S/ {p.precio_referencia_50ml.toLocaleString("es-PE")}
+                      </del>
+                    ) : null}
+                  </div>
+                ) : null}
+                {p.precio_100ml && p.precio_100ml > 0 ? (
+                  <div>
+                    <strong>100ml:</strong> S/{" "}
+                    {p.precio_100ml.toLocaleString("es-PE")}
+                  </div>
+                ) : null}
                 {(p.precio_decant_3ml || p.precio_decant_5ml || p.precio_decant_10ml) && (
                   <div style={{ color: "#b48c36", fontSize: "11.5px", marginTop: "3px", fontWeight: 500 }}>
                     Decant: {[

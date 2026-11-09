@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { product } = Astro.props;
-const defaultVariant = product.variants[0];
+const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : { size: "100 ml", price: 0 };
 const price = defaultVariant.price;
 const discount = formatDiscount(price, product.oldPrice);
 const productUrl = `/perfumes/${product.slug}`;

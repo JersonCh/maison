@@ -67,19 +67,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    if (!datos.precio_50ml || datos.precio_50ml <= 0) {
+    const tiene50Post = Boolean(datos.precio_50ml && Number(datos.precio_50ml) > 0);
+    const tiene100Post = Boolean(datos.precio_100ml && Number(datos.precio_100ml) > 0);
+
+    if (!tiene50Post && !tiene100Post) {
       return new Response(
-        JSON.stringify({ error: "El precio de la presentación de 50 ml es obligatorio y debe ser mayor a 0." }),
+        JSON.stringify({ error: "Debes ingresar al menos una presentación de frasco (50 ml o 100 ml)." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
-    if (!datos.precio_100ml || datos.precio_100ml <= 0) {
-      return new Response(
-        JSON.stringify({ error: "El precio de la presentación de 100 ml es obligatorio y debe ser mayor a 0." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
+
 
     // Regla de imágenes: Si no se proporcionan fotos, se asigna el emblema oficial por defecto
     const fotosValidas = Array.isArray(datos.fotos)
@@ -139,6 +137,17 @@ export const PUT: APIRoute = async ({ request, locals }) => {
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
+
+    const tiene50Post = Boolean(datos.precio_50ml && Number(datos.precio_50ml) > 0);
+    const tiene100Post = Boolean(datos.precio_100ml && Number(datos.precio_100ml) > 0);
+
+    if (!tiene50Post && !tiene100Post) {
+      return new Response(
+        JSON.stringify({ error: "Debes ingresar al menos una presentación de frasco (50 ml o 100 ml)." }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
 
     // Regla de imágenes: Si no se proporcionan fotos, se asigna el emblema oficial por defecto
     const fotosValidas = Array.isArray(datos.fotos)

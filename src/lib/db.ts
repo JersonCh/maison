@@ -708,8 +708,8 @@ export async function obtenerProductosParaAdmin(
 
   return productos.map((p) => {
     const vars = mapaVariantes.get(p.id) || [];
-    const v50 = vars.find((v) => Math.round(v.tamano_ml) === 50) || vars[0];
-    const v100 = vars.find((v) => Math.round(v.tamano_ml) === 100) || vars[1] || vars[0];
+    const v50 = vars.find((v) => Math.round(v.tamano_ml) === 50 && v.tipo_presentacion === "frasco");
+    const v100 = vars.find((v) => Math.round(v.tamano_ml) === 100 && v.tipo_presentacion === "frasco");
     const vDecant3 = vars.find((v) => Math.round(v.tamano_ml) === 3);
     const vDecant5 = vars.find((v) => Math.round(v.tamano_ml) === 5);
     const vDecant10 = vars.find((v) => Math.round(v.tamano_ml) === 10);
@@ -740,8 +740,8 @@ export async function obtenerProductosParaAdmin(
       es_destacado: Boolean(p.es_destacado),
       activo: p.estado === "publicado",
       estado: p.estado,
-      precio_50ml: v50 ? Math.round(v50.precio_centimos / 100) : 0,
-      precio_100ml: v100 ? Math.round(v100.precio_centimos / 100) : 0,
+      precio_50ml: v50 ? Math.round(v50.precio_centimos / 100) : null,
+      precio_100ml: v100 ? Math.round(v100.precio_centimos / 100) : null,
       precio_referencia_50ml: v50?.precio_referencia_centimos
         ? Math.round(v50.precio_referencia_centimos / 100)
         : null,
@@ -963,40 +963,57 @@ export async function crearNuevoProductoEnDb(
       .run();
   }
 
-  // 3. Crear las variantes: 50 ml y 100 ml regulares + decants opcionales
-  const precio50Centimos = Math.round(Number(datos.precio_50ml || 0) * 100);
-  const precio100Centimos = Math.round(Number(datos.precio_100ml || 0) * 100);
-  const precioRef50Centimos = datos.precio_referencia_50ml
-    ? Math.round(Number(datos.precio_referencia_50ml) * 100)
-    : null;
+  // 3. Crear las variantes: frascos (50 ml y/o 100 ml) + decants opcionales
+  const sentenciasVariantes: any[] = [];
+  let predeterminadaAsignada = false;
 
-  const sentenciasVariantes = [
-    db
-      .prepare(
-        `INSERT INTO variantes_producto (
-          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
-        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
-      )
-      .bind(
-        productoId,
-        `MDP-${productoId}-50ML`,
-        precio50Centimos,
-        precioRef50Centimos,
-      ),
-    db
-      .prepare(
-        `INSERT INTO variantes_producto (
-          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
-        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 'frasco', 1)`,
-      )
-      .bind(
-        productoId,
-        `MDP-${productoId}-100ML`,
-        precio100Centimos,
-      ),
-  ];
+  const precio50Num = Number(datos.precio_50ml || 0);
+  const precio100Num = Number(datos.precio_100ml || 0);
+
+  if (precio50Num > 0) {
+    const precio50Centimos = Math.round(precio50Num * 100);
+    const precioRef50Centimos = datos.precio_referencia_50ml
+      ? Math.round(Number(datos.precio_referencia_50ml) * 100)
+      : null;
+
+    sentenciasVariantes.push(
+      db
+        .prepare(
+          `INSERT INTO variantes_producto (
+            producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+            es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+          ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
+        )
+        .bind(
+          productoId,
+          `MDP-${productoId}-50ML`,
+          precio50Centimos,
+          precioRef50Centimos,
+        ),
+    );
+    predeterminadaAsignada = true;
+  }
+
+  if (precio100Num > 0) {
+    const precio100Centimos = Math.round(precio100Num * 100);
+    const esPredeterminada = predeterminadaAsignada ? 0 : 1;
+
+    sentenciasVariantes.push(
+      db
+        .prepare(
+          `INSERT INTO variantes_producto (
+            producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+            es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+          ) VALUES (?, ?, 100, ?, NULL, ?, 0, 'venta_regular', 'frasco', 1)`,
+        )
+        .bind(
+          productoId,
+          `MDP-${productoId}-100ML`,
+          precio100Centimos,
+          esPredeterminada,
+        ),
+    );
+  }
 
   // Variantes de decants si fueron habilitadas
   if (datos.tiene_decants) {
@@ -1178,54 +1195,73 @@ export async function actualizarProductoEnDb(
       .run();
   }
 
-  // 3. Actualizar variantes de 50ml y 100ml
-  const precio50Centimos = Math.round(Number(datos.precio_50ml || 0) * 100);
-  const precio100Centimos = Math.round(Number(datos.precio_100ml || 0) * 100);
-  const precioRef50Centimos = datos.precio_referencia_50ml
-    ? Math.round(Number(datos.precio_referencia_50ml) * 100)
-    : null;
+  // 3. Actualizar variantes de frasco (50ml y/o 100ml)
+  const precio50Num = Number(datos.precio_50ml || 0);
+  const precio100Num = Number(datos.precio_100ml || 0);
 
-  // Actualizar 50ml si existe, o crearla
-  const res50 = await db
-    .prepare(
-      `UPDATE variantes_producto 
-       SET precio_centimos = ?, precio_referencia_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
-       WHERE producto_id = ? AND tamano_ml = 50`,
-    )
-    .bind(precio50Centimos, precioRef50Centimos, productoId)
-    .run();
+  if (precio50Num > 0) {
+    const precio50Centimos = Math.round(precio50Num * 100);
+    const precioRef50Centimos = datos.precio_referencia_50ml
+      ? Math.round(Number(datos.precio_referencia_50ml) * 100)
+      : null;
 
-  if (res50.meta.changes === 0) {
-    await db
+    const res50 = await db
       .prepare(
-        `INSERT INTO variantes_producto (
-          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
-        ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
+        `UPDATE variantes_producto 
+         SET precio_centimos = ?, precio_referencia_centimos = ?, tipo_presentacion = 'frasco', es_predeterminada = 1, activo = 1, updated_at = CURRENT_TIMESTAMP 
+         WHERE producto_id = ? AND tamano_ml = 50 AND tipo_presentacion = 'frasco'`,
       )
-      .bind(productoId, `MDP-${productoId}-50ML`, precio50Centimos, precioRef50Centimos)
+      .bind(precio50Centimos, precioRef50Centimos, productoId)
+      .run();
+
+    if (res50.meta.changes === 0) {
+      await db
+        .prepare(
+          `INSERT INTO variantes_producto (
+            producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+            es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+          ) VALUES (?, ?, 50, ?, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
+        )
+        .bind(productoId, `MDP-${productoId}-50ML`, precio50Centimos, precioRef50Centimos)
+        .run();
+    }
+  } else {
+    // Si no tiene precio de 50ml, retirar la variante de 50ml si existía
+    await db
+      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml = 50 AND tipo_presentacion = 'frasco'")
+      .bind(productoId)
       .run();
   }
 
-  // Actualizar 100ml si existe, o crearla
-  const res100 = await db
-    .prepare(
-      `UPDATE variantes_producto 
-       SET precio_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
-       WHERE producto_id = ? AND tamano_ml = 100`,
-    )
-    .bind(precio100Centimos, productoId)
-    .run();
+  if (precio100Num > 0) {
+    const precio100Centimos = Math.round(precio100Num * 100);
+    const esPredeterminada100 = precio50Num > 0 ? 0 : 1;
 
-  if (res100.meta.changes === 0) {
-    await db
+    const res100 = await db
       .prepare(
-        `INSERT INTO variantes_producto (
-          producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
-          es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
-        ) VALUES (?, ?, 100, ?, NULL, 0, 0, 'venta_regular', 'frasco', 1)`,
+        `UPDATE variantes_producto 
+         SET precio_centimos = ?, tipo_presentacion = 'frasco', es_predeterminada = ?, activo = 1, updated_at = CURRENT_TIMESTAMP 
+         WHERE producto_id = ? AND tamano_ml = 100 AND tipo_presentacion = 'frasco'`,
       )
-      .bind(productoId, `MDP-${productoId}-100ML`, precio100Centimos)
+      .bind(precio100Centimos, esPredeterminada100, productoId)
+      .run();
+
+    if (res100.meta.changes === 0) {
+      await db
+        .prepare(
+          `INSERT INTO variantes_producto (
+            producto_id, sku, tamano_ml, precio_centimos, precio_referencia_centimos, 
+            es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+          ) VALUES (?, ?, 100, ?, NULL, ?, 0, 'venta_regular', 'frasco', 1)`,
+        )
+        .bind(productoId, `MDP-${productoId}-100ML`, precio100Centimos, esPredeterminada100)
+        .run();
+    }
+  } else {
+    // Si no tiene precio de 100ml, retirar la variante de 100ml si existía
+    await db
+      .prepare("DELETE FROM variantes_producto WHERE producto_id = ? AND tamano_ml = 100 AND tipo_presentacion = 'frasco'")
+      .bind(productoId)
       .run();
   }
 
@@ -1624,6 +1660,7 @@ export async function obtenerDetalleProductoTienda(
     const variantes: ProductVariant[] = detalleDb.variantes.map((v) => ({
       size: `${v.tamano_ml} ml`,
       price: Math.round(v.precio_centimos / 100),
+      isDecant: v.tipo_presentacion === "decant",
     }));
 
     const varRef = detalleDb.variantes.find(
@@ -1714,26 +1751,51 @@ export async function importarProductosCsvEnDb(
 
       if (fila.idProductoExistente && modoDuplicados === "actualizar") {
         const id = fila.idProductoExistente;
-        const p50Cent = Math.round(fila.precio_50ml * 100);
-        const p100Cent = Math.round(fila.precio_100ml * 100);
+        if (fila.precio_50ml && fila.precio_50ml > 0) {
+          const p50Cent = Math.round(fila.precio_50ml * 100);
+          const res50 = await db
+            .prepare(
+              `UPDATE variantes_producto 
+               SET precio_centimos = ?, tipo_presentacion = 'frasco', activo = 1, updated_at = CURRENT_TIMESTAMP 
+               WHERE producto_id = ? AND tamano_ml = 50 AND tipo_presentacion = 'frasco'`,
+            )
+            .bind(p50Cent, id)
+            .run();
 
-        await db
-          .prepare(
-            `UPDATE variantes_producto 
-             SET precio_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
-             WHERE producto_id = ? AND tamano_ml = 50`,
-          )
-          .bind(p50Cent, id)
-          .run();
+          if (res50.meta.changes === 0) {
+            await db
+              .prepare(
+                `INSERT INTO variantes_producto (
+                  producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+                ) VALUES (?, ?, 50, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
+              )
+              .bind(id, `MDP-${id}-50ML`, p50Cent)
+              .run();
+          }
+        }
 
-        await db
-          .prepare(
-            `UPDATE variantes_producto 
-             SET precio_centimos = ?, tipo_presentacion = 'frasco', updated_at = CURRENT_TIMESTAMP 
-             WHERE producto_id = ? AND tamano_ml = 100`,
-          )
-          .bind(p100Cent, id)
-          .run();
+        if (fila.precio_100ml && fila.precio_100ml > 0) {
+          const p100Cent = Math.round(fila.precio_100ml * 100);
+          const res100 = await db
+            .prepare(
+              `UPDATE variantes_producto 
+               SET precio_centimos = ?, tipo_presentacion = 'frasco', activo = 1, updated_at = CURRENT_TIMESTAMP 
+               WHERE producto_id = ? AND tamano_ml = 100 AND tipo_presentacion = 'frasco'`,
+            )
+            .bind(p100Cent, id)
+            .run();
+
+          if (res100.meta.changes === 0) {
+            await db
+              .prepare(
+                `INSERT INTO variantes_producto (
+                  producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+                ) VALUES (?, ?, 100, ?, 0, 0, 'venta_regular', 'frasco', 1)`,
+              )
+              .bind(id, `MDP-${id}-100ML`, p100Cent)
+              .run();
+          }
+        }
 
         if (fila.tiene_decants) {
           const actualizarOCrearDecant = async (tamano: number, precio?: number | null) => {
@@ -1806,26 +1868,37 @@ export async function importarProductosCsvEnDb(
       }
       nuevoId = prodFila.id;
 
-      // 3. Crear variantes obligatorias de 50 ml y 100 ml en frasco
-      const p50Cent = Math.round(fila.precio_50ml * 100);
-      const p100Cent = Math.round(fila.precio_100ml * 100);
+      // 3. Crear variantes de frasco (50 ml y/o 100 ml)
+      const batchVariantes: any[] = [];
+      let predeterminadaAsignada = false;
 
-      const batchVariantes = [
-        db
-          .prepare(
-            `INSERT INTO variantes_producto (
-              producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
-            ) VALUES (?, ?, 50, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
-          )
-          .bind(nuevoId, `MDP-${nuevoId}-50ML`, p50Cent),
-        db
-          .prepare(
-            `INSERT INTO variantes_producto (
-              producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
-            ) VALUES (?, ?, 100, ?, 0, 0, 'venta_regular', 'frasco', 1)`,
-          )
-          .bind(nuevoId, `MDP-${nuevoId}-100ML`, p100Cent),
-      ];
+      if (fila.precio_50ml && fila.precio_50ml > 0) {
+        const p50Cent = Math.round(fila.precio_50ml * 100);
+        batchVariantes.push(
+          db
+            .prepare(
+              `INSERT INTO variantes_producto (
+                producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+              ) VALUES (?, ?, 50, ?, 1, 0, 'venta_regular', 'frasco', 1)`,
+            )
+            .bind(nuevoId, `MDP-${nuevoId}-50ML`, p50Cent),
+        );
+        predeterminadaAsignada = true;
+      }
+
+      if (fila.precio_100ml && fila.precio_100ml > 0) {
+        const p100Cent = Math.round(fila.precio_100ml * 100);
+        const esPredeterminada = predeterminadaAsignada ? 0 : 1;
+        batchVariantes.push(
+          db
+            .prepare(
+              `INSERT INTO variantes_producto (
+                producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+              ) VALUES (?, ?, 100, ?, ?, 0, 'venta_regular', 'frasco', 1)`,
+            )
+            .bind(nuevoId, `MDP-${nuevoId}-100ML`, p100Cent, esPredeterminada),
+        );
+      }
 
       // Variantes de decants
       if (fila.tiene_decants) {
