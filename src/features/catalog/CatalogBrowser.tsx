@@ -692,7 +692,9 @@ export default function CatalogBrowser({
               {/* Grilla de productos (9 por página) */}
               <div className="product-grid catalog">
                 {paginatedProducts.map((product) => {
-                  const defaultVariant = product.variants[0];
+                  const frascos = product.variants.filter((v) => !Boolean(v.isDecant || v.size.toLowerCase().includes("decant")));
+                  const decants = product.variants.filter((v) => Boolean(v.isDecant || v.size.toLowerCase().includes("decant")));
+                  const defaultVariant = formato === "decant" ? (decants[0] || product.variants[0]) : (frascos[0] || product.variants[0]);
                   const price = defaultVariant.price;
                   const discount = formatDiscount(price, product.oldPrice);
                   const productUrl = `/perfumes/${product.slug}`;

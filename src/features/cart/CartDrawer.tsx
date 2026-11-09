@@ -33,8 +33,12 @@ export default function CartDrawer({ phone }: Props) {
     .map((item) => {
       const product = allProducts.find((p) => p.id === item.id);
       if (!product) return null;
+      const cleanTarget = item.size.replace(/\s*\(decant\)/i, "").trim();
       const variant =
         product.variants.find((v) => v.size === item.size) ||
+        product.variants.find(
+          (v) => v.size.replace(/\s*\(decant\)/i, "").trim() === cleanTarget,
+        ) ||
         product.variants[0];
       return {
         ...item,
@@ -85,7 +89,17 @@ export default function CartDrawer({ phone }: Props) {
                   <div>
                     <small>{line.product.brand}</small>
                     <h3>{line.product.name}</h3>
-                    <p>{line.size}</p>
+                    <div className="cart-line-variant">
+                      {line.size.toLowerCase().includes("decant") ? (
+                        <span className="cart-decant-tag">
+                          ✦ Decant {line.size.replace(/\s*\(decant\)/i, "").trim()}
+                        </span>
+                      ) : (
+                        <span className="cart-bottle-tag">
+                          Frasco {line.size.replace(/\s*\(decant\)/i, "").trim()}
+                        </span>
+                      )}
+                    </div>
                     <div className="cart-line-bottom">
                       <div className="qty">
                         <button
