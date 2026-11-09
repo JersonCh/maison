@@ -1,5 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useRef, useMemo } from "react";
 import type { MarcaItem, ProductoAdminItem } from "@/types/database";
 import {
   procesarContenidoCsv,
@@ -17,14 +16,86 @@ interface Props {
 
 type FiltroVistaPreview = "todos" | "validos" | "duplicados" | "errores";
 
-export default function CsvImportModal({
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ModalErrorBoundary extends React.Component<{ children: React.ReactNode; onClose: () => void }, ErrorBoundaryState> {
+  constructor(props: { children: React.ReactNode; onClose: () => void }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error("[CsvImportModal ErrorBoundary caught]:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            background: "rgba(5, 6, 5, 0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              color: "#1a1a1a",
+              padding: "28px",
+              borderRadius: "6px",
+              maxWidth: "520px",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
+            }}
+          >
+            <h3 style={{ color: "#b91c1c", marginTop: 0, fontSize: "18px" }}>
+              ⚠️ Error al inicializar el modal de CSV
+            </h3>
+            <p style={{ fontSize: "13px", color: "#666", lineHeight: "1.5" }}>
+              Ocurrió un error inesperado al renderizar el componente:
+            </p>
+            <pre style={{ background: "#fee2e2", color: "#991b1b", padding: "10px", borderRadius: "4px", fontSize: "12px", overflowX: "auto" }}>
+              {this.state.error?.message || "Error desconocido"}
+            </pre>
+            <div style={{ marginTop: "18px", display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="btn btn-gold"
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  this.props.onClose();
+                }}
+              >
+                Cerrar ventana
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function CsvImportModalContent({
   marcas = [],
   productos = [],
   isOpen,
   onClose,
   onSuccess,
 }: Props) {
-  const [mounted, setMounted] = useState(false);
   const [paso, setPaso] = useState<1 | 2 | 3>(1);
   const [nombreArchivo, setNombreArchivo] = useState("");
   const [tamanoArchivo, setTamanoArchivo] = useState("");
@@ -45,11 +116,7 @@ export default function CsvImportModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!isOpen || !mounted || typeof document === "undefined") return null;
+  if (!isOpen) return null;
 
   // Manejo de lectura de archivo
   const procesarArchivo = (file: File) => {
@@ -175,7 +242,7 @@ export default function CsvImportModal({
     onClose();
   };
 
-  return createPortal(
+  return (
     <div
       className="admin-modal"
       style={{
@@ -939,8 +1006,17 @@ export default function CsvImportModal({
           )}
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
+  );
+}
+
+export default function CsvImportModal(props: Props) {
+  if (!props.isOpen) return null;
+
+  return (
+    <ModalErrorBoundary onClose={props.onClose}>
+      <CsvImportModalContent {...props} />
+    </ModalErrorBoundary>
   );
 }
 
