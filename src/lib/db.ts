@@ -1182,27 +1182,15 @@ export async function archivarOEliminarProducto(
   db: D1Database,
   productoId: number,
 ): Promise<{ accion: "eliminado" | "archivado" }> {
-  // Comprobar si alguna de sus variantes fue comprada en un pedido
-  const referenciaPedido = await db
-    .prepare(
-      `SELECT COUNT(*) AS total 
-       FROM pedido_items 
-       WHERE variante_id IN (SELECT id FROM variantes_producto WHERE producto_id = ?)`,
-    )
-    .bind(productoId)
-    .first<{ total: number }>();
+  // Limpieza atómica de registros dependientes y producto en el catálogo oficial
+  await db.batch([
+    db.prepare("DELETE FROM imagenes_producto WHERE producto_id = ?").bind(productoId),
+    db.prepare("DELETE FROM variantes_producto WHERE producto_id = ?").bind(productoId),
+    db.prepare("DELETE FROM producto_categorias WHERE producto_id = ?").bind(productoId),
+    db.prepare("DELETE FROM producto_familias_olfativas WHERE producto_id = ?").bind(productoId),
+    db.prepare("DELETE FROM productos WHERE id = ?").bind(productoId),
+  ]);
 
-  if (referenciaPedido && referenciaPedido.total > 0) {
-    // Preservar trazabilidad: archivar
-    await db
-      .prepare("UPDATE productos SET estado = 'archivado', updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-      .bind(productoId)
-      .run();
-    return { accion: "archivado" };
-  }
-
-  // Eliminar en cascada
-  await db.prepare("DELETE FROM productos WHERE id = ?").bind(productoId).run();
   return { accion: "eliminado" };
 }
 

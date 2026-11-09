@@ -239,10 +239,7 @@ export const DELETE: APIRoute = async ({ request, url, locals }) => {
       JSON.stringify({
         ok: true,
         accion: resultado.accion,
-        mensaje:
-          resultado.accion === "archivado"
-            ? "El perfume fue archivado para preservar el historial de pedidos y trazabilidad."
-            : "El perfume fue eliminado permanentemente.",
+        mensaje: "Fragancia eliminada del catálogo correctamente.",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );

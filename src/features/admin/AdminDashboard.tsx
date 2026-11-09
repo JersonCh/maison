@@ -112,9 +112,9 @@ export default function AdminDashboard({ }: Props) {
     }
   };
 
-  const manejarEliminarOArchivar = async (id: number, nombre: string) => {
+  const manejarEliminarProducto = async (id: number, nombre: string) => {
     const confirmar = window.confirm(
-      `¿Deseas retirar "${nombre}" del catálogo oficial?\nSi el perfume tiene historial de pedidos, se archivará automáticamente para preservar los registros.`,
+      `¿Estás seguro de eliminar "${nombre}" del catálogo oficial?`,
     );
 
     if (!confirmar) return;
@@ -128,9 +128,9 @@ export default function AdminDashboard({ }: Props) {
 
       if (resp.ok) {
         setProductos((prev) => prev.filter((p) => p.id !== id));
-        mostrarToast(`✓ ${resultado.mensaje || "Producto retirado correctamente."}`);
+        mostrarToast(`✓ ${resultado.mensaje || "Fragancia eliminada correctamente."}`);
       } else {
-        mostrarToast(`⚠ ${resultado.error || "Error al retirar el producto."}`);
+        mostrarToast(`⚠ ${resultado.error || "Error al eliminar la fragancia."}`);
       }
     } catch (error) {
       mostrarToast("⚠ Error de comunicación con el servidor.");
@@ -339,7 +339,7 @@ export default function AdminDashboard({ }: Props) {
               products={productos}
               onEdit={manejarAbrirEdicion}
               onToggleActive={manejarAlternarVisibilidad}
-              onDelete={manejarEliminarOArchivar}
+              onDelete={manejarEliminarProducto}
               onAddNew={manejarAbrirCreacion}
               onOpenImportCsv={() => setMostrarModalCsv(true)}
             />

@@ -373,8 +373,8 @@ export default function ProductTable({
 
                 <button
                   onClick={() => onDelete(p.id, p.nombre)}
-                  aria-label="Eliminar o archivar fragancia"
-                  title="Eliminar o archivar"
+                  aria-label="Eliminar fragancia"
+                  title="Eliminar fragancia"
                   type="button"
                 >
                   <Icon name="trash" />
