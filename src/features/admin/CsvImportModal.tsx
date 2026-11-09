@@ -1383,7 +1383,7 @@ function CsvImportModalContent({
                   <CameraIcon size={16} color="var(--gold-deep)" />
                 </div>
                 <div>
-                  <strong style={{ color: "var(--ink)" }}>Fotografías del producto:</strong> Cada fragancia se ha dado de alta con el emblema de la casa. Puedes abrir su ficha técnica desde el catálogo para adjuntar sus fotografías en alta resolución de frasco, caja y detalle.
+                  <strong style={{ color: "var(--ink)" }}>Fotografías del producto:</strong> Cada fragancia se ha dado de alta con una imagen por defecto. Puedes abrir su ficha técnica desde el catálogo para adjuntar sus fotografías en alta resolución de frasco, caja y detalle.
                 </div>
               </div>
             </div>

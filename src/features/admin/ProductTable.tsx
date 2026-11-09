@@ -242,11 +242,11 @@ export default function ProductTable({
             >
               <span className="table-product">
                 <img
-                  src={p.imagenes[0] || "/assets/logo-no-fondo300.png"}
+                  src={p.imagenes[0] || "/assets/imagenxdefecto.svg"}
                   alt={p.nombre}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      "/assets/logo-no-fondo300.png";
+                      "/assets/imagenxdefecto.svg";
                   }}
                 />
                 <b>
@@ -325,20 +325,21 @@ export default function ProductTable({
               </span>
 
               <span style={{ fontSize: "12.5px", color: "var(--gold-deep)", fontWeight: 500 }}>
-                {p.imagenes.length === 1 && p.imagenes[0].includes("logo-no-fondo300") ? (
+                {p.imagenes.length === 1 && (p.imagenes[0].includes("logo-no-fondo300") || p.imagenes[0].includes("imagenxdefecto")) ? (
                   <span
                     style={{
-                      fontSize: "11px",
-                      color: "#b45309",
-                      background: "#fffbeb",
-                      border: "1px solid #fde68a",
-                      padding: "2px 6px",
+                      fontSize: "10.5px",
+                      color: "var(--gold-deep)",
+                      background: "rgba(240, 212, 126, 0.15)",
+                      border: "1px solid rgba(150, 108, 40, 0.3)",
+                      padding: "2px 7px",
                       borderRadius: "3px",
                       fontWeight: 600,
+                      letterSpacing: "0.03em",
                     }}
-                    title="Fragancia importada: pendiente de subir fotos en alta resolución"
+                    title="Fragancia sin fotografías: pendiente de adjuntar fotos oficiales"
                   >
-                    📷 Foto inicial
+                    Foto pendiente
                   </span>
                 ) : (
                   `${p.imagenes.length} ${p.imagenes.length === 1 ? "foto" : "fotos"}`

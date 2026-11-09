@@ -274,10 +274,10 @@ export default function AdminDashboard({ }: Props) {
                 {productos.slice(0, 5).map((p) => (
                   <div className="mini-product" key={p.id}>
                     <img
-                      src={p.imagenes[0] || "/assets/logo-no-fondo300.png"}
+                      src={p.imagenes[0] || "/assets/imagenxdefecto.svg"}
                       alt={p.nombre}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
+                        (e.target as HTMLImageElement).src = "/assets/imagenxdefecto.svg";
                       }}
                     />
                     <span>

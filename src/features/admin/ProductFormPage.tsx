@@ -228,7 +228,7 @@ export default function ProductFormPage({
 
     try {
       const fotosFinales = [
-        fotoPortada.trim() || "/assets/logo-no-fondo300.png",
+        fotoPortada.trim() || "/assets/imagenxdefecto.svg",
         fotoCaja.trim(),
         fotoDetalle.trim(),
       ].filter(Boolean);
@@ -929,7 +929,7 @@ export default function ProductFormPage({
                       src={fotoPortada}
                       alt="Vista previa portada"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
+                        (e.target as HTMLImageElement).src = "/assets/imagenxdefecto.svg";
                       }}
                     />
                   ) : (
@@ -938,7 +938,7 @@ export default function ProductFormPage({
                 </div>
                 <div className="photo-slot-actions">
                   <label className={`btn-upload-file ${subiendoSlot === 1 ? "uploading" : ""}`}>
-                    {subiendoSlot === 1 ? "⏳ Subiendo..." : "📷 Subir archivo"}
+                    {subiendoSlot === 1 ? "Subiendo..." : "Subir archivo"}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/avif"
@@ -981,7 +981,7 @@ export default function ProductFormPage({
                       src={fotoCaja}
                       alt="Vista previa caja"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
+                        (e.target as HTMLImageElement).src = "/assets/imagenxdefecto.svg";
                       }}
                     />
                   ) : (
@@ -990,7 +990,7 @@ export default function ProductFormPage({
                 </div>
                 <div className="photo-slot-actions">
                   <label className={`btn-upload-file ${subiendoSlot === 2 ? "uploading" : ""}`}>
-                    {subiendoSlot === 2 ? "⏳ Subiendo..." : "📷 Subir archivo"}
+                    {subiendoSlot === 2 ? "Subiendo..." : "Subir archivo"}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/avif"
@@ -1032,7 +1032,7 @@ export default function ProductFormPage({
                       src={fotoDetalle}
                       alt="Vista previa detalle"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
+                        (e.target as HTMLImageElement).src = "/assets/imagenxdefecto.svg";
                       }}
                     />
                   ) : (
@@ -1041,7 +1041,7 @@ export default function ProductFormPage({
                 </div>
                 <div className="photo-slot-actions">
                   <label className={`btn-upload-file ${subiendoSlot === 3 ? "uploading" : ""}`}>
-                    {subiendoSlot === 3 ? "⏳ Subiendo..." : "📷 Subir archivo"}
+                    {subiendoSlot === 3 ? "Subiendo..." : "Subir archivo"}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/avif"

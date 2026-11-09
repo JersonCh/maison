@@ -86,7 +86,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
       : [];
 
-    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/logo-no-fondo300.png"];
+    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/imagenxdefecto.svg"];
 
     const nuevoId = await crearNuevoProductoEnDb(db, datos);
 
@@ -145,7 +145,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
       ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
       : [];
 
-    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/logo-no-fondo300.png"];
+    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/imagenxdefecto.svg"];
 
     await actualizarProductoEnDb(db, id, datos);
 

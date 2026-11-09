@@ -87,7 +87,7 @@ export async function obtenerProductosCatalogo(
       COALESCE(
         (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
         (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id ORDER BY orden ASC LIMIT 1),
-        '/assets/logo-no-fondo300.png'
+        '/assets/imagenxdefecto.svg'
       ) AS imagen_principal,
       v.precio_centimos AS precio_minimo_centimos,
       v.precio_referencia_centimos,
@@ -282,7 +282,7 @@ export async function obtenerFraganciasRelacionadas(
           COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
           COALESCE(
             (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
-            '/assets/logo-no-fondo300.png'
+            '/assets/imagenxdefecto.svg'
           ) AS imagen_principal,
           v.precio_centimos AS precio_minimo_centimos,
           v.precio_referencia_centimos,
@@ -309,7 +309,7 @@ export async function obtenerFraganciasRelacionadas(
         COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
         COALESCE(
           (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
-          '/assets/logo-no-fondo300.png'
+          '/assets/imagenxdefecto.svg'
         ) AS imagen_principal,
         v.precio_centimos AS precio_minimo_centimos,
         v.precio_referencia_centimos,
@@ -484,7 +484,7 @@ export async function obtenerProductosParaAdmin(
     mapaImagenes.set(img.producto_id, lista);
   }
 
-  const imagenPorDefecto = "/assets/logo-no-fondo300.png";
+  const imagenPorDefecto = "/assets/imagenxdefecto.svg";
 
   return productos.map((p) => {
     const vars = mapaVariantes.get(p.id) || [];
@@ -861,7 +861,7 @@ export async function crearNuevoProductoEnDb(
   // 4. Insertar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
   const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
   if (fotosFiltradas.length === 0) {
-    fotosFiltradas.push("/assets/logo-no-fondo300.png");
+    fotosFiltradas.push("/assets/imagenxdefecto.svg");
   }
 
   const sentenciasImagenes = fotosFiltradas.map((url, indice) => {
@@ -1136,7 +1136,7 @@ export async function actualizarProductoEnDb(
 
   const fotosFiltradas = (datos.fotos || []).map((f) => f?.trim()).filter(Boolean);
   if (fotosFiltradas.length === 0) {
-    fotosFiltradas.push("/assets/logo-no-fondo300.png");
+    fotosFiltradas.push("/assets/imagenxdefecto.svg");
   }
 
   const sentenciasImagenes = fotosFiltradas.map((url, indice) => {
@@ -1317,7 +1317,7 @@ export async function obtenerProductosTienda(
 
     return productos.map((p) => {
       const fotos = mapaImagenes.get(p.id) || [];
-      const imagenPrincipal = fotos[0] || "/assets/logo-no-fondo300.png";
+      const imagenPrincipal = fotos[0] || "/assets/imagenxdefecto.svg";
       const listaVariantes = mapaVariantes.get(p.id) || [
         { size: "50 ml", price: 490, isDecant: false },
         { size: "100 ml", price: 620, isDecant: false },
@@ -1411,7 +1411,7 @@ export async function obtenerDetalleProductoTienda(
 
     const fotos = detalleDb.galeria_imagenes && detalleDb.galeria_imagenes.length > 0
       ? detalleDb.galeria_imagenes
-      : ["/assets/logo-no-fondo300.png"];
+      : ["/assets/imagenxdefecto.svg"];
 
     const variantes: ProductVariant[] = detalleDb.variantes.map((v) => ({
       size: `${v.tamano_ml} ml`,
@@ -1683,7 +1683,7 @@ export async function importarProductosCsvEnDb(
           `INSERT INTO imagenes_producto (producto_id, clave_archivo, texto_alternativo, orden, es_principal)
            VALUES (?, ?, ?, 0, 1)`,
         )
-        .bind(nuevoId, "/assets/logo-no-fondo300.png", `${fila.marca} ${fila.nombre} - Foto inicial`)
+        .bind(nuevoId, "/assets/imagenxdefecto.svg", `${fila.marca} ${fila.nombre} - Foto inicial`)
         .run();
 
       creados++;

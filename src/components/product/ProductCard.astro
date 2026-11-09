@@ -31,7 +31,7 @@ const productUrl = `/perfumes/${product.slug}`;
             aria-label={`Ver detalles de ${product.brand} ${product.name}`}
         >
             <img
-                src={product.image}
+                src={product.image || "/assets/imagenxdefecto.svg"}
                 alt={`${product.brand} ${product.name}`}
                 loading="lazy"
                 decoding="async"
