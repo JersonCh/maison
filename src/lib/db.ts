@@ -844,7 +844,7 @@ export async function crearNuevoProductoEnDb(
 
     if (datos.tiene_decants) {
       await db
-        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, 4)")
+        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
         .bind(productoId, 4)
         .run();
     }
@@ -1110,7 +1110,7 @@ export async function actualizarProductoEnDb(
 
     if (datos.tiene_decants) {
       await db
-        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, 4)")
+        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
         .bind(productoId, 4)
         .run();
     }
@@ -1515,43 +1515,41 @@ export async function importarProductosCsvEnDb(
           .run();
 
         if (fila.tiene_decants) {
-          const sentenciasDecants = [];
-          if (fila.precio_decant_3ml && fila.precio_decant_3ml > 0) {
-            sentenciasDecants.push(
-              db
+          const actualizarOCrearDecant = async (tamano: number, precio?: number | null) => {
+            if (!precio || precio <= 0) return;
+            const pCent = Math.round(precio * 100);
+            const res = await db
+              .prepare(
+                `UPDATE variantes_producto 
+                 SET precio_centimos = ?, tipo_presentacion = 'decant', activo = 1, updated_at = CURRENT_TIMESTAMP 
+                 WHERE producto_id = ? AND tamano_ml = ?`,
+              )
+              .bind(pCent, id, tamano)
+              .run();
+
+            if (res.meta.changes === 0) {
+              await db
                 .prepare(
-                  `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
-                   VALUES (?, ?, 3, ?, 0, 0, 'venta_regular', 'decant', 1)
-                   ON CONFLICT(id) DO UPDATE SET precio_centimos = excluded.precio_centimos`,
+                  `INSERT INTO variantes_producto (
+                    producto_id, sku, tamano_ml, precio_centimos, 
+                    es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
+                  ) VALUES (?, ?, ?, ?, 0, 0, 'venta_regular', 'decant', 1)`,
                 )
-                .bind(id, `DEC-${id}-3ML`, Math.round(fila.precio_decant_3ml * 100)),
-            );
-          }
-          if (fila.precio_decant_5ml && fila.precio_decant_5ml > 0) {
-            sentenciasDecants.push(
-              db
-                .prepare(
-                  `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
-                   VALUES (?, ?, 5, ?, 0, 0, 'venta_regular', 'decant', 1)
-                   ON CONFLICT(id) DO UPDATE SET precio_centimos = excluded.precio_centimos`,
-                )
-                .bind(id, `DEC-${id}-5ML`, Math.round(fila.precio_decant_5ml * 100)),
-            );
-          }
-          if (fila.precio_decant_10ml && fila.precio_decant_10ml > 0) {
-            sentenciasDecants.push(
-              db
-                .prepare(
-                  `INSERT INTO variantes_producto (producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo)
-                   VALUES (?, ?, 10, ?, 0, 0, 'venta_regular', 'decant', 1)
-                   ON CONFLICT(id) DO UPDATE SET precio_centimos = excluded.precio_centimos`,
-                )
-                .bind(id, `DEC-${id}-10ML`, Math.round(fila.precio_decant_10ml * 100)),
-            );
-          }
-          if (sentenciasDecants.length > 0) {
-            await db.batch(sentenciasDecants);
-          }
+                .bind(id, `DEC-${id}-${tamano}ML`, tamano, pCent)
+                .run();
+            }
+          };
+
+          await actualizarOCrearDecant(3, fila.precio_decant_3ml);
+          await actualizarOCrearDecant(5, fila.precio_decant_5ml);
+          await actualizarOCrearDecant(10, fila.precio_decant_10ml);
+
+          try {
+            await db
+              .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
+              .bind(id, 4)
+              .run();
+          } catch {}
         }
 
         actualizados++;
@@ -1651,7 +1649,7 @@ export async function importarProductosCsvEnDb(
       ];
       if (fila.tiene_decants) {
         batchCategorias.push(
-          db.prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, 4)").bind(nuevoId, 4),
+          db.prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)").bind(nuevoId, 4),
         );
       }
       await db.batch(batchCategorias);
