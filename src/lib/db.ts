@@ -778,7 +778,7 @@ export async function asegurarMarca(
             .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
             .bind(tipoFinal, existente.id)
             .run();
-        } catch {}
+        } catch { }
       }
       return existente.id;
     }
@@ -803,7 +803,7 @@ export async function asegurarMarca(
         .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
         .bind(normalizarTipoComercial(tipoComercial), marcaId)
         .run();
-    } catch {}
+    } catch { }
   }
 
   // Si la marca ya existía y el admin seleccionó un tipoComercial, sincronizarlo
@@ -813,7 +813,7 @@ export async function asegurarMarca(
         .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
         .bind(tipoComercial, marcaId)
         .run();
-    } catch {}
+    } catch { }
   }
 
   return marcaId || 1;
@@ -1346,7 +1346,7 @@ export async function actualizarProductoEnDb(
         .bind(productoId)
         .run();
     }
-  } catch (err) {}
+  } catch (err) { }
 
   // 4. Actualizar imágenes provistas (Foto 1 obligatoria, 2 y 3 opcionales)
   await db
@@ -1770,7 +1770,7 @@ export async function importarProductosCsvEnDb(
               .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
               .bind(id, 4)
               .run();
-          } catch {}
+          } catch { }
         }
 
         actualizados++;
@@ -1903,7 +1903,7 @@ export async function importarProductosCsvEnDb(
           await db.prepare("DELETE FROM producto_categorias WHERE producto_id = ?").bind(nuevoId).run();
           await db.prepare("DELETE FROM imagenes_producto WHERE producto_id = ?").bind(nuevoId).run();
           await db.prepare("DELETE FROM productos WHERE id = ?").bind(nuevoId).run();
-        } catch {}
+        } catch { }
       }
       console.error(`Error al procesar fila #${fila.filaNumero} (${fila.nombre}):`, err);
       let mensajeError = err.message || "Error al registrar la fragancia.";
