@@ -384,9 +384,14 @@ export function descargarPlantillaCsv(): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "plantilla_productos_maison.csv";
+  a.setAttribute("download", "plantilla_productos_maison.csv");
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    if (a.parentNode) {
+      a.parentNode.removeChild(a);
+    }
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
+

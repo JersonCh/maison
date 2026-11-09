@@ -171,7 +171,21 @@ export default function CsvImportModal({
   };
 
   return (
-    <div className="admin-modal" style={{ display: "flex", overflowY: "auto", padding: "20px" }}>
+    <div
+      className="admin-modal"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflowY: "auto",
+        padding: "20px",
+        background: "rgba(5, 6, 5, 0.72)",
+        backdropFilter: "blur(4px)",
+      }}
+    >
       <div
         className="csv-modal-card"
         style={{
@@ -261,6 +275,7 @@ export default function CsvImportModal({
                   type="file"
                   accept=".csv,text/csv"
                   style={{ display: "none" }}
+                  onClick={(e) => e.stopPropagation()}
                   onChange={(e) => {
                     if (e.target.files && e.target.files.length > 0) {
                       procesarArchivo(e.target.files[0]);
@@ -917,3 +932,4 @@ export default function CsvImportModal({
     </div>
   );
 }
+

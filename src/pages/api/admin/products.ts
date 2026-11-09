@@ -81,19 +81,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Regla de imágenes: Foto 1 (portada) obligatoria, fotos secundarias opcionales
+    // Regla de imágenes: Si no se proporcionan fotos, se asigna el emblema oficial por defecto
     const fotosValidas = Array.isArray(datos.fotos)
       ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
       : [];
 
-    if (fotosValidas.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "La foto de portada (Foto 1) es obligatoria." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    datos.fotos = fotosValidas;
+    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/logo-no-fondo300.png"];
 
     const nuevoId = await crearNuevoProductoEnDb(db, datos);
 
@@ -147,19 +140,12 @@ export const PUT: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Regla de imágenes: Foto 1 (portada) obligatoria, fotos secundarias opcionales
+    // Regla de imágenes: Si no se proporcionan fotos, se asigna el emblema oficial por defecto
     const fotosValidas = Array.isArray(datos.fotos)
       ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
       : [];
 
-    if (fotosValidas.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "La foto de portada (Foto 1) es obligatoria." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    datos.fotos = fotosValidas;
+    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/logo-no-fondo300.png"];
 
     await actualizarProductoEnDb(db, id, datos);
 

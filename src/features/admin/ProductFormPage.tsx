@@ -200,14 +200,12 @@ export default function ProductFormPage({
     }
     if (!precio50ml || Number(precio50ml) <= 0) {
       setErrorValidacion("El precio para la presentación de 50 ml debe ser mayor a 0.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     if (!precio100ml || Number(precio100ml) <= 0) {
       setErrorValidacion("El precio para la presentación de 100 ml debe ser mayor a 0.");
-      return;
-    }
-    if (!fotoPortada.trim()) {
-      setErrorValidacion("La foto de portada (Frasco principal) es obligatoria.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
@@ -219,6 +217,7 @@ export default function ProductFormPage({
         setErrorValidacion(
           "Si habilitas decants, ingresa el precio para al menos una de las presentaciones (3 ml, 5 ml o 10 ml).",
         );
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
     }
@@ -226,6 +225,12 @@ export default function ProductFormPage({
     setGuardando(true);
 
     try {
+      const fotosFinales = [
+        fotoPortada.trim() || "/assets/logo-no-fondo300.png",
+        fotoCaja.trim(),
+        fotoDetalle.trim(),
+      ].filter(Boolean);
+
       const cargaUtil: DatosFormularioProducto & { id?: number } = {
         nombre: nombre.trim(),
         slug: slug.trim() || undefined,
@@ -248,7 +253,7 @@ export default function ProductFormPage({
         precio_referencia_50ml: precioRef50ml !== "" ? Number(precioRef50ml) : null,
         es_destacado: esDestacado,
         activo,
-        fotos: [fotoPortada.trim(), fotoCaja.trim(), fotoDetalle.trim()].filter(Boolean),
+        fotos: fotosFinales,
       };
 
       if (esEdicion && initialProduct?.id) {
