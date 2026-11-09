@@ -27,6 +27,7 @@ logs/
 # Archivos temporales
 .claude-replay.*
 .tmp-*
+~$*
 
 # Herramientas y agentes del entorno
 .plugins/

@@ -109,10 +109,14 @@ export default function ProductFormPage({
 
   // Precios en Soles
   const [precio50ml, setPrecio50ml] = useState<number | "">(
-    initialProduct?.precio_50ml ?? 490,
+    initialProduct?.precio_50ml && initialProduct.precio_50ml > 0
+      ? initialProduct.precio_50ml
+      : esEdicion ? "" : 490,
   );
   const [precio100ml, setPrecio100ml] = useState<number | "">(
-    initialProduct?.precio_100ml ?? 620,
+    initialProduct?.precio_100ml && initialProduct.precio_100ml > 0
+      ? initialProduct.precio_100ml
+      : esEdicion ? "" : 620,
   );
   const [precioRef50ml, setPrecioRef50ml] = useState<number | "">(
     initialProduct?.precio_referencia_50ml ?? "",
@@ -200,13 +204,12 @@ export default function ProductFormPage({
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    if (!precio50ml || Number(precio50ml) <= 0) {
-      setErrorValidacion("El precio para la presentación de 50 ml debe ser mayor a 0.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    if (!precio100ml || Number(precio100ml) <= 0) {
-      setErrorValidacion("El precio para la presentación de 100 ml debe ser mayor a 0.");
+
+    const tiene50 = precio50ml !== "" && Number(precio50ml) > 0;
+    const tiene100 = precio100ml !== "" && Number(precio100ml) > 0;
+
+    if (!tiene50 && !tiene100) {
+      setErrorValidacion("Debes ingresar el precio de al menos una presentación de frasco (50 ml o 100 ml).");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -250,9 +253,9 @@ export default function ProductFormPage({
         descripcion: descripcion.trim(),
         pais_origen: paisOrigen.trim(),
         ocasion_uso: ocasionUso.trim(),
-        precio_50ml: Number(precio50ml),
-        precio_100ml: Number(precio100ml),
-        precio_referencia_50ml: precioRef50ml !== "" ? Number(precioRef50ml) : null,
+        precio_50ml: tiene50 ? Number(precio50ml) : null,
+        precio_100ml: tiene100 ? Number(precio100ml) : null,
+        precio_referencia_50ml: tiene50 && precioRef50ml !== "" ? Number(precioRef50ml) : null,
         es_destacado: esDestacado,
         activo,
         fotos: fotosFinales,
@@ -764,13 +767,12 @@ export default function ProductFormPage({
 
             <div className="form-grid">
               <label>
-                Precio 50 ml (S/) *
+                Precio 50 ml (S/)
                 <input
                   type="number"
                   min="1"
                   step="1"
-                  required
-                  placeholder="Ej. 490"
+                  placeholder="Ej. 490 (opcional si tiene 100 ml)"
                   value={precio50ml}
                   onChange={(e) =>
                     setPrecio50ml(e.target.value === "" ? "" : Number(e.target.value))
@@ -779,13 +781,12 @@ export default function ProductFormPage({
               </label>
 
               <label>
-                Precio 100 ml (S/) *
+                Precio 100 ml (S/)
                 <input
                   type="number"
                   min="1"
                   step="1"
-                  required
-                  placeholder="Ej. 620"
+                  placeholder="Ej. 620 (opcional si tiene 50 ml)"
                   value={precio100ml}
                   onChange={(e) =>
                     setPrecio100ml(e.target.value === "" ? "" : Number(e.target.value))

@@ -10,8 +10,8 @@ export interface FilaCsvRaw {
   concentracion?: string;
   pais_origen?: string;
   ocasion_uso?: string;
-  precio_50ml: string | number;
-  precio_100ml: string | number;
+  precio_50ml?: string | number;
+  precio_100ml?: string | number;
   precio_decant_3ml?: string | number;
   precio_decant_5ml?: string | number;
   precio_decant_10ml?: string | number;
@@ -26,8 +26,8 @@ export interface FilaCsvProcesada {
   concentracion: string;
   pais_origen: string;
   ocasion_uso: string;
-  precio_50ml: number;
-  precio_100ml: number;
+  precio_50ml: number | null;
+  precio_100ml: number | null;
   tiene_decants: boolean;
   precio_decant_3ml?: number | null;
   precio_decant_5ml?: number | null;
@@ -332,13 +332,12 @@ export function procesarMatrizFilas(
     }
 
     const precio50 = normalizarPrecio(p50Raw);
-    if (precio50 === null || precio50 <= 0) {
-      errores.push("Precio de 50 ml inválido o vacío.");
-    }
-
     const precio100 = normalizarPrecio(p100Raw);
-    if (precio100 === null || precio100 <= 0) {
-      errores.push("Precio de 100 ml inválido o vacío.");
+    const tiene50 = precio50 !== null && precio50 > 0;
+    const tiene100 = precio100 !== null && precio100 > 0;
+
+    if (!tiene50 && !tiene100) {
+      errores.push("Debes ingresar al menos una presentación de frasco (50 ml o 100 ml).");
     }
 
     const pDec3 = normalizarPrecio(dec3Raw);
@@ -404,8 +403,8 @@ export function procesarMatrizFilas(
       concentracion,
       pais_origen,
       ocasion_uso,
-      precio_50ml: precio50 || 0,
-      precio_100ml: precio100 || 0,
+      precio_50ml: tiene50 ? precio50 : null,
+      precio_100ml: tiene100 ? precio100 : null,
       tiene_decants: tieneDecants,
       precio_decant_3ml: pDec3,
       precio_decant_5ml: pDec5,

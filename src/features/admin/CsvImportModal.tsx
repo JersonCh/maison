@@ -837,7 +837,7 @@ function CsvImportModalContent({
                       >
                         <InfoCircleIcon size={14} color="var(--gold-deep)" style={{ flexShrink: 0, marginTop: "2px" }} />
                         <span style={{ fontSize: "12px", color: "var(--muted)", lineHeight: "1.5" }}>
-                          <strong style={{ color: "var(--ink)" }}>Tolerancia a erratas y marcas nuevas:</strong> Si escribes con una pequeña falta tipográfica (ej. <i>Diioor</i> en lugar de <i>Dior</i>), el sistema te sugerirá la corrección en la previsualización. Si es una marca totalmente nueva, se registrará de forma automática.
+                          <strong style={{ color: "var(--ink)" }}>Tolerancia a erores y marcas nuevas:</strong> Si escribes con una pequeña falta tipográfica (ej. <i>Diioor</i> en lugar de <i>Dior</i>), el sistema te sugerirá la corrección en la previsualización. Si es una marca totalmente nueva, se registrará de forma automática.
                         </span>
                       </div>
                     </div>
@@ -870,7 +870,7 @@ function CsvImportModalContent({
                           4. Precios & Decants
                         </span>
                         <ul style={{ margin: 0, paddingLeft: "16px", color: "var(--charcoal)", fontSize: "12px", lineHeight: "1.6" }}>
-                          <li><code>precio_50ml</code> y <code>100ml</code> obligatorios (ej. <code>790</code>).</li>
+                          <li>Frascos: <code>precio_50ml</code> o <code>100ml</code> (al menos uno obligatorio, o ambos).</li>
                           <li><code>3ml</code>, <code>5ml</code>, <code>10ml</code> decants opcionales.</li>
                         </ul>
                       </div>
@@ -880,7 +880,7 @@ function CsvImportModalContent({
                           5. Fotografías
                         </span>
                         <p style={{ margin: 0, color: "var(--muted)", fontSize: "12px", lineHeight: "1.5" }}>
-                          No requiere URLs de imágenes. Cada fragancia se da de alta con el emblema de la casa y podrás adjuntar sus fotografías oficiales desde el panel.
+                          No requiere URLs de imágenes. Cada producto se crea con la imagen por defecto y podrás adjuntar sus fotografías desde el panel.
                         </p>
                       </div>
                     </div>
@@ -1222,12 +1222,16 @@ function CsvImportModalContent({
                             </td>
                             <td style={{ padding: "9px 12px" }}>{f.genero}</td>
                             <td style={{ padding: "9px 12px" }}>
-                              <div style={{ fontWeight: 600, color: "var(--ink)" }}>
-                                50ml: S/ {f.precio_50ml || 0}
-                              </div>
-                              <div style={{ color: "var(--muted)" }}>
-                                100ml: S/ {f.precio_100ml || 0}
-                              </div>
+                              {f.precio_50ml && f.precio_50ml > 0 ? (
+                                <div style={{ fontWeight: 600, color: "var(--ink)" }}>
+                                  50ml: S/ {f.precio_50ml}
+                                </div>
+                              ) : null}
+                              {f.precio_100ml && f.precio_100ml > 0 ? (
+                                <div style={{ fontWeight: 600, color: "var(--ink)" }}>
+                                  100ml: S/ {f.precio_100ml}
+                                </div>
+                              ) : null}
                             </td>
                             <td style={{ padding: "9px 12px" }}>
                               {f.tiene_decants ? (

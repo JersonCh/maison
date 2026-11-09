@@ -12,11 +12,11 @@ interface Props {
 
 export default function ProductDetailInteractive({ product, phone }: Props) {
   const [selectedImage, setSelectedImage] = useState(product.image);
-  const [selectedSize, setSelectedSize] = useState(product.variants[0].size);
+  const [selectedSize, setSelectedSize] = useState(product.variants[0]?.size || "100 ml");
   const [qty, setQty] = useState(1);
 
   const activeVariant =
-    product.variants.find((v) => v.size === selectedSize) || product.variants[0];
+    product.variants.find((v) => v.size === selectedSize) || product.variants[0] || { size: "100 ml", price: 0 };
 
   const handleAddToCart = () => {
     addToCart(product.id, selectedSize, qty);

@@ -145,8 +145,8 @@ export interface ProductoAdminItem {
   etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
   activo: boolean;
   estado: "borrador" | "publicado" | "archivado";
-  precio_50ml: number; // En Soles
-  precio_100ml: number; // En Soles
+  precio_50ml: number | null; // En Soles (null si no tiene presentación de 50 ml)
+  precio_100ml: number | null; // En Soles (null si no tiene presentación de 100 ml)
   precio_referencia_50ml: number | null; // En Soles
   imagenes: string[]; // 1 a 3 fotos (portada obligatoria, caja y detalle opcionales)
   stock?: number;
@@ -174,8 +174,8 @@ export interface DatosFormularioProducto {
   descripcion: string;
   pais_origen?: string;
   ocasion_uso?: string;
-  precio_50ml: number; // En Soles (se persiste multiplicado por 100 en céntimos)
-  precio_100ml: number; // En Soles
+  precio_50ml?: number | null; // En Soles (se persiste multiplicado por 100 en céntimos)
+  precio_100ml?: number | null; // En Soles
   precio_referencia_50ml?: number | null; // En Soles
   es_destacado: boolean;
   etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
