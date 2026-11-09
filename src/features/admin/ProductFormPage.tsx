@@ -394,9 +394,9 @@ export default function ProductFormPage({
                 background: "var(--white)",
               }}
               onClick={onOpenImportCsv}
-              title="Importar catálogo masivamente desde archivo CSV"
+              title="Importar catálogo masivamente desde archivo Excel o CSV"
             >
-              📥 Importar CSV
+              📥 Importar Excel / CSV
             </button>
           )}
           {!esEdicion && (

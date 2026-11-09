@@ -197,9 +197,9 @@ export default function ProductTable({
                 background: "var(--white)",
               }}
               onClick={onOpenImportCsv}
-              title="Importar catálogo masivamente desde archivo CSV"
+              title="Importar catálogo masivamente desde archivo Excel o CSV"
             >
-              📥 Importar CSV
+              📥 Importar Excel / CSV
             </button>
           )}
           <button type="button" className="btn btn-gold" onClick={onAddNew}>

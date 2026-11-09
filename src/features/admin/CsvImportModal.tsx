@@ -2,6 +2,8 @@ import React, { useState, useRef, useMemo } from "react";
 import type { MarcaItem, ProductoAdminItem } from "@/types/database";
 import {
   procesarContenidoCsv,
+  procesarBufferExcel,
+  descargarPlantillaExcel,
   descargarPlantillaCsv,
   type FilaCsvProcesada,
 } from "@/lib/csvHelper";
@@ -61,7 +63,7 @@ class ModalErrorBoundary extends React.Component<{ children: React.ReactNode; on
             }}
           >
             <h3 style={{ color: "#b91c1c", marginTop: 0, fontSize: "18px" }}>
-              ⚠️ Error al inicializar el modal de CSV
+              ⚠️ Error al inicializar el modal de importación
             </h3>
             <p style={{ fontSize: "13px", color: "#666", lineHeight: "1.5" }}>
               Ocurrió un error inesperado al renderizar el componente:
@@ -118,10 +120,14 @@ function CsvImportModalContent({
 
   if (!isOpen) return null;
 
-  // Manejo de lectura de archivo
+  // Manejo de lectura de archivo (Excel .xlsx / .xls o .csv)
   const procesarArchivo = (file: File) => {
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      setErrorGlobal("Por favor selecciona un archivo con extensión .csv válido.");
+    const ext = file.name.toLowerCase();
+    const esExcel = ext.endsWith(".xlsx") || ext.endsWith(".xls");
+    const esCsv = ext.endsWith(".csv");
+
+    if (!esExcel && !esCsv) {
+      setErrorGlobal("Por favor selecciona un archivo Excel (.xlsx, .xls) o CSV (.csv) válido.");
       return;
     }
 
@@ -129,27 +135,51 @@ function CsvImportModalContent({
     setNombreArchivo(file.name);
     setTamanoArchivo(`${(file.size / 1024).toFixed(1)} KB`);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const contenido = (e.target?.result as string) || "";
-        const resultado = procesarContenidoCsv(contenido, productos, marcas);
+    if (esExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const buffer = e.target?.result as ArrayBuffer;
+          const resultado = procesarBufferExcel(buffer, productos, marcas);
 
-        if (resultado.filas.length === 0) {
-          setErrorGlobal("El archivo CSV no contiene registros o el formato de columnas no coincide.");
-          return;
+          if (resultado.filas.length === 0) {
+            setErrorGlobal("El archivo Excel no contiene filas con fragancias o las cabeceras no coinciden con la plantilla.");
+            return;
+          }
+
+          setFilas(resultado.filas);
+          setPaso(2);
+        } catch (err: any) {
+          setErrorGlobal(err.message || "Error al procesar la hoja de cálculo de Excel.");
         }
+      };
+      reader.onerror = () => {
+        setErrorGlobal("Error al leer el archivo Excel desde el dispositivo.");
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const contenido = (e.target?.result as string) || "";
+          const resultado = procesarContenidoCsv(contenido, productos, marcas);
 
-        setFilas(resultado.filas);
-        setPaso(2);
-      } catch (err: any) {
-        setErrorGlobal(err.message || "Error al procesar el archivo CSV.");
-      }
-    };
-    reader.onerror = () => {
-      setErrorGlobal("Error al leer el archivo desde el dispositivo.");
-    };
-    reader.readAsText(file, "UTF-8");
+          if (resultado.filas.length === 0) {
+            setErrorGlobal("El archivo CSV no contiene registros o el formato de columnas no coincide.");
+            return;
+          }
+
+          setFilas(resultado.filas);
+          setPaso(2);
+        } catch (err: any) {
+          setErrorGlobal(err.message || "Error al procesar el archivo CSV.");
+        }
+      };
+      reader.onerror = () => {
+        setErrorGlobal("Error al leer el archivo CSV desde el dispositivo.");
+      };
+      reader.readAsText(file, "UTF-8");
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -235,7 +265,7 @@ function CsvImportModalContent({
   const handleCerrarYFinalizar = () => {
     if (resultadoFinal) {
       onSuccess(
-        `✓ Importación exitosa: ${resultadoFinal.creados} fragancias registradas, ${resultadoFinal.actualizados} actualizadas.`
+        `✓ Importación completada: ${resultadoFinal.creados} fragancias registradas, ${resultadoFinal.actualizados} actualizadas.`
       );
     }
     reiniciarModal();
@@ -292,7 +322,7 @@ function CsvImportModalContent({
               Gestión Masiva de Catálogo
             </small>
             <h2 style={{ margin: "4px 0 0 0", fontFamily: "var(--serif)", fontSize: "24px", color: "var(--ink)" }}>
-              {paso === 1 && "Importar Fragancias desde CSV"}
+              {paso === 1 && "Importar Fragancias desde Excel o CSV"}
               {paso === 2 && "Previsualización y Validación de Fragancias"}
               {paso === 3 && "Resultado de la Importación"}
             </h2>
@@ -329,7 +359,7 @@ function CsvImportModalContent({
 
         {/* CUERPO DEL MODAL SEGÚN EL PASO */}
         <div style={{ padding: "28px 30px", overflowY: "auto", flex: 1 }}>
-          {/* PASO 1: SUBIR ARCHIVO Y GUÍA */}
+          {/* PASO 1: SUBIR ARCHIVO Y PLANTILLAS */}
           {paso === 1 && (
             <div>
               {/* ZONA DE CARGA */}
@@ -350,7 +380,7 @@ function CsvImportModalContent({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".csv,text/csv"
+                  accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
                   style={{ display: "none" }}
                   onClick={(e) => e.stopPropagation()}
                   onChange={(e) => {
@@ -359,57 +389,90 @@ function CsvImportModalContent({
                     }
                   }}
                 />
-                <div style={{ fontSize: "40px", marginBottom: "12px" }}>📂</div>
-                <h3 style={{ fontFamily: "var(--serif)", fontSize: "20px", margin: "0 0 6px 0", color: "var(--ink)" }}>
-                  Arrastra tu archivo CSV aquí o haz clic para seleccionarlo
+                <div style={{ fontSize: "42px", marginBottom: "12px" }}>📊</div>
+                <h3 style={{ fontFamily: "var(--serif)", fontSize: "21px", margin: "0 0 6px 0", color: "var(--ink)" }}>
+                  Arrastra tu archivo Excel (.xlsx) o CSV aquí o haz clic para seleccionarlo
                 </h3>
                 <p style={{ color: "var(--muted)", fontSize: "13.5px", margin: 0 }}>
-                  Acepta archivos <code>.csv</code> separados por comas o punto y coma (generados por Excel o Google Sheets)
+                  Compatible con hojas de cálculo <strong>Excel (.xlsx / .xls)</strong> y archivos <strong>CSV</strong> generados en cualquier sistema o idioma
                 </p>
               </div>
 
-              {/* BOTÓN DESCARGAR PLANTILLA Y CONSEJO */}
+              {/* BLOQUE DE DESCARGA DE PLANTILLA OFICIAL */}
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
                   marginTop: "20px",
-                  padding: "16px 20px",
+                  padding: "18px 22px",
                   background: "var(--ivory)",
                   borderRadius: "4px",
                   border: "1px solid var(--line)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                   flexWrap: "wrap",
-                  gap: "12px",
+                  gap: "14px",
                 }}
               >
-                <div>
-                  <strong style={{ display: "block", fontSize: "13.5px", color: "var(--ink)", marginBottom: "3px" }}>
-                    ¿No tienes la plantilla oficial todavía?
-                  </strong>
-                  <span style={{ fontSize: "12.5px", color: "var(--muted)" }}>
-                    Descarga la plantilla con encabezados exactos y filas de ejemplo con precios y decants.
+                <div style={{ maxWidth: "580px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "16px" }}>📗</span>
+                    <strong style={{ fontSize: "14px", color: "var(--ink)" }}>
+                      Plantilla oficial de perfumería Maison
+                    </strong>
+                    <span
+                      style={{
+                        background: "#ecfdf5",
+                        color: "#065f46",
+                        fontSize: "11px",
+                        padding: "2px 8px",
+                        borderRadius: "10px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Recomendado
+                    </span>
+                  </div>
+                  <span style={{ fontSize: "12.5px", color: "var(--muted)", lineHeight: "1.5", display: "block" }}>
+                    Descarga el formato en <strong>Excel (.xlsx)</strong> listo para editar con columnas divididas automáticamente (A: Marca, B: Fragancia, etc.), ejemplos de lujo y pestaña de guía rápida.
                   </span>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  style={{
-                    borderColor: "var(--gold)",
-                    color: "var(--ink)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontWeight: 600,
-                  }}
-                  onClick={descargarPlantillaCsv}
-                >
-                  📥 Descargar plantilla CSV (.csv)
-                </button>
+
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="btn btn-gold"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontWeight: 600,
+                      padding: "10px 18px",
+                    }}
+                    onClick={descargarPlantillaExcel}
+                  >
+                    📥 Descargar Excel (.xlsx)
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    style={{
+                      borderColor: "var(--line)",
+                      color: "var(--muted)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "12.5px",
+                    }}
+                    onClick={descargarPlantillaCsv}
+                  >
+                    Descargar CSV (.csv)
+                  </button>
+                </div>
               </div>
 
               {/* ACORDEÓN DE GUÍA DE VALORES PERMITIDOS */}
-              <div style={{ marginTop: "24px" }}>
+              <div style={{ marginTop: "22px" }}>
                 <button
                   type="button"
                   onClick={() => setMostrarGuia(!mostrarGuia)}
@@ -429,7 +492,7 @@ function CsvImportModalContent({
                   }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    📖 Guía de marcas registradas y valores aceptados
+                    📖 Guía de marcas registradas y reglas de importación
                   </span>
                   <span>{mostrarGuia ? "▲" : "▼"}</span>
                 </button>
@@ -468,7 +531,7 @@ function CsvImportModalContent({
                         ))}
                       </div>
                       <small style={{ color: "var(--muted)", display: "block", marginTop: "6px" }}>
-                        ℹ️ <strong>Marcas nuevas:</strong> Si introduces una marca que aún no existe (ej. <i>Lattafa</i> o <i>Nishane</i>), el sistema la registrará de forma automática asignándole la gama seleccionada.
+                        ℹ️ <strong>Tolerancia a erratas y marcas nuevas:</strong> Si escribes con una pequeña falta tipográfica (ej. <i>Diioor</i> en lugar de <i>Dior</i>), el sistema te avisará en la previsualización. Si es una marca totalmente nueva, se registrará de forma automática.
                       </small>
                     </div>
 
@@ -478,9 +541,9 @@ function CsvImportModalContent({
                           2. Líneas comerciales
                         </strong>
                         <ul style={{ margin: 0, paddingLeft: "18px", color: "var(--ink)" }}>
-                          <li><code>disenador</code> (por defecto para marcas de lujo/comerciales)</li>
-                          <li><code>arabe</code> (fragancias de casas orientales/árabes)</li>
-                          <li><code>nicho</code> (casas de alta perfumería de autor)</li>
+                          <li><code>disenador</code> (por defecto para marcas de diseñador o lujo comercial)</li>
+                          <li><code>arabe</code> (fragancias orientales y casas árabes)</li>
+                          <li><code>nicho</code> (casas de perfumería exclusiva de autor)</li>
                         </ul>
                       </div>
 
@@ -489,9 +552,9 @@ function CsvImportModalContent({
                           3. Género
                         </strong>
                         <ul style={{ margin: 0, paddingLeft: "18px", color: "var(--ink)" }}>
-                          <li><code>Hombre</code> (o abreviado <code>H</code>)</li>
-                          <li><code>Mujer</code> (o abreviado <code>M</code>)</li>
-                          <li><code>Unisex</code> (o abreviado <code>U</code>)</li>
+                          <li><code>Hombre</code> (o <code>H</code>, <code>masculino</code>, <code>caballero</code>)</li>
+                          <li><code>Mujer</code> (o <code>M</code>, <code>femenino</code>, <code>dama</code>)</li>
+                          <li><code>Unisex</code> (o <code>U</code>, <code>ambos</code>)</li>
                         </ul>
                       </div>
 
@@ -500,7 +563,7 @@ function CsvImportModalContent({
                           4. Precios & Decants
                         </strong>
                         <ul style={{ margin: 0, paddingLeft: "18px", color: "var(--ink)" }}>
-                          <li><code>precio_50ml</code> y <code>precio_100ml</code> son obligatorios (ej: <code>450</code> o <code>S/ 450.00</code>).</li>
+                          <li><code>precio_50ml</code> y <code>precio_100ml</code> son obligatorios (ej: <code>790</code> o <code>790.00</code>).</li>
                           <li><code>precio_decant_3ml</code>, <code>5ml</code>, <code>10ml</code> son opcionales (dejar vacío si no ofrece decants).</li>
                         </ul>
                       </div>
@@ -510,7 +573,7 @@ function CsvImportModalContent({
                           5. Imágenes (Cloudflare R2)
                         </strong>
                         <p style={{ margin: 0, color: "var(--muted)", fontSize: "12.5px" }}>
-                          <strong>No requiere URLs de imágenes en el CSV.</strong> Todas las fragancias se crean con el emblema oficial y podrás subir sus fotografías en alta resolución directamente en Cloudflare R2 desde la edición del producto.
+                          <strong>No requiere URLs externas de imágenes.</strong> Cada fragancia se crea con el emblema de la casa y podrás subir sus fotos oficiales en alta resolución directamente a Cloudflare R2 al editar el producto.
                         </p>
                       </div>
                     </div>
@@ -539,7 +602,9 @@ function CsvImportModalContent({
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "20px" }}>📄</span>
+                  <span style={{ fontSize: "22px" }}>
+                    {nombreArchivo.toLowerCase().endsWith(".csv") ? "📄" : "📊"}
+                  </span>
                   <div>
                     <strong style={{ color: "var(--ink)", fontSize: "14px" }}>{nombreArchivo}</strong>
                     <span style={{ color: "var(--muted)", fontSize: "12px", marginLeft: "8px" }}>({tamanoArchivo})</span>
@@ -551,11 +616,12 @@ function CsvImportModalContent({
                   style={{
                     border: "1px solid var(--line)",
                     background: "var(--white)",
-                    padding: "6px 12px",
+                    padding: "6px 14px",
                     borderRadius: "3px",
                     fontSize: "12px",
                     cursor: "pointer",
                     color: "var(--ink)",
+                    fontWeight: 500,
                   }}
                 >
                   🔄 Cambiar archivo
@@ -775,6 +841,21 @@ function CsvImportModalContent({
                             <td style={{ padding: "9px 12px" }}>
                               <strong style={{ color: "var(--ink)", display: "block" }}>{f.nombre || "—"}</strong>
                               <span style={{ color: "var(--muted)", fontSize: "11px" }}>{f.marca || "—"}</span>
+                              {f.marcaSugerida && (
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    fontSize: "10.5px",
+                                    background: "#fef3c7",
+                                    color: "#92400e",
+                                    padding: "1px 5px",
+                                    borderRadius: "2px",
+                                    marginTop: "2px",
+                                  }}
+                                >
+                                  ¿Sugerencia: {f.marcaSugerida}?
+                                </span>
+                              )}
                             </td>
                             <td style={{ padding: "9px 12px", textTransform: "capitalize" }}>
                               {f.linea_comercial}
@@ -928,7 +1009,7 @@ function CsvImportModalContent({
                   lineHeight: "1.5",
                 }}
               >
-                📸 <strong>Siguiente paso:</strong> Las fragancias creadas tienen el logotipo oficial como foto inicial. Puedes buscar en la tabla las que tengan <code>1 foto</code> y subir sus 3 imágenes en alta resolución a Cloudflare R2 desde el botón de edición.
+                📸 <strong>Fotografías en Cloudflare R2:</strong> Cada fragancia se ha dado de alta con el emblema de la casa. Puedes abrir su ficha técnica desde la tabla para adjuntar sus 3 fotografías oficiales de frasco, caja y detalle.
               </div>
             </div>
           )}
@@ -956,7 +1037,7 @@ function CsvImportModalContent({
                 Cancelar
               </button>
               <span style={{ fontSize: "12px", color: "var(--muted)" }}>
-                Selecciona un archivo <code>.csv</code> para continuar
+                Selecciona un archivo <code>.xlsx</code> o <code>.csv</code> para continuar
               </span>
             </>
           )}
@@ -1019,4 +1100,3 @@ export default function CsvImportModal(props: Props) {
     </ModalErrorBoundary>
   );
 }
-

@@ -1,3 +1,4 @@
+import * as XLSX from "xlsx";
 import type { Gender, CommercialType } from "@/types/product";
 import type { MarcaItem, ProductoAdminItem } from "@/types/database";
 
@@ -9,11 +10,11 @@ export interface FilaCsvRaw {
   concentracion?: string;
   pais_origen?: string;
   ocasion_uso?: string;
-  precio_50ml: string;
-  precio_100ml: string;
-  precio_decant_3ml?: string;
-  precio_decant_5ml?: string;
-  precio_decant_10ml?: string;
+  precio_50ml: string | number;
+  precio_100ml: string | number;
+  precio_decant_3ml?: string | number;
+  precio_decant_5ml?: string | number;
+  precio_decant_10ml?: string | number;
 }
 
 export interface FilaCsvProcesada {
@@ -36,46 +37,145 @@ export interface FilaCsvProcesada {
   esDuplicado: boolean;
   idProductoExistente?: number;
   marcaEsNueva: boolean;
+  marcaSugerida?: string;
   errores: string[];
   advertencias: string[];
 }
 
 /**
- * Normaliza valores de género reconociendo sinónimos y variaciones comunes.
+ * Calcula la distancia de edición Levenshtein entre dos cadenas de texto.
  */
-export function normalizarGenero(val?: string): Gender {
+export function distanciaLevenshtein(a: string, b: string): number {
+  const an = a ? a.length : 0;
+  const bn = b ? b.length : 0;
+  if (an === 0) return bn;
+  if (bn === 0) return an;
+  const matrix: number[][] = Array.from({ length: bn + 1 }, () => new Array(an + 1).fill(0));
+  for (let i = 0; i <= bn; i++) matrix[i][0] = i;
+  for (let j = 0; j <= an; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= bn; i++) {
+    for (let j = 1; j <= an; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // sustitución
+          matrix[i][j - 1] + 1,     // inserción
+          matrix[i - 1][j] + 1,     // eliminación
+        );
+      }
+    }
+  }
+  return matrix[bn][an];
+}
+
+/**
+ * Busca si una marca ingresada contiene un error tipográfico cercano a una marca ya registrada.
+ */
+export function buscarMarcaMasCercana(
+  nombreIngresado: string,
+  marcasRegistradas: MarcaItem[],
+): { marca: MarcaItem; distancia: number } | null {
+  const limpio = nombreIngresado.trim().toLowerCase();
+  if (limpio.length < 3) return null;
+
+  let mejorCoincidencia: { marca: MarcaItem; distancia: number } | null = null;
+  let menorDistancia = Infinity;
+
+  for (const m of marcasRegistradas) {
+    const regLimpio = m.nombre.trim().toLowerCase();
+    if (regLimpio === limpio) return null; // Es una coincidencia exacta
+
+    // Comparación sin espacios ni signos
+    const s1 = limpio.replace(/[^a-z0-9]/g, "");
+    const s2 = regLimpio.replace(/[^a-z0-9]/g, "");
+    if (s1 === s2) {
+      return { marca: m, distancia: 0 };
+    }
+
+    // Comparación comprimiendo letras repetidas consecutivas (ej: "diioor" -> "dior", "chanell" -> "chanel")
+    const c1 = s1.replace(/(.)\1+/g, "$1");
+    const c2 = s2.replace(/(.)\1+/g, "$1");
+    if (c1 === c2) {
+      return { marca: m, distancia: 1 };
+    }
+
+    const dist = distanciaLevenshtein(limpio, regLimpio);
+    const umbralMaximo = regLimpio.length <= 5 ? 2 : Math.min(3, Math.floor(regLimpio.length * 0.4));
+
+    if (dist <= umbralMaximo && dist < menorDistancia) {
+      menorDistancia = dist;
+      mejorCoincidencia = { marca: m, distancia: dist };
+    }
+  }
+
+  return mejorCoincidencia;
+}
+
+/**
+ * Normaliza valores de género reconociendo sinónimos, abreviaciones y erratas comunes.
+ */
+export function normalizarGenero(val?: unknown): Gender {
   if (!val) return "Unisex";
-  const v = val.trim().toLowerCase();
-  if (v.startsWith("h") || v === "hombre" || v === "masculino" || v === "man" || v === "men") {
+  const v = String(val).trim().toLowerCase();
+  if (
+    v.startsWith("h") ||
+    v === "hombre" ||
+    v === "ombre" ||
+    v === "masculino" ||
+    v === "masc" ||
+    v === "man" ||
+    v === "men" ||
+    v === "caballero" ||
+    v === "varon"
+  ) {
     return "Hombre";
   }
-  if (v.startsWith("m") || v === "mujer" || v === "femenino" || v === "woman" || v === "women") {
+  if (
+    v.startsWith("m") ||
+    v === "mujer" ||
+    v === "femenino" ||
+    v === "fem" ||
+    v === "woman" ||
+    v === "women" ||
+    v === "dama"
+  ) {
     return "Mujer";
   }
   return "Unisex";
 }
 
 /**
- * Normaliza la línea/gama comercial del perfume.
+ * Normaliza la línea o colección comercial del perfume.
  */
-export function normalizarLineaComercial(val?: string, marca?: string): CommercialType {
+export function normalizarLineaComercial(val?: unknown, marca?: string): CommercialType {
   if (val) {
-    const v = val.trim().toLowerCase();
-    if (v.includes("arabe") || v.includes("árabe") || v.includes("oriental")) return "arabe";
-    if (v.includes("nicho") || v.includes("autor")) return "nicho";
-    if (v.includes("disenador") || v.includes("diseñador") || v.includes("comercial")) return "disenador";
+    const v = String(val).trim().toLowerCase();
+    if (v.includes("arabe") || v.includes("árabe") || v.includes("oriental") || v.includes("dubai")) {
+      return "arabe";
+    }
+    if (v.includes("nicho") || v.includes("autor") || v.includes("niche") || v.includes("exclusivo")) {
+      return "nicho";
+    }
+    if (v.includes("disenador") || v.includes("diseñador") || v.includes("comercial") || v.includes("designer")) {
+      return "disenador";
+    }
   }
   return "disenador";
 }
 
 /**
- * Normaliza un precio escrito en texto (soporta "S/ 490", "490,00", "490.50").
+ * Normaliza un precio numérico o textual (soporta números nativos de Excel, "S/ 490", "490,00", "490.50").
  */
-export function normalizarPrecio(val?: string): number | null {
-  if (!val) return null;
-  const limpio = val
-    .replace(/[^\d.,]/g, "")
-    .replace(",", ".");
+export function normalizarPrecio(val?: unknown): number | null {
+  if (val === undefined || val === null || val === "") return null;
+  if (typeof val === "number") {
+    return isNaN(val) || val < 0 ? null : Math.round(val * 100) / 100;
+  }
+  const str = String(val).trim();
+  if (!str) return null;
+  const limpio = str.replace(/[^\d.,]/g, "").replace(",", ".");
   const num = parseFloat(limpio);
   return isNaN(num) || num < 0 ? null : Math.round(num * 100) / 100;
 }
@@ -91,7 +191,7 @@ export function detectarDelimitador(contenido: string): string {
 }
 
 /**
- * Parser de CSV nativo que maneja campos con comillas y saltos.
+ * Parser de CSV nativo que maneja campos con comillas y comas internas.
  */
 export function parsearLineasCsv(texto: string, delimitador: string): string[][] {
   const lineas: string[][] = [];
@@ -103,7 +203,6 @@ export function parsearLineasCsv(texto: string, delimitador: string): string[][]
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(fila)) !== null) {
-      // Si fue campo entre comillas, des-escapar comillas dobles
       let valor = match[1] !== undefined ? match[1].replace(/""/g, '"') : match[2];
       valores.push(valor !== undefined ? valor.trim() : "");
       if (regex.lastIndex === fila.length && fila.endsWith(delimitador)) {
@@ -119,10 +218,28 @@ export function parsearLineasCsv(texto: string, delimitador: string): string[][]
 }
 
 /**
- * Procesa y valida el contenido completo de un archivo CSV frente al catálogo actual.
+ * Lee y convierte un ArrayBuffer de un archivo Excel (.xlsx o .xls) a una matriz de celdas.
  */
-export function procesarContenidoCsv(
-  contenido: string,
+export function parsearArchivoExcel(buffer: ArrayBuffer): string[][] {
+  const data = new Uint8Array(buffer);
+  const wb = XLSX.read(data, { type: "array" });
+  const sheetName = wb.SheetNames[0];
+  if (!sheetName) return [];
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" }) as any[][];
+  return rows.map((row) =>
+    Array.isArray(row)
+      ? row.map((cell) => (cell !== undefined && cell !== null ? String(cell).trim() : ""))
+      : [],
+  );
+}
+
+/**
+ * Función núcleo que procesa cualquier matriz de celdas (provenga de Excel o CSV),
+ * validando reglas de negocio, detectando duplicados y aplicando corrección inteligente de marcas.
+ */
+export function procesarMatrizFilas(
+  matriz: string[][],
   productosActuales: ProductoAdminItem[],
   marcasActuales: MarcaItem[],
 ): {
@@ -134,19 +251,19 @@ export function procesarContenidoCsv(
     conErrores: number;
   };
 } {
-  const delimitador = detectarDelimitador(contenido);
-  const matriz = parsearLineasCsv(contenido, delimitador);
+  // Filtrar filas totalmente vacías
+  const filasNoVacias = matriz.filter((fila) => fila.some((celda) => celda && String(celda).trim().length > 0));
 
-  if (matriz.length < 2) {
+  if (filasNoVacias.length < 2) {
     return {
       filas: [],
       resumen: { total: 0, validos: 0, duplicados: 0, conErrores: 0 },
     };
   }
 
-  // 1. Mapear encabezados
-  const cabeceras = matriz[0].map((h) =>
-    h
+  // 1. Mapear encabezados dinámicamente
+  const cabeceras = filasNoVacias[0].map((h) =>
+    String(h)
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -168,7 +285,7 @@ export function procesarContenidoCsv(
   const idxDec5 = cabeceras.findIndex((c) => c.includes("decant_5") || c.includes("dec_5") || c.includes("5ml"));
   const idxDec10 = cabeceras.findIndex((c) => c.includes("decant_10") || c.includes("dec_10") || c.includes("10ml"));
 
-  // Conjunto de claves existentes en la base de datos para detección de duplicados
+  // Mapa de productos existentes en la base de datos para detección de duplicados
   const mapaProductosExistentes = new Map<string, number>();
   for (const p of productosActuales) {
     const clave = `${p.marca.trim().toLowerCase()}|${p.nombre.trim().toLowerCase()}`;
@@ -176,11 +293,16 @@ export function procesarContenidoCsv(
   }
 
   const marcasRegistradasLower = new Set(marcasActuales.map((m) => m.nombre.trim().toLowerCase()));
-  const clavesEnCsv = new Set<string>();
+  const mapaMarcasPorNombreExacto = new Map<string, MarcaItem>();
+  for (const m of marcasActuales) {
+    mapaMarcasPorNombreExacto.set(m.nombre.trim().toLowerCase(), m);
+  }
+
+  const clavesEnArchivo = new Set<string>();
   const filasResultado: FilaCsvProcesada[] = [];
 
-  for (let i = 1; i < matriz.length; i++) {
-    const col = matriz[i];
+  for (let i = 1; i < filasNoVacias.length; i++) {
+    const col = filasNoVacias[i];
     const filaNumero = i + 1;
     const errores: string[] = [];
     const advertencias: string[] = [];
@@ -198,11 +320,14 @@ export function procesarContenidoCsv(
     const dec5Raw = idxDec5 !== -1 ? col[idxDec5] || "" : "";
     const dec10Raw = idxDec10 !== -1 ? col[idxDec10] || "" : "";
 
-    // Validar campos obligatorios
-    if (!marcaRaw.trim()) {
+    // 1. Validar campos obligatorios
+    let marca = String(marcaRaw).trim();
+    const nombre = String(nombreRaw).trim();
+
+    if (!marca) {
       errores.push("Falta el nombre de la Marca.");
     }
-    if (!nombreRaw.trim()) {
+    if (!nombre) {
       errores.push("Falta el nombre del Perfume.");
     }
 
@@ -222,38 +347,52 @@ export function procesarContenidoCsv(
     const tieneDecants = Boolean(
       (pDec3 !== null && pDec3 > 0) ||
       (pDec5 !== null && pDec5 > 0) ||
-      (pDec10 !== null && pDec10 > 0)
+      (pDec10 !== null && pDec10 > 0),
     );
 
-    // Normalizaciones con valores elegantes por defecto
-    const marca = marcaRaw.trim();
-    const nombre = nombreRaw.trim();
+    // 2. Normalización con defaults elegantes
     const genero = normalizarGenero(generoRaw);
     const linea_comercial = normalizarLineaComercial(lineaRaw, marca);
-    const concentracion = concRaw.trim() || "Eau de Parfum";
-    const pais_origen = paisRaw.trim() || (linea_comercial === "arabe" ? "Emiratos Árabes Unidos" : "Francia");
-    const ocasion_uso = ocasionRaw.trim() || "Uso profesional diario y reuniones ejecutivas";
+    const concentracion = String(concRaw).trim() || "Eau de Parfum";
+    const pais_origen = String(paisRaw).trim() || (linea_comercial === "arabe" ? "Emiratos Árabes Unidos" : "Francia");
+    const ocasion_uso = String(ocasionRaw).trim() || "Uso distinguido y reuniones ejecutivas";
 
-    // Validar marca
-    const marcaEsNueva = !marcasRegistradasLower.has(marca.toLowerCase());
+    // 3. Verificación de marca y detección de erratas (ej: Diioor -> Dior)
+    let marcaEsNueva = !marcasRegistradasLower.has(marca.toLowerCase());
+    let marcaSugerida: string | undefined = undefined;
+
     if (marcaEsNueva && marca) {
-      advertencias.push(`Marca "${marca}" no existe aún: se creará automáticamente como "${linea_comercial}".`);
+      const coincidenciaCercana = buscarMarcaMasCercana(marca, marcasActuales);
+      if (coincidenciaCercana) {
+        if (coincidenciaCercana.distancia === 0) {
+          // Coincidencia exacta sin signos/espacios
+          marca = coincidenciaCercana.marca.nombre;
+          marcaEsNueva = false;
+        } else {
+          marcaSugerida = coincidenciaCercana.marca.nombre;
+          advertencias.push(
+            `Posible errata en "${marca}". ¿Quisiste decir "${coincidenciaCercana.marca.nombre}"? Si no, se creará una marca nueva.`,
+          );
+        }
+      } else {
+        advertencias.push(`Marca "${marca}" es nueva: se registrará en el catálogo automáticamente.`);
+      }
     }
 
-    // Detección de duplicados
+    // 4. Detección de duplicados
     const clave = `${marca.toLowerCase()}|${nombre.toLowerCase()}`;
     const idExistente = mapaProductosExistentes.get(clave);
     let esDuplicado = Boolean(idExistente);
 
-    if (clavesEnCsv.has(clave)) {
+    if (clavesEnArchivo.has(clave)) {
       esDuplicado = true;
-      advertencias.push("Esta fragancia aparece repetida en este mismo archivo CSV.");
+      advertencias.push("Esta fragancia aparece repetida en el mismo archivo.");
     } else {
-      clavesEnCsv.add(clave);
+      clavesEnArchivo.add(clave);
     }
 
     if (idExistente) {
-      advertencias.push(`Ya está registrada en la tienda (ID #${idExistente}).`);
+      advertencias.push(`Ya registrada en el catálogo oficial (ID #${idExistente}).`);
     }
 
     filasResultado.push({
@@ -275,6 +414,7 @@ export function procesarContenidoCsv(
       esDuplicado,
       idProductoExistente: idExistente,
       marcaEsNueva,
+      marcaSugerida,
       errores,
       advertencias,
     });
@@ -296,7 +436,49 @@ export function procesarContenidoCsv(
 }
 
 /**
- * Genera y descarga en el navegador una plantilla CSV limpia con codificación UTF-8 BOM.
+ * Procesa y valida el contenido de un archivo CSV plano.
+ */
+export function procesarContenidoCsv(
+  contenido: string,
+  productosActuales: ProductoAdminItem[],
+  marcasActuales: MarcaItem[],
+) {
+  const delimitador = detectarDelimitador(contenido);
+  const matriz = parsearLineasCsv(contenido, delimitador);
+  return procesarMatrizFilas(matriz, productosActuales, marcasActuales);
+}
+
+/**
+ * Procesa y valida un archivo Excel (.xlsx o .xls) desde su buffer binario.
+ */
+export function procesarBufferExcel(
+  buffer: ArrayBuffer,
+  productosActuales: ProductoAdminItem[],
+  marcasActuales: MarcaItem[],
+) {
+  const matriz = parsearArchivoExcel(buffer);
+  return procesarMatrizFilas(matriz, productosActuales, marcasActuales);
+}
+
+/**
+ * Descarga la plantilla oficial en formato Excel (.xlsx).
+ * Utiliza el archivo estático pre-generado de alta fidelidad ubicado en /plantillas.
+ */
+export function descargarPlantillaExcel(): void {
+  const a = document.createElement("a");
+  a.href = "/plantillas/plantilla_productos_maison.xlsx";
+  a.setAttribute("download", "plantilla_productos_maison.xlsx");
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    if (a.parentNode) {
+      a.parentNode.removeChild(a);
+    }
+  }, 1000);
+}
+
+/**
+ * Descarga una copia alternativa en formato CSV con codificación UTF-8 BOM.
  */
 export function descargarPlantillaCsv(): void {
   const encabezados = [
@@ -315,62 +497,10 @@ export function descargarPlantillaCsv(): void {
   ];
 
   const filasEjemplo = [
-    [
-      "Dior",
-      "Sauvage Elixir",
-      "disenador",
-      "Hombre",
-      "Parfum",
-      "Francia",
-      "Noche y eventos",
-      "790",
-      "920",
-      "50",
-      "75",
-      "135",
-    ],
-    [
-      "Lattafa",
-      "Khamrah",
-      "arabe",
-      "Unisex",
-      "Eau de Parfum",
-      "Emiratos Árabes Unidos",
-      "Noche e invierno",
-      "240",
-      "320",
-      "25",
-      "35",
-      "60",
-    ],
-    [
-      "Tom Ford",
-      "Oud Wood",
-      "nicho",
-      "Unisex",
-      "Eau de Parfum",
-      "Estados Unidos",
-      "Otoño e invierno",
-      "980",
-      "1110",
-      "60",
-      "90",
-      "165",
-    ],
-    [
-      "Carolina Herrera",
-      "Good Girl Blush",
-      "disenador",
-      "Mujer",
-      "Eau de Parfum",
-      "España",
-      "Uso diario refinado",
-      "520",
-      "650",
-      "",
-      "",
-      "",
-    ],
+    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Francia", "Noche y eventos", "790", "920", "50", "75", "135"],
+    ["Lattafa", "Khamrah", "arabe", "Unisex", "Eau de Parfum", "Emiratos Árabes Unidos", "Noche e invierno", "240", "320", "25", "35", "60"],
+    ["Tom Ford", "Oud Wood", "nicho", "Unisex", "Eau de Parfum", "Estados Unidos", "Otoño e invierno", "980", "1110", "60", "90", "165"],
+    ["Carolina Herrera", "Good Girl Blush", "disenador", "Mujer", "Eau de Parfum", "España", "Uso diario refinado", "520", "650", "", "", ""],
   ];
 
   const csvLineas = [
@@ -378,7 +508,6 @@ export function descargarPlantillaCsv(): void {
     ...filasEjemplo.map((fila) => fila.map((campo) => `"${campo.replace(/"/g, '""')}"`).join(",")),
   ];
 
-  // \uFEFF es el BOM de UTF-8 que hace que Excel abra el archivo con tildes y caracteres perfectos
   const contenidoBlob = "\uFEFF" + csvLineas.join("\r\n");
   const blob = new Blob([contenidoBlob], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -394,4 +523,3 @@ export function descargarPlantillaCsv(): void {
     URL.revokeObjectURL(url);
   }, 1000);
 }
-
