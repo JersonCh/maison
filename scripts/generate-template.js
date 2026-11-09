@@ -151,3 +151,4 @@ XLSX.utils.book_append_sheet(wb, wsGuia, "Guía_y_Valores");
 const outputPath = path.resolve("public/plantillas/plantilla_productos_maison.xlsx");
 XLSX.writeFile(wb, outputPath);
 console.log(`✓ Plantilla Excel generada exitosamente en: ${outputPath}`);
+

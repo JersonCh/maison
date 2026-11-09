@@ -834,18 +834,24 @@ export async function crearNuevoProductoEnDb(
 
   await db.batch(sentenciasVariantes);
 
-  // 4. Asociar a categorías comerciales en producto_categorias
+  // 4. Asociar a categorías comerciales en producto_categorias dinámicamente por slug
   try {
-    const catId = datos.tipo_comercial === "arabe" ? 2 : datos.tipo_comercial === "nicho" ? 3 : 1;
+    const slugCategoria = datos.tipo_comercial === "arabe" ? "arabes" : datos.tipo_comercial === "nicho" ? "nichos" : "disenador";
     await db
-      .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
-      .bind(productoId, catId)
+      .prepare(
+        `INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id)
+         SELECT ?, id FROM categorias WHERE slug = ?`,
+      )
+      .bind(productoId, slugCategoria)
       .run();
 
     if (datos.tiene_decants) {
       await db
-        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
-        .bind(productoId, 4)
+        .prepare(
+          `INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id)
+           SELECT ?, id FROM categorias WHERE slug = 'decants'`,
+        )
+        .bind(productoId)
         .run();
     }
   } catch (err) {
@@ -1099,19 +1105,25 @@ export async function actualizarProductoEnDb(
       .run();
   }
 
-  // Sincronizar tabla relacional producto_categorias
+  // Sincronizar tabla relacional producto_categorias dinámicamente por slug
   try {
     await db.prepare("DELETE FROM producto_categorias WHERE producto_id = ?").bind(productoId).run();
-    const catId = datos.tipo_comercial === "arabe" ? 2 : datos.tipo_comercial === "nicho" ? 3 : 1;
+    const slugCategoria = datos.tipo_comercial === "arabe" ? "arabes" : datos.tipo_comercial === "nicho" ? "nichos" : "disenador";
     await db
-      .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
-      .bind(productoId, catId)
+      .prepare(
+        `INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id)
+         SELECT ?, id FROM categorias WHERE slug = ?`,
+      )
+      .bind(productoId, slugCategoria)
       .run();
 
     if (datos.tiene_decants) {
       await db
-        .prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)")
-        .bind(productoId, 4)
+        .prepare(
+          `INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id)
+           SELECT ?, id FROM categorias WHERE slug = 'decants'`,
+        )
+        .bind(productoId)
         .run();
     }
   } catch (err) {}
@@ -1484,6 +1496,7 @@ export async function importarProductosCsvEnDb(
       continue;
     }
 
+    let nuevoId: number | null = null;
     try {
       // 1. Manejo de duplicados existentes
       if (fila.idProductoExistente && modoDuplicados === "omitir") {
@@ -1583,7 +1596,7 @@ export async function importarProductosCsvEnDb(
       if (!prodFila?.id) {
         throw new Error(`No se pudo obtener el identificador para "${fila.nombre}"`);
       }
-      const nuevoId = prodFila.id;
+      nuevoId = prodFila.id;
 
       // 3. Crear variantes obligatorias de 50 ml y 100 ml en frasco
       const p50Cent = Math.round(fila.precio_50ml * 100);
@@ -1642,14 +1655,24 @@ export async function importarProductosCsvEnDb(
 
       await db.batch(batchVariantes);
 
-      // 4. Asociación de categorías comerciales
-      const catId = fila.linea_comercial === "arabe" ? 2 : fila.linea_comercial === "nicho" ? 3 : 1;
+      // 4. Asociación de categorías comerciales dinámicamente por slug (inmune a cambios de ID)
+      const slugCategoria = fila.linea_comercial === "arabe" ? "arabes" : fila.linea_comercial === "nicho" ? "nichos" : "disenador";
       const batchCategorias = [
-        db.prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)").bind(nuevoId, catId),
+        db
+          .prepare(
+            `INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id)
+             SELECT ?, id FROM categorias WHERE slug = ?`,
+          )
+          .bind(nuevoId, slugCategoria),
       ];
       if (fila.tiene_decants) {
         batchCategorias.push(
-          db.prepare("INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id) VALUES (?, ?)").bind(nuevoId, 4),
+          db
+            .prepare(
+              `INSERT OR IGNORE INTO producto_categorias (producto_id, categoria_id)
+               SELECT ?, id FROM categorias WHERE slug = 'decants'`,
+            )
+            .bind(nuevoId),
         );
       }
       await db.batch(batchCategorias);
@@ -1665,6 +1688,15 @@ export async function importarProductosCsvEnDb(
 
       creados++;
     } catch (err: any) {
+      // Si ocurrió un error durante la inserción, limpiar los registros incompletos para preservar la consistencia
+      if (nuevoId) {
+        try {
+          await db.prepare("DELETE FROM variantes_producto WHERE producto_id = ?").bind(nuevoId).run();
+          await db.prepare("DELETE FROM producto_categorias WHERE producto_id = ?").bind(nuevoId).run();
+          await db.prepare("DELETE FROM imagenes_producto WHERE producto_id = ?").bind(nuevoId).run();
+          await db.prepare("DELETE FROM productos WHERE id = ?").bind(nuevoId).run();
+        } catch {}
+      }
       console.error(`Error al procesar fila #${fila.filaNumero} (${fila.nombre}):`, err);
       errores.push(`Fila #${fila.filaNumero} (${fila.nombre}): ${err.message || "Error desconocido"}`);
     }
