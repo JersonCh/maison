@@ -13,6 +13,25 @@ interface Props {
 
 const ITEMS_PER_PAGE = 8;
 
+export const esFotoPendiente = (p: ProductoAdminItem) => {
+  return (
+    p.imagenes.length === 0 ||
+    (p.imagenes.length === 1 &&
+      (p.imagenes[0].includes("logo-no-fondo300") ||
+        p.imagenes[0].includes("imagenxdefecto") ||
+        p.imagenes[0].trim() === ""))
+  );
+};
+
+export const tieneDecants = (p: ProductoAdminItem) => {
+  return Boolean(
+    p.tiene_decants ||
+      p.precio_decant_3ml ||
+      p.precio_decant_5ml ||
+      p.precio_decant_10ml,
+  );
+};
+
 export default function ProductTable({
   products,
   onEdit,
@@ -24,13 +43,43 @@ export default function ProductTable({
   const [busqueda, setBusqueda] = useState("");
   const [filtroGenero, setFiltroGenero] = useState<string>("todos");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
+  const [filtroDecants, setFiltroDecants] = useState<string>("todos");
+  const [filtroFotos, setFiltroFotos] = useState<string>("todos");
   const [paginaActual, setPaginaActual] = useState(1);
 
-  // Filtrado de productos
+  // Contadores dinámicos para los selectores
+  const totalPendientesFoto = useMemo(() => {
+    return products.filter(esFotoPendiente).length;
+  }, [products]);
+
+  const totalConDecants = useMemo(() => {
+    return products.filter(tieneDecants).length;
+  }, [products]);
+
+  const hayFiltrosActivos = useMemo(() => {
+    return (
+      Boolean(busqueda.trim()) ||
+      filtroGenero !== "todos" ||
+      filtroTipo !== "todos" ||
+      filtroDecants !== "todos" ||
+      filtroFotos !== "todos"
+    );
+  }, [busqueda, filtroGenero, filtroTipo, filtroDecants, filtroFotos]);
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroGenero("todos");
+    setFiltroTipo("todos");
+    setFiltroDecants("todos");
+    setFiltroFotos("todos");
+    setPaginaActual(1);
+  };
+
+  // Filtrado de productos multi-criterio
   const productosFiltrados = useMemo(() => {
     return products.filter((p) => {
       const coincideTexto =
-        `${p.marca} ${p.nombre}`
+        `${p.marca} ${p.nombre} ${p.familia_olfativa || ""}`
           .toLowerCase()
           .includes(busqueda.toLowerCase());
 
@@ -39,20 +88,31 @@ export default function ProductTable({
         p.genero.toLowerCase() === filtroGenero.toLowerCase();
 
       const coincideTipo =
-        filtroTipo === "todos"
-          ? true
-          : filtroTipo === "decant"
-            ? Boolean(
-                p.tiene_decants ||
-                  p.precio_decant_3ml ||
-                  p.precio_decant_5ml ||
-                  p.precio_decant_10ml,
-              )
-            : p.tipo_comercial === filtroTipo;
+        filtroTipo === "todos" ? true : p.tipo_comercial === filtroTipo;
 
-      return coincideTexto && coincideGenero && coincideTipo;
+      const coincideDecants =
+        filtroDecants === "todos"
+          ? true
+          : filtroDecants === "con_decants"
+            ? tieneDecants(p)
+            : !tieneDecants(p);
+
+      const coincideFotos =
+        filtroFotos === "todos"
+          ? true
+          : filtroFotos === "pendientes"
+            ? esFotoPendiente(p)
+            : !esFotoPendiente(p);
+
+      return (
+        coincideTexto &&
+        coincideGenero &&
+        coincideTipo &&
+        coincideDecants &&
+        coincideFotos
+      );
     });
-  }, [products, busqueda, filtroGenero, filtroTipo]);
+  }, [products, busqueda, filtroGenero, filtroTipo, filtroDecants, filtroFotos]);
 
   // Cálculo de páginas
   const totalPaginas = Math.max(
@@ -93,17 +153,19 @@ export default function ProductTable({
 
   return (
     <div className="products-admin">
-      <div className="admin-tools">
+      <div className="admin-tools" style={{ gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
         <div
           style={{
             display: "flex",
-            gap: "10px",
+            gap: "8px",
             alignItems: "center",
             flex: 1,
-            maxWidth: "560px",
+            flexWrap: "wrap",
+            minWidth: "300px",
           }}
         >
-          <div className="catalog-search" style={{ position: "relative", flex: 1 }}>
+          {/* 1. Buscador */}
+          <div className="catalog-search" style={{ position: "relative", minWidth: "220px", flex: "1 1 220px" }}>
             <Icon name="search" />
             <input
               placeholder="Buscar por fragancia, casa o familia..."
@@ -141,26 +203,7 @@ export default function ProductTable({
             )}
           </div>
 
-          <select
-            value={filtroGenero}
-            onChange={(e) => {
-              setFiltroGenero(e.target.value);
-              setPaginaActual(1);
-            }}
-            style={{
-              padding: "10px 14px",
-              fontSize: "13px",
-              border: "1px solid #dcdad3",
-              background: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            <option value="todos">Todos los géneros</option>
-            <option value="unisex">Unisex</option>
-            <option value="hombre">Hombre</option>
-            <option value="mujer">Mujer</option>
-          </select>
-
+          {/* 2. Filtro Línea */}
           <select
             value={filtroTipo}
             onChange={(e) => {
@@ -168,19 +211,119 @@ export default function ProductTable({
               setPaginaActual(1);
             }}
             style={{
-              padding: "10px 14px",
-              fontSize: "13px",
-              border: "1px solid #dcdad3",
-              background: "#fff",
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroTipo !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroTipo !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
               cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroTipo !== "todos" ? 600 : "normal",
             }}
+            title="Filtrar por línea o gama comercial"
           >
             <option value="todos">Todas las líneas</option>
             <option value="disenador">Diseñador</option>
             <option value="arabe">Árabes</option>
             <option value="nicho">Nichos</option>
-            <option value="decant">✦ Con Decants</option>
           </select>
+
+          {/* 3. Filtro Género */}
+          <select
+            value={filtroGenero}
+            onChange={(e) => {
+              setFiltroGenero(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroGenero !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroGenero !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroGenero !== "todos" ? 600 : "normal",
+            }}
+            title="Filtrar por género olfativo"
+          >
+            <option value="todos">Todos los géneros</option>
+            <option value="unisex">Unisex</option>
+            <option value="hombre">Hombre</option>
+            <option value="mujer">Mujer</option>
+          </select>
+
+          {/* 4. Filtro Decants */}
+          <select
+            value={filtroDecants}
+            onChange={(e) => {
+              setFiltroDecants(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroDecants !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroDecants !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroDecants !== "todos" ? 600 : "normal",
+            }}
+            title="Filtrar por disponibilidad de decants"
+          >
+            <option value="todos">Decants: Todos</option>
+            <option value="con_decants">✦ Con Decants {totalConDecants > 0 ? `(${totalConDecants})` : ""}</option>
+            <option value="sin_decants">Solo frascos sellados</option>
+          </select>
+
+          {/* 5. Filtro Fotografías (Foto Pendiente) */}
+          <select
+            value={filtroFotos}
+            onChange={(e) => {
+              setFiltroFotos(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroFotos !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroFotos === "pendientes" ? "rgba(240, 212, 126, 0.2)" : filtroFotos !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
+              color: filtroFotos === "pendientes" ? "var(--gold-deep)" : "inherit",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroFotos !== "todos" ? 600 : "normal",
+            }}
+            title="Filtrar por estado de fotografías de producto"
+          >
+            <option value="todos">Fotos: Todas</option>
+            <option value="con_foto">Con fotografías oficiales</option>
+            <option value="pendientes">
+              Pendientes de foto {totalPendientesFoto > 0 ? `(${totalPendientesFoto})` : ""}
+            </option>
+          </select>
+
+          {/* Botón Restablecer si hay filtros activos */}
+          {hayFiltrosActivos && (
+            <button
+              type="button"
+              onClick={limpiarFiltros}
+              style={{
+                background: "none",
+                border: "1px dashed #c0bcaf",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                fontSize: "12px",
+                color: "var(--muted)",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                transition: "all 0.15s ease",
+              }}
+              title="Restablecer todos los filtros y búsqueda"
+            >
+              <Icon name="close" size={10} />
+              <span>Limpiar filtros</span>
+            </button>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -225,13 +368,25 @@ export default function ProductTable({
         {productosFiltrados.length === 0 ? (
           <div
             style={{
-              padding: "45px",
+              padding: "45px 20px",
               textAlign: "center",
               color: "var(--muted)",
               fontSize: "14px",
             }}
           >
-            No se encontraron perfumes que coincidan con la búsqueda o filtro.
+            <p style={{ margin: "0 0 12px", color: "var(--charcoal)", fontSize: "14px" }}>
+              No se encontraron fragancias que coincidan con la búsqueda o filtros aplicados.
+            </p>
+            {hayFiltrosActivos && (
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ fontSize: "12px", padding: "6px 14px", borderColor: "var(--gold)", color: "var(--gold-deep)" }}
+                onClick={limpiarFiltros}
+              >
+                Restablecer todos los filtros
+              </button>
+            )}
           </div>
         ) : (
           productosPaginados.map((p) => (
@@ -329,7 +484,7 @@ export default function ProductTable({
               </span>
 
               <span style={{ fontSize: "12.5px", color: "var(--gold-deep)", fontWeight: 500 }}>
-                {p.imagenes.length === 1 && (p.imagenes[0].includes("logo-no-fondo300") || p.imagenes[0].includes("imagenxdefecto")) ? (
+                {esFotoPendiente(p) ? (
                   <span
                     style={{
                       fontSize: "10.5px",
