@@ -26,7 +26,8 @@ export type IconName =
     | "box"
     | "clock"
     | "creditCard"
-    | "play";
+    | "play"
+    | "upload";
 
 const filledIcons = new Set<IconName>([
     "whatsapp",
@@ -128,6 +129,13 @@ const paths: Record<IconName, ReactNode> = {
         </>
     ),
     play: <polygon points="6 3 20 12 6 21 6 3" />,
+    upload: (
+        <>
+            <path d="M4 16.5v2.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5" />
+            <polyline points="16 8 12 4 8 8" />
+            <line x1="12" y1="4" x2="12" y2="16" />
+        </>
+    ),
 };
 
 export default function Icon({
