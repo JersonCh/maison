@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type {
   ProductoAdminItem,
   MarcaItem,
@@ -65,6 +65,8 @@ export default function ProductFormPage({
   const [modoEditarSlug, setModoEditarSlug] = useState(false);
   const [slugPersonalizado, setSlugPersonalizado] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const inputNombreRef = useRef<HTMLInputElement>(null);
+  const [mensajeExitoTemporal, setMensajeExitoTemporal] = useState<string | null>(null);
   const [marcaId, setMarcaId] = useState<number>(
     initialProduct?.marca_id || marcasDisponibles[0]?.id || 1,
   );
@@ -186,9 +188,10 @@ export default function ProductFormPage({
     }
   };
 
-  const manejarEnvio = async (e?: React.FormEvent) => {
+  const manejarEnvio = async (e?: React.FormEvent, continuarConOtro: boolean = false) => {
     if (e) e.preventDefault();
     setErrorValidacion("");
+    setMensajeExitoTemporal(null);
 
     if (!nombre.trim()) {
       setErrorValidacion("El nombre de la fragancia es obligatorio.");
@@ -269,12 +272,40 @@ export default function ProductFormPage({
         await onReloadMetadata();
       }
 
-      onSuccess(
-        esEdicion
-          ? `✓ Fragancia "${nombre}" guardada correctamente.`
-          : `✓ Fragancia "${nombre}" creada exitosamente.`,
-      );
-      onBack();
+      const nombreGuardado = nombre;
+
+      if (continuarConOtro && !esEdicion) {
+        // Notificar al dashboard para refrescar catálogo y mostrar Toast
+        onSuccess(`✓ Fragancia "${nombreGuardado}" creada exitosamente.`);
+        setMensajeExitoTemporal(`✓ "${nombreGuardado}" se guardó con éxito. Formulario listo para la siguiente fragancia.`);
+
+        // Limpiar campos específicos del producto actual
+        setNombre("");
+        setSlug("");
+        setSlugEditado("");
+        setModoEditarSlug(false);
+        setSlugPersonalizado(false);
+        setDescripcion("");
+        setFotoPortada("");
+        setFotoCaja("");
+        setFotoDetalle("");
+        setEsDestacado(false);
+        setModoNuevaMarca(false);
+        setNuevaMarca("");
+
+        // Mantiene Marca, Línea, Género, Concentración, País, Ocasión y Precios
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => {
+          inputNombreRef.current?.focus();
+        }, 300);
+      } else {
+        onSuccess(
+          esEdicion
+            ? `✓ Fragancia "${nombreGuardado}" guardada correctamente.`
+            : `✓ Fragancia "${nombreGuardado}" creada exitosamente.`,
+        );
+        onBack();
+      }
     } catch (err: any) {
       setErrorValidacion(err.message || "Error al guardar el perfume.");
     } finally {
@@ -343,10 +374,21 @@ export default function ProductFormPage({
           >
             Descartar
           </button>
+          {!esEdicion && (
+            <button
+              type="button"
+              className="btn btn-outline-gold"
+              onClick={() => manejarEnvio(undefined, true)}
+              disabled={guardando}
+              title="Guarda esta fragancia y mantiene marca, país y precios para la siguiente"
+            >
+              + Guardar y añadir otro
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-gold"
-            onClick={() => manejarEnvio()}
+            onClick={() => manejarEnvio(undefined, false)}
             disabled={guardando}
           >
             {guardando
@@ -357,6 +399,29 @@ export default function ProductFormPage({
           </button>
         </div>
       </header>
+
+      {mensajeExitoTemporal && (
+        <div className="product-page-alert-success">
+          <Icon name="check" />
+          <span>{mensajeExitoTemporal}</span>
+          <button
+            type="button"
+            onClick={() => setMensajeExitoTemporal(null)}
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: 0,
+              cursor: "pointer",
+              color: "inherit",
+              display: "flex",
+              alignItems: "center",
+            }}
+            aria-label="Cerrar mensaje"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+      )}
 
       {errorValidacion && (
         <div className="product-page-alert-error">
@@ -386,6 +451,7 @@ export default function ProductFormPage({
                 <label>
                   Nombre del perfume *
                   <input
+                    ref={inputNombreRef}
                     required
                     placeholder="Ej. Baccarat Rouge 540"
                     value={nombre}
@@ -1031,7 +1097,7 @@ export default function ProductFormPage({
                 type="button"
                 className="btn btn-gold"
                 style={{ width: "100%", justifyContent: "center", padding: "14px" }}
-                onClick={() => manejarEnvio()}
+                onClick={() => manejarEnvio(undefined, false)}
                 disabled={guardando}
               >
                 {guardando
@@ -1040,10 +1106,21 @@ export default function ProductFormPage({
                     ? "✓ Guardar cambios"
                     : "✓ Publicar fragancia"}
               </button>
+              {!esEdicion && (
+                <button
+                  type="button"
+                  className="btn btn-outline-gold"
+                  style={{ width: "100%", justifyContent: "center", padding: "12px", marginTop: "8px" }}
+                  onClick={() => manejarEnvio(undefined, true)}
+                  disabled={guardando}
+                >
+                  + Guardar y añadir otro
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn-ghost"
-                style={{ width: "100%", justifyContent: "center" }}
+                style={{ width: "100%", justifyContent: "center", marginTop: "6px" }}
                 onClick={onBack}
                 disabled={guardando}
               >
