@@ -18,6 +18,32 @@ interface Props {
   onReloadMetadata?: () => Promise<void>;
 }
 
+const PAISES_ORIGEN_COMBO = [
+  "Francia",
+  "Italia",
+  "Emiratos Árabes Unidos",
+  "España",
+  "Estados Unidos",
+  "Reino Unido",
+  "Alemania",
+  "Suecia",
+  "Suiza",
+  "Omán",
+];
+
+const OCASIONES_USO_COMBO = [
+  "Uso profesional diario y reuniones ejecutivas",
+  "Uso diario refinado y citas especiales",
+  "Noche, ocasiones especiales y eventos exclusivos",
+  "Noche, fiesta y salidas nocturnas",
+  "Día, clima cálido y reuniones sociales",
+  "Noches frías y ocasiones de gala",
+  "Día y noche, versatilidad total",
+  "Día a día, viajes y momentos casuales",
+  "Verano, frescura casual y paseos al aire libre",
+  "Otoño e invierno, notas cálidas y maderas",
+];
+
 export default function ProductFormPage({
   initialProduct,
   marcasDisponibles,
@@ -61,8 +87,20 @@ export default function ProductFormPage({
 
   const [descripcion, setDescripcion] = useState(initialProduct?.descripcion || "");
   const [paisOrigen, setPaisOrigen] = useState(initialProduct?.pais_origen || "Francia");
+  const [modoPaisPersonalizado, setModoPaisPersonalizado] = useState(
+    Boolean(
+      initialProduct?.pais_origen &&
+        !PAISES_ORIGEN_COMBO.includes(initialProduct.pais_origen),
+    ),
+  );
   const [ocasionUso, setOcasionUso] = useState(
-    initialProduct?.ocasion_uso || "Noche y eventos de distinción",
+    initialProduct?.ocasion_uso || "Uso profesional diario y reuniones ejecutivas",
+  );
+  const [modoOcasionPersonalizada, setModoOcasionPersonalizada] = useState(
+    Boolean(
+      initialProduct?.ocasion_uso &&
+        !OCASIONES_USO_COMBO.includes(initialProduct.ocasion_uso),
+    ),
   );
 
   // Precios en Soles
@@ -514,28 +552,99 @@ export default function ProductFormPage({
                   <option value="Eau de Parfum">Eau de Parfum (EDP)</option>
                   <option value="Parfum">Parfum</option>
                   <option value="Extrait de Parfum">Extrait de Parfum</option>
+                  <option value="Elixir">Elixir</option>
                   <option value="Eau de Toilette">Eau de Toilette (EDT)</option>
                   <option value="Eau de Cologne">Eau de Cologne</option>
                 </select>
               </label>
 
-              <label>
-                País de origen
-                <input
-                  placeholder="Ej. Francia, Italia, España"
-                  value={paisOrigen}
-                  onChange={(e) => setPaisOrigen(e.target.value)}
-                />
-              </label>
+              <div>
+                <label>
+                  País de origen (Procedencia)
+                  {!modoPaisPersonalizado ? (
+                    <select
+                      value={PAISES_ORIGEN_COMBO.includes(paisOrigen) ? paisOrigen : "__otro__"}
+                      onChange={(e) => {
+                        if (e.target.value === "__otro__") {
+                          setModoPaisPersonalizado(true);
+                        } else {
+                          setPaisOrigen(e.target.value);
+                        }
+                      }}
+                    >
+                      {PAISES_ORIGEN_COMBO.map((pais) => (
+                        <option key={pais} value={pais}>
+                          {pais}
+                        </option>
+                      ))}
+                      <option value="__otro__">+ Otro país (escribir personalizado)...</option>
+                    </select>
+                  ) : (
+                    <input
+                      placeholder="Escribe el país de procedencia (ej. Japón)"
+                      value={paisOrigen}
+                      onChange={(e) => setPaisOrigen(e.target.value)}
+                      autoFocus
+                    />
+                  )}
+                </label>
+                {modoPaisPersonalizado && (
+                  <button
+                    type="button"
+                    className="toggle-field-btn"
+                    onClick={() => {
+                      setModoPaisPersonalizado(false);
+                      setPaisOrigen(PAISES_ORIGEN_COMBO[0]);
+                    }}
+                  >
+                    ← Elegir país de la lista
+                  </button>
+                )}
+              </div>
 
-              <label className="full-field">
-                Ocasión de uso recomendada
-                <input
-                  placeholder="Ej. Noche, eventos exclusivos, climas templados"
-                  value={ocasionUso}
-                  onChange={(e) => setOcasionUso(e.target.value)}
-                />
-              </label>
+              <div className="full-field">
+                <label>
+                  Ocasión de uso recomendada
+                  {!modoOcasionPersonalizada ? (
+                    <select
+                      value={OCASIONES_USO_COMBO.includes(ocasionUso) ? ocasionUso : "__otro__"}
+                      onChange={(e) => {
+                        if (e.target.value === "__otro__") {
+                          setModoOcasionPersonalizada(true);
+                        } else {
+                          setOcasionUso(e.target.value);
+                        }
+                      }}
+                    >
+                      {OCASIONES_USO_COMBO.map((ocasion) => (
+                        <option key={ocasion} value={ocasion}>
+                          {ocasion}
+                        </option>
+                      ))}
+                      <option value="__otro__">+ Otra ocasión (escribir personalizada)...</option>
+                    </select>
+                  ) : (
+                    <input
+                      placeholder="Escribe la ocasión recomendada (ej. Cenas románticas y veladas íntimas)"
+                      value={ocasionUso}
+                      onChange={(e) => setOcasionUso(e.target.value)}
+                      autoFocus
+                    />
+                  )}
+                </label>
+                {modoOcasionPersonalizada && (
+                  <button
+                    type="button"
+                    className="toggle-field-btn"
+                    onClick={() => {
+                      setModoOcasionPersonalizada(false);
+                      setOcasionUso(OCASIONES_USO_COMBO[0]);
+                    }}
+                  >
+                    ← Elegir ocasión de la lista
+                  </button>
+                )}
+              </div>
 
               <label className="full-field">
                 Descripción y narrativa olfativa
