@@ -359,6 +359,53 @@ function CsvImportModalContent({
     }
   };
 
+  // Corrección en tiempo real de la casa de perfumería desde la previsualización
+  const corregirMarcaFila = (filaNumero: number, nuevaMarca: string) => {
+    setFilas((prev) =>
+      prev.map((f) => {
+        if (f.filaNumero !== filaNumero) return f;
+
+        const marcaLimpia = nuevaMarca.trim();
+        const marcaEncontrada = marcas.find(
+          (m) => m.nombre.trim().toLowerCase() === marcaLimpia.toLowerCase(),
+        );
+
+        const marcaFinal = marcaEncontrada ? marcaEncontrada.nombre : marcaLimpia;
+        const marcaEsNueva = !marcaEncontrada;
+
+        // Limpiar advertencia de errata
+        const advertenciasLimpias = f.advertencias.filter(
+          (adv) => !adv.includes("Posible errata"),
+        );
+
+        // Sincronizar línea comercial si la casa registrada tiene una asociada
+        const nuevaLinea = marcaEncontrada?.tipo_comercial || f.linea_comercial;
+
+        // Comprobar si se convirtió en duplicado de un perfume ya registrado
+        const clave = `${marcaFinal.toLowerCase()}|${f.nombre.trim().toLowerCase()}`;
+        const prodExistente = productos.find(
+          (p) => `${p.marca.trim().toLowerCase()}|${p.nombre.trim().toLowerCase()}` === clave,
+        );
+        const esDuplicado = Boolean(prodExistente);
+
+        if (esDuplicado && !advertenciasLimpias.some((a) => a.includes("Ya registrada"))) {
+          advertenciasLimpias.push(`Ya registrada en el catálogo oficial (ID #${prodExistente!.id}).`);
+        }
+
+        return {
+          ...f,
+          marca: marcaFinal,
+          linea_comercial: nuevaLinea,
+          marcaEsNueva,
+          marcaSugerida: undefined,
+          esDuplicado,
+          idProductoExistente: prodExistente?.id,
+          advertencias: advertenciasLimpias,
+        };
+      }),
+    );
+  };
+
   // Contadores
   const resumen = useMemo(() => {
     const total = filas.length;
@@ -1199,23 +1246,61 @@ function CsvImportModalContent({
                             </td>
                             <td style={{ padding: "9px 12px" }}>
                               <strong style={{ color: "var(--ink)", display: "block" }}>{f.nombre || "—"}</strong>
-                              <span style={{ color: "var(--muted)", fontSize: "11px" }}>{f.marca || "—"}</span>
-                              {f.marcaSugerida && (
-                                <span
-                                  style={{
-                                    display: "inline-block",
-                                    fontSize: "10.5px",
-                                    background: "rgba(240, 212, 126, 0.2)",
-                                    color: "var(--gold-deep)",
-                                    border: "1px solid rgba(150, 108, 40, 0.25)",
-                                    padding: "1px 6px",
-                                    borderRadius: "2px",
-                                    marginTop: "2px",
-                                  }}
-                                >
-                                  ¿Sugerencia: {f.marcaSugerida}?
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginTop: "3px" }}>
+                                <span style={{ color: "var(--charcoal)", fontSize: "11.5px", fontWeight: 500 }}>
+                                  {f.marca || "—"}
                                 </span>
-                              )}
+
+                                {f.marcaSugerida && (
+                                  <button
+                                    type="button"
+                                    onClick={() => corregirMarcaFila(f.filaNumero, f.marcaSugerida!)}
+                                    title={`Haz clic para cambiar "${f.marca}" por la casa oficial "${f.marcaSugerida}"`}
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "3px",
+                                      fontSize: "11px",
+                                      fontWeight: 600,
+                                      background: "rgba(215, 173, 87, 0.16)",
+                                      color: "var(--gold-deep)",
+                                      border: "1px solid var(--gold)",
+                                      padding: "1px 7px",
+                                      borderRadius: "3px",
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    ✓ Usar "{f.marcaSugerida}"
+                                  </button>
+                                )}
+
+                                <select
+                                  value={marcas.some((m) => m.nombre.toLowerCase() === f.marca.toLowerCase()) ? f.marca : "__cambiar__"}
+                                  onChange={(e) => {
+                                    if (e.target.value !== "__cambiar__") {
+                                      corregirMarcaFila(f.filaNumero, e.target.value);
+                                    }
+                                  }}
+                                  style={{
+                                    fontSize: "10.5px",
+                                    padding: "1px 4px",
+                                    border: "1px solid #d5d3cb",
+                                    borderRadius: "3px",
+                                    background: "#fff",
+                                    color: "#666",
+                                    cursor: "pointer",
+                                    maxWidth: "115px",
+                                  }}
+                                  title="O selecciona otra casa registrada"
+                                >
+                                  <option value="__cambiar__">Cambiar casa...</option>
+                                  {marcas.map((m) => (
+                                    <option key={m.id} value={m.nombre}>
+                                      {m.nombre}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </td>
                             <td style={{ padding: "9px 12px", textTransform: "capitalize" }}>
                               {f.linea_comercial}
