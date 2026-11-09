@@ -1698,7 +1698,16 @@ export async function importarProductosCsvEnDb(
         } catch {}
       }
       console.error(`Error al procesar fila #${fila.filaNumero} (${fila.nombre}):`, err);
-      errores.push(`Fila #${fila.filaNumero} (${fila.nombre}): ${err.message || "Error desconocido"}`);
+      let mensajeError = err.message || "Error al registrar la fragancia.";
+      if (
+        mensajeError.includes("D1_ERROR") ||
+        mensajeError.includes("SQL") ||
+        mensajeError.includes("parameter bindings") ||
+        mensajeError.includes("SQLITE")
+      ) {
+        mensajeError = "No se pudo registrar la información de la fragancia en el catálogo oficial.";
+      }
+      errores.push(`Fila #${fila.filaNumero} (${fila.nombre}): ${mensajeError}`);
     }
   }
 

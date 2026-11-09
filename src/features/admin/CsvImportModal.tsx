@@ -570,10 +570,10 @@ function CsvImportModalContent({
 
                       <div>
                         <strong style={{ display: "block", color: "var(--gold-deep)", marginBottom: "4px" }}>
-                          5. Imágenes (Cloudflare R2)
+                          5. Fotografías de las fragancias
                         </strong>
                         <p style={{ margin: 0, color: "var(--muted)", fontSize: "12.5px" }}>
-                          <strong>No requiere URLs externas de imágenes.</strong> Cada fragancia se crea con el emblema de la casa y podrás subir sus fotos oficiales en alta resolución directamente a Cloudflare R2 al editar el producto.
+                          <strong>No requiere enlaces de imágenes.</strong> Cada fragancia se registra con el emblema de la casa y podrás adjuntar sus fotografías en alta resolución directamente desde el panel al editar el producto.
                         </p>
                       </div>
                     </div>
@@ -932,7 +932,7 @@ function CsvImportModalContent({
                 ¡Lote de perfumes procesado con éxito!
               </h3>
               <p style={{ color: "var(--muted)", fontSize: "14px", margin: "0 0 24px 0" }}>
-                Los registros se sincronizaron con la base de datos de Cloudflare D1.
+                Los registros se sincronizaron exitosamente con el catálogo oficial de la tienda.
               </p>
 
               <div
@@ -1009,7 +1009,7 @@ function CsvImportModalContent({
                   lineHeight: "1.5",
                 }}
               >
-                📸 <strong>Fotografías en Cloudflare R2:</strong> Cada fragancia se ha dado de alta con el emblema de la casa. Puedes abrir su ficha técnica desde la tabla para adjuntar sus 3 fotografías oficiales de frasco, caja y detalle.
+                📸 <strong>Fotografías del producto:</strong> Cada fragancia se ha dado de alta con el emblema oficial. Puedes abrir su ficha técnica desde el catálogo para adjuntar sus fotografías en alta resolución de frasco, caja y detalle.
               </div>
             </div>
           )}
@@ -1062,7 +1062,7 @@ function CsvImportModalContent({
                 style={{ minWidth: "220px" }}
               >
                 {importando ? (
-                  <span>⏳ Importando a D1...</span>
+                  <span>⏳ Guardando en el catálogo...</span>
                 ) : (
                   <span>
                     ✓ Confirmar e importar {cantidadAImportar}{" "}
