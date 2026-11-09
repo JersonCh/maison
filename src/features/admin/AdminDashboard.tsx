@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import type {
   ProductoAdminItem,
   MarcaItem,
+  MarcaAdminItem,
   FamiliaOlfativaItem,
 } from "@/types/database";
 import Icon from "@/components/ui/Icon";
 import ProductTable from "./ProductTable";
 import ProductFormPage from "./ProductFormPage";
 import CsvImportModal from "./CsvImportModal";
+import BrandsManagementPage from "./BrandsManagementPage";
 
 interface Props {
   initialProducts?: any[];
@@ -18,9 +20,10 @@ export default function AdminDashboard({ }: Props) {
   const [section, setSection] = useState("dashboard");
   const [cargando, setCargando] = useState(false);
 
-  // Datos en vivo desde Cloudflare D1
+  // Datos en vivo desde la base de datos
   const [productos, setProductos] = useState<ProductoAdminItem[]>([]);
   const [marcas, setMarcas] = useState<MarcaItem[]>([]);
+  const [marcasAdmin, setMarcasAdmin] = useState<MarcaAdminItem[]>([]);
   const [familias, setFamilias] = useState<FamiliaOlfativaItem[]>([]);
 
   // Estados de vista de producto (Página dedicada - Opción A)
@@ -38,21 +41,36 @@ export default function AdminDashboard({ }: Props) {
     window.setTimeout(() => setToastMensaje(""), 3500);
   };
 
-  // Cargar metadatos (marcas y familias olfativas) desde Cloudflare D1
+  // Cargar casas de perfumería con métricas completas
+  const cargarMarcas = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/admin/brands");
+      if (resp.ok) {
+        const datos = await resp.json();
+        if (datos.marcas) {
+          setMarcasAdmin(datos.marcas);
+          setMarcas(datos.marcas);
+        }
+      }
+    } catch (error) {
+      console.error("Error al cargar casas de perfumería:", error);
+    }
+  }, []);
+
+  // Cargar metadatos secundarios (familias olfativas)
   const cargarMetadatos = useCallback(async () => {
     try {
       const resp = await fetch("/api/admin/metadata");
       if (resp.ok) {
         const datos = await resp.json();
-        if (datos.marcas) setMarcas(datos.marcas);
         if (datos.familias) setFamilias(datos.familias);
       }
     } catch (error) {
-      console.error("Error al cargar metadatos de D1:", error);
+      console.error("Error al cargar metadatos:", error);
     }
   }, []);
 
-  // Cargar lista completa de productos desde Cloudflare D1
+  // Cargar lista completa de productos
   const cargarProductos = useCallback(async () => {
     setCargando(true);
     try {
@@ -62,7 +80,7 @@ export default function AdminDashboard({ }: Props) {
         setProductos(lista);
       }
     } catch (error) {
-      console.error("Error al cargar productos de D1:", error);
+      console.error("Error al cargar productos:", error);
     } finally {
       setCargando(false);
     }
@@ -70,10 +88,11 @@ export default function AdminDashboard({ }: Props) {
 
   useEffect(() => {
     if (logged) {
+      cargarMarcas();
       cargarMetadatos();
       cargarProductos();
     }
-  }, [logged, cargarMetadatos, cargarProductos]);
+  }, [logged, cargarMarcas, cargarMetadatos, cargarProductos]);
 
   // Manejadores de acciones del CRUD
   const manejarAbrirCreacion = () => {
@@ -346,24 +365,16 @@ export default function AdminDashboard({ }: Props) {
           )
         )}
 
-        {/* 3. SECCIÓN MARCAS / CASAS */}
+        {/* 3. SECCIÓN MARCAS / CASAS DE PERFUMERÍA */}
         {section === "brands" && (
-          <div className="admin-placeholder">
-            <header>
-              <small className="eyebrow">Catálogo</small>
-              <h2>Casas de Perfumería</h2>
-              <p>Marcas y casas de perfumería registradas en el catálogo.</p>
-            </header>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "25px" }}>
-              {marcas.slice(0, 12).map((m) => (
-                <article key={m.id}>
-                  <span>{m.nombre.slice(0, 2).toUpperCase()}</span>
-                  <strong>{m.nombre}</strong>
-                  <span style={{ fontSize: "12px", color: "var(--muted)" }}>Activa</span>
-                </article>
-              ))}
-            </div>
-          </div>
+          <BrandsManagementPage
+            marcas={marcasAdmin}
+            onRecargarMarcas={async () => {
+              await cargarMarcas();
+              await cargarProductos();
+            }}
+            onMostrarToast={mostrarToast}
+          />
         )}
 
         {/* 4. SECCIÓN BANNERS */}

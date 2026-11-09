@@ -102,6 +102,18 @@ export interface MarcaItem {
   tipo_comercial?: "disenador" | "arabe" | "nicho";
 }
 
+export interface MarcaAdminItem {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion?: string | null;
+  tipo_comercial: "disenador" | "arabe" | "nicho";
+  activo: boolean;
+  total_productos: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface FamiliaOlfativaItem {
   id: number;
   nombre: string;
