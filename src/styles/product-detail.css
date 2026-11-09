@@ -19,11 +19,13 @@
 .stock { display: flex; align-items: center; gap: 6px; margin: 19px 0; color: var(--muted); font-size: 10px; }
 .stock i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
 .stock span { color: var(--green); font-weight: 600; }
+
 .option-block { padding: 20px 0; border-top: 1px solid var(--line); }
-.option-block > div:first-child { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; text-transform: uppercase; }
-.option-block > div:first-child span { color: var(--muted); font-size: 8px; font-weight: 400; }
-.variant-pills { display: flex; gap: 10px; margin-top: 14px; }
-.variant-pills button { min-width: 105px; padding: 12px 17px; border: 1px solid var(--line); background: transparent; font-size: 11px; }
+.option-header { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+.option-header span { color: var(--muted); font-size: 8px; font-weight: 400; }
+.decants-group { margin-top: 18px; }
+.variant-pills { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.variant-pills button { min-width: 105px; padding: 12px 17px; border: 1px solid var(--line); background: transparent; font-size: 11px; cursor: pointer; text-align: center; }
 .variant-pills button.active { border-color: var(--ink); background: var(--ink); color: var(--white); }
 .variant-pills small { display: block; margin-top: 4px; opacity: .65; font-size: 8px; }
 .purchase-row { display: grid; grid-template-columns: 120px 1fr; gap: 10px; margin-top: 10px; }

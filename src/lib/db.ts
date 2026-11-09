@@ -1657,11 +1657,14 @@ export async function obtenerDetalleProductoTienda(
       ? detalleDb.galeria_imagenes
       : ["/assets/imagenxdefecto.svg"];
 
-    const variantes: ProductVariant[] = detalleDb.variantes.map((v) => ({
-      size: `${v.tamano_ml} ml`,
-      price: Math.round(v.precio_centimos / 100),
-      isDecant: v.tipo_presentacion === "decant",
-    }));
+    const variantes: ProductVariant[] = detalleDb.variantes.map((v) => {
+      const esDecant = v.tipo_presentacion === "decant";
+      return {
+        size: `${v.tamano_ml} ml${esDecant ? " (Decant)" : ""}`,
+        price: Math.round(v.precio_centimos / 100),
+        isDecant: esDecant,
+      };
+    });
 
     const varRef = detalleDb.variantes.find(
       (v) => v.precio_referencia_centimos && v.precio_referencia_centimos > v.precio_centimos,
