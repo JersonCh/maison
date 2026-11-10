@@ -7,8 +7,45 @@ import {
   archivarOEliminarProducto,
 } from "@/lib/db";
 import type { DatosFormularioProducto } from "@/types/database";
+import { TAMANOS_FRASCO_ESTANDAR } from "@/lib/frascos";
 
 export const prerender = false;
+
+function validarDatosProducto(datos: DatosFormularioProducto): string | null {
+  if (!datos.nombre || !datos.nombre.trim()) {
+    return "El nombre del perfume es obligatorio.";
+  }
+
+  const tieneAlgunFrasco = TAMANOS_FRASCO_ESTANDAR.some(({ field }) =>
+    Boolean(datos[field] && Number(datos[field]) > 0),
+  );
+
+  if (!tieneAlgunFrasco) {
+    return "Debes ingresar al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).";
+  }
+
+  for (const { ml, field, refField } of TAMANOS_FRASCO_ESTANDAR) {
+    const precioNormal = Number(datos[field] || 0);
+    const precioRef = Number(datos[refField] || 0);
+    if (precioRef > 0) {
+      if (precioNormal <= 0) {
+        return `Para asignar precio referencial a ${ml} ml, primero ingresa su precio de venta.`;
+      }
+      if (precioRef <= precioNormal) {
+        return `El precio referencial de ${ml} ml debe ser mayor al precio normal (S/ ${precioNormal}).`;
+      }
+    }
+  }
+
+  return null;
+}
+
+function normalizarFotosProducto(fotos?: unknown): string[] {
+  const fotosValidas = Array.isArray(fotos)
+    ? fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
+    : [];
+  return fotosValidas.length > 0 ? fotosValidas : ["/assets/imagenxdefecto.svg"];
+}
 
 /**
  * GET /api/admin/products
@@ -59,32 +96,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const datos: DatosFormularioProducto = await request.json();
 
-    // Validaciones de negocio y arquitectura limpia
-    if (!datos.nombre || !datos.nombre.trim()) {
-      return new Response(
-        JSON.stringify({ error: "El nombre del perfume es obligatorio." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
+    const errorValidacion = validarDatosProducto(datos);
+    if (errorValidacion) {
+      return new Response(JSON.stringify({ error: errorValidacion }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    const tiene50Post = Boolean(datos.precio_50ml && Number(datos.precio_50ml) > 0);
-    const tiene100Post = Boolean(datos.precio_100ml && Number(datos.precio_100ml) > 0);
-
-    if (!tiene50Post && !tiene100Post) {
-      return new Response(
-        JSON.stringify({ error: "Debes ingresar al menos una presentación de frasco (50 ml o 100 ml)." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-
-
-    // Regla de imágenes: Si no se proporcionan fotos, se asigna el emblema oficial por defecto
-    const fotosValidas = Array.isArray(datos.fotos)
-      ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
-      : [];
-
-    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/imagenxdefecto.svg"];
+    datos.fotos = normalizarFotosProducto(datos.fotos);
 
     const nuevoId = await crearNuevoProductoEnDb(db, datos);
 
@@ -131,30 +151,15 @@ export const PUT: APIRoute = async ({ request, locals }) => {
 
     const datos: DatosFormularioProducto = payload;
 
-    if (!datos.nombre || !datos.nombre.trim()) {
-      return new Response(
-        JSON.stringify({ error: "El nombre del perfume es obligatorio." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
+    const errorValidacion = validarDatosProducto(datos);
+    if (errorValidacion) {
+      return new Response(JSON.stringify({ error: errorValidacion }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    const tiene50Post = Boolean(datos.precio_50ml && Number(datos.precio_50ml) > 0);
-    const tiene100Post = Boolean(datos.precio_100ml && Number(datos.precio_100ml) > 0);
-
-    if (!tiene50Post && !tiene100Post) {
-      return new Response(
-        JSON.stringify({ error: "Debes ingresar al menos una presentación de frasco (50 ml o 100 ml)." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-
-    // Regla de imágenes: Si no se proporcionan fotos, se asigna el emblema oficial por defecto
-    const fotosValidas = Array.isArray(datos.fotos)
-      ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
-      : [];
-
-    datos.fotos = fotosValidas.length > 0 ? fotosValidas : ["/assets/imagenxdefecto.svg"];
+    datos.fotos = normalizarFotosProducto(datos.fotos);
 
     await actualizarProductoEnDb(db, id, datos);
 

@@ -16,7 +16,7 @@ interface ProductFormSidebarProps {
   modoNuevaMarca: boolean;
   nuevaMarca: string;
   marcaActual?: MarcaItem;
-  precio50ml: number | "";
+  precioDesde: number;
   tipoComercial: CommercialType;
   slug: string;
 }
@@ -35,7 +35,7 @@ export function ProductFormSidebar({
   modoNuevaMarca,
   nuevaMarca,
   marcaActual,
-  precio50ml,
+  precioDesde,
   tipoComercial,
   slug,
 }: ProductFormSidebarProps) {
@@ -138,7 +138,7 @@ export function ProductFormSidebar({
             </span>
             <strong className="summary-name">{nombre || "Nombre de fragancia"}</strong>
             <span className="summary-price">
-              {precio50ml ? `Desde S/ ${precio50ml}` : "Precio no definido"}
+              {precioDesde > 0 ? `Desde S/ ${precioDesde.toLocaleString("es-PE")}` : "Precio no definido"}
             </span>
             <span className="summary-line-badge">
               {tipoComercial === "disenador"

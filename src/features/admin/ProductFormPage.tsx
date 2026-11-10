@@ -2,6 +2,12 @@ import React, { useState, useRef } from "react";
 import type { DatosFormularioProducto } from "@/types/database";
 import type { Gender, CommercialType } from "@/types/product";
 import { slugify } from "@/lib/slug";
+import {
+  TAMANOS_FRASCO_ESTANDAR,
+  obtenerPrecioMinimoFrasco,
+  type CampoPrecioFrasco,
+  type CampoPrecioReferenciaFrasco,
+} from "@/lib/frascos";
 import Icon from "@/components/ui/Icon";
 import {
   type ProductFormProps,
@@ -76,20 +82,60 @@ export default function ProductFormPage({
     ),
   );
 
-  // Precios en Soles
-  const [precio50ml, setPrecio50ml] = useState<number | "">(
-    initialProduct?.precio_50ml && initialProduct.precio_50ml > 0
-      ? initialProduct.precio_50ml
-      : esEdicion ? "" : 490,
-  );
-  const [precio100ml, setPrecio100ml] = useState<number | "">(
-    initialProduct?.precio_100ml && initialProduct.precio_100ml > 0
-      ? initialProduct.precio_100ml
-      : esEdicion ? "" : 620,
-  );
-  const [precioRef50ml, setPrecioRef50ml] = useState<number | "">(
-    initialProduct?.precio_referencia_50ml ?? "",
-  );
+  // Precios en Soles (50, 75, 100, 125, 150 y 200 ml; vacíos en creación para usar placeholders)
+  const [preciosFrascos, setPreciosFrascos] = useState<
+    Record<CampoPrecioFrasco, number | "">
+  >(() => {
+    const mapa = {} as Record<CampoPrecioFrasco, number | "">;
+    for (const { field } of TAMANOS_FRASCO_ESTANDAR) {
+      const val = initialProduct?.[field];
+      mapa[field] = val && val > 0 ? val : "";
+    }
+    return mapa;
+  });
+
+  const actualizarPrecioFrasco = (field: CampoPrecioFrasco, value: number | "") => {
+    setPreciosFrascos((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const [preciosReferencia, setPreciosReferencia] = useState<
+    Record<CampoPrecioReferenciaFrasco, number | "">
+  >(() => {
+    const mapa = {} as Record<CampoPrecioReferenciaFrasco, number | "">;
+    for (const { refField } of TAMANOS_FRASCO_ESTANDAR) {
+      const val = initialProduct?.[refField];
+      mapa[refField] = val && val > 0 ? val : "";
+    }
+    return mapa;
+  });
+
+  const [referenciasHabilitadas, setReferenciasHabilitadas] = useState<
+    Record<CampoPrecioReferenciaFrasco, boolean>
+  >(() => {
+    const mapa = {} as Record<CampoPrecioReferenciaFrasco, boolean>;
+    for (const { refField } of TAMANOS_FRASCO_ESTANDAR) {
+      const val = initialProduct?.[refField];
+      mapa[refField] = Boolean(val && val > 0);
+    }
+    return mapa;
+  });
+
+  const toggleReferencia = (
+    refField: CampoPrecioReferenciaFrasco,
+    habilitada: boolean,
+  ) => {
+    setReferenciasHabilitadas((prev) => ({ ...prev, [refField]: habilitada }));
+    if (!habilitada) {
+      setPreciosReferencia((prev) => ({ ...prev, [refField]: "" }));
+    }
+  };
+
+  const actualizarPrecioReferencia = (
+    refField: CampoPrecioReferenciaFrasco,
+    value: number | "",
+  ) => {
+    setPreciosReferencia((prev) => ({ ...prev, [refField]: value }));
+  };
 
   // Presentaciones de Decants (3ml, 5ml y 10ml)
   const [tieneDecants, setTieneDecants] = useState<boolean>(
@@ -174,13 +220,38 @@ export default function ProductFormPage({
       return;
     }
 
-    const tiene50 = precio50ml !== "" && Number(precio50ml) > 0;
-    const tiene100 = precio100ml !== "" && Number(precio100ml) > 0;
+    const tieneAlgunFrasco = TAMANOS_FRASCO_ESTANDAR.some(
+      ({ field }) => preciosFrascos[field] !== "" && Number(preciosFrascos[field]) > 0,
+    );
 
-    if (!tiene50 && !tiene100) {
-      setErrorValidacion("Debes ingresar el precio de al menos una presentación de frasco (50 ml o 100 ml).");
+    if (!tieneAlgunFrasco) {
+      setErrorValidacion(
+        "Debes ingresar el precio de al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).",
+      );
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
+    }
+
+    for (const { ml, field, refField } of TAMANOS_FRASCO_ESTANDAR) {
+      if (!referenciasHabilitadas[refField]) continue;
+      const rawRef = preciosReferencia[refField];
+      if (rawRef === "" || Number(rawRef) <= 0) continue;
+
+      const precioNormal = Number(preciosFrascos[field] || 0);
+      if (precioNormal <= 0) {
+        setErrorValidacion(
+          `Para asignar precio tachado a ${ml} ml, primero ingresa su precio de venta.`,
+        );
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (Number(rawRef) <= precioNormal) {
+        setErrorValidacion(
+          `El precio tachado de ${ml} ml debe ser mayor al precio normal (S/ ${precioNormal}).`,
+        );
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
     }
 
     if (tieneDecants) {
@@ -205,6 +276,23 @@ export default function ProductFormPage({
         fotoDetalle.trim(),
       ].filter(Boolean);
 
+      const cargaPrecios = {} as Record<CampoPrecioFrasco, number | null>;
+      const cargaPreciosRef = {} as Record<CampoPrecioReferenciaFrasco, number | null>;
+      for (const { field, refField } of TAMANOS_FRASCO_ESTANDAR) {
+        const raw = preciosFrascos[field];
+        const normal = raw !== "" && Number(raw) > 0 ? Number(raw) : null;
+        cargaPrecios[field] = normal;
+
+        const rawRef = preciosReferencia[refField];
+        cargaPreciosRef[refField] =
+          referenciasHabilitadas[refField] &&
+          normal !== null &&
+          rawRef !== "" &&
+          Number(rawRef) > normal
+            ? Number(rawRef)
+            : null;
+      }
+
       const cargaUtil: DatosFormularioProducto & { id?: number } = {
         nombre: nombre.trim(),
         slug: slug.trim() || undefined,
@@ -222,9 +310,8 @@ export default function ProductFormPage({
         descripcion: descripcion.trim(),
         pais_origen: paisOrigen.trim(),
         ocasion_uso: ocasionUso.trim(),
-        precio_50ml: tiene50 ? Number(precio50ml) : null,
-        precio_100ml: tiene100 ? Number(precio100ml) : null,
-        precio_referencia_50ml: tiene50 && precioRef50ml !== "" ? Number(precioRef50ml) : null,
+        ...cargaPrecios,
+        ...cargaPreciosRef,
         es_destacado: esDestacado,
         activo,
         fotos: fotosFinales,
@@ -411,12 +498,12 @@ export default function ProductFormPage({
 
           {/* CARD 2: FORMATOS Y PRECIOS */}
           <ProductPricingCard
-            precio50ml={precio50ml}
-            setPrecio50ml={setPrecio50ml}
-            precio100ml={precio100ml}
-            setPrecio100ml={setPrecio100ml}
-            precioRef50ml={precioRef50ml}
-            setPrecioRef50ml={setPrecioRef50ml}
+            preciosFrascos={preciosFrascos}
+            onChangePrecioFrasco={actualizarPrecioFrasco}
+            preciosReferencia={preciosReferencia}
+            referenciasHabilitadas={referenciasHabilitadas}
+            onToggleReferencia={toggleReferencia}
+            onChangePrecioReferencia={actualizarPrecioReferencia}
             tieneDecants={tieneDecants}
             setTieneDecants={setTieneDecants}
             precioDecant3ml={precioDecant3ml}
@@ -456,7 +543,7 @@ export default function ProductFormPage({
           modoNuevaMarca={modoNuevaMarca}
           nuevaMarca={nuevaMarca}
           marcaActual={marcaActual}
-          precio50ml={precio50ml}
+          precioDesde={obtenerPrecioMinimoFrasco(preciosFrascos)}
           tipoComercial={tipoComercial}
           slug={slug}
         />

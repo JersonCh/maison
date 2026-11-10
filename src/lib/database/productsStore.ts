@@ -340,14 +340,22 @@ export async function obtenerProductosTienda(
         mapaVariantes.set(v.producto_id, []);
       }
       const esDecant = v.tipo_presentacion === "decant";
+      const oldPrice =
+        !esDecant &&
+        v.precio_referencia_centimos &&
+        v.precio_referencia_centimos > v.precio_centimos
+          ? Math.round(v.precio_referencia_centimos / 100)
+          : undefined;
+
       mapaVariantes.get(v.producto_id)!.push({
         size: `${v.tamano_ml} ml${esDecant ? " (Decant)" : ""}`,
         price: Math.round(v.precio_centimos / 100),
+        oldPrice,
         isDecant: esDecant,
       });
 
-      if (v.precio_referencia_centimos && v.precio_referencia_centimos > v.precio_centimos) {
-        mapaPreciosReferencia.set(v.producto_id, Math.round(v.precio_referencia_centimos / 100));
+      if (oldPrice) {
+        mapaPreciosReferencia.set(v.producto_id, oldPrice);
       }
     }
 
@@ -451,9 +459,17 @@ export async function obtenerDetalleProductoTienda(
 
     const variantes: ProductVariant[] = detalleDb.variantes.map((v) => {
       const esDecant = v.tipo_presentacion === "decant";
+      const oldPrice =
+        !esDecant &&
+        v.precio_referencia_centimos &&
+        v.precio_referencia_centimos > v.precio_centimos
+          ? Math.round(v.precio_referencia_centimos / 100)
+          : undefined;
+
       return {
         size: `${v.tamano_ml} ml${esDecant ? " (Decant)" : ""}`,
         price: Math.round(v.precio_centimos / 100),
+        oldPrice,
         isDecant: esDecant,
       };
     });
