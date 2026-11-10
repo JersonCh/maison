@@ -283,7 +283,7 @@ export function CsvPreviewStep({
               <th style={{ padding: "10px 12px" }}>Marca & Fragancia</th>
               <th style={{ padding: "10px 12px", width: "90px" }}>Línea</th>
               <th style={{ padding: "10px 12px", width: "80px" }}>Género</th>
-              <th style={{ padding: "10px 12px", width: "130px" }}>Precios (50/100ml)</th>
+              <th style={{ padding: "10px 12px", width: "130px" }}>Precios Frascos</th>
               <th style={{ padding: "10px 12px", width: "120px" }}>Decants</th>
               <th style={{ padding: "10px 12px" }}>Diagnóstico</th>
             </tr>
@@ -410,16 +410,20 @@ export function CsvPreviewStep({
                     </td>
                     <td style={{ padding: "9px 12px" }}>{f.genero}</td>
                     <td style={{ padding: "9px 12px" }}>
-                      {f.precio_50ml && f.precio_50ml > 0 ? (
-                        <div style={{ fontWeight: 600, color: "var(--ink)" }}>
-                          50ml: S/ {f.precio_50ml}
-                        </div>
-                      ) : null}
-                      {f.precio_100ml && f.precio_100ml > 0 ? (
-                        <div style={{ fontWeight: 600, color: "var(--ink)" }}>
-                          100ml: S/ {f.precio_100ml}
-                        </div>
-                      ) : null}
+                      {[
+                        f.precio_50ml && f.precio_50ml > 0 ? `50ml: S/ ${f.precio_50ml}` : null,
+                        f.precio_75ml && f.precio_75ml > 0 ? `75ml: S/ ${f.precio_75ml}` : null,
+                        f.precio_100ml && f.precio_100ml > 0 ? `100ml: S/ ${f.precio_100ml}` : null,
+                        f.precio_125ml && f.precio_125ml > 0 ? `125ml: S/ ${f.precio_125ml}` : null,
+                        f.precio_150ml && f.precio_150ml > 0 ? `150ml: S/ ${f.precio_150ml}` : null,
+                        f.precio_200ml && f.precio_200ml > 0 ? `200ml: S/ ${f.precio_200ml}` : null,
+                      ]
+                        .filter(Boolean)
+                        .map((texto, i) => (
+                          <div key={i} style={{ fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap" }}>
+                            {texto}
+                          </div>
+                        ))}
                     </td>
                     <td style={{ padding: "9px 12px" }}>
                       {f.tiene_decants ? (

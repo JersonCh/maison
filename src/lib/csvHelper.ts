@@ -11,7 +11,11 @@ export interface FilaCsvRaw {
   pais_origen?: string;
   ocasion_uso?: string;
   precio_50ml?: string | number;
+  precio_75ml?: string | number;
   precio_100ml?: string | number;
+  precio_125ml?: string | number;
+  precio_150ml?: string | number;
+  precio_200ml?: string | number;
   precio_decant_3ml?: string | number;
   precio_decant_5ml?: string | number;
   precio_decant_10ml?: string | number;
@@ -27,7 +31,11 @@ export interface FilaCsvProcesada {
   pais_origen: string;
   ocasion_uso: string;
   precio_50ml: number | null;
+  precio_75ml: number | null;
   precio_100ml: number | null;
+  precio_125ml: number | null;
+  precio_150ml: number | null;
+  precio_200ml: number | null;
   tiene_decants: boolean;
   precio_decant_3ml?: number | null;
   precio_decant_5ml?: number | null;
@@ -223,8 +231,37 @@ export function parsearLineasCsv(texto: string, delimitador: string): string[][]
 export function parsearArchivoExcel(buffer: ArrayBuffer): string[][] {
   const data = new Uint8Array(buffer);
   const wb = XLSX.read(data, { type: "array" });
-  const sheetName = wb.SheetNames[0];
-  if (!sheetName) return [];
+  if (!wb.SheetNames.length) return [];
+
+  // Ignorar hojas informativas como Guía_y_Valores y priorizar la hoja de productos
+  let sheetName = wb.SheetNames.find((name) => {
+    const lower = name.toLowerCase();
+    return (
+      (lower.includes("producto") || lower.includes("perfume") || lower.includes("catalogo") || lower.includes("catálogo")) &&
+      !lower.includes("guia") &&
+      !lower.includes("guía") &&
+      !lower.includes("valor")
+    );
+  });
+
+  if (!sheetName) {
+    // Buscar la primera hoja que no sea guía y que tenga columnas típicas (marca / nombre)
+    sheetName = wb.SheetNames.find((name) => {
+      const lower = name.toLowerCase();
+      if (lower.includes("guia") || lower.includes("guía") || lower.includes("instruccion")) {
+        return false;
+      }
+      const ws = wb.Sheets[name];
+      const preview = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][];
+      const primeraFila = (preview[0] || []).map((c) => String(c || "").toLowerCase().trim());
+      return primeraFila.some((h) => h.includes("marca")) && primeraFila.some((h) => h.includes("nombre"));
+    });
+  }
+
+  if (!sheetName) {
+    sheetName = wb.SheetNames[0];
+  }
+
   const ws = wb.Sheets[sheetName];
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" }) as any[][];
   return rows.map((row) =>
@@ -279,8 +316,12 @@ export function procesarMatrizFilas(
   const idxConcentracion = cabeceras.findIndex((c) => c.includes("concentracion"));
   const idxPais = cabeceras.findIndex((c) => c.includes("pais") || c.includes("procedencia") || c.includes("origen"));
   const idxOcasion = cabeceras.findIndex((c) => c.includes("ocasion") || c.includes("uso"));
-  const idxP50 = cabeceras.findIndex((c) => c.includes("50"));
+  const idxP50 = cabeceras.findIndex((c) => c === "precio_50ml" || c === "50ml" || c === "precio_50" || (c.includes("50") && !c.includes("150")));
+  const idxP75 = cabeceras.findIndex((c) => c.includes("75"));
   const idxP100 = cabeceras.findIndex((c) => c.includes("100"));
+  const idxP125 = cabeceras.findIndex((c) => c.includes("125"));
+  const idxP150 = cabeceras.findIndex((c) => c.includes("150"));
+  const idxP200 = cabeceras.findIndex((c) => c.includes("200"));
   const idxDec3 = cabeceras.findIndex((c) => c.includes("decant_3") || c.includes("dec_3") || c.includes("3ml"));
   const idxDec5 = cabeceras.findIndex((c) => c.includes("decant_5") || c.includes("dec_5") || c.includes("5ml"));
   const idxDec10 = cabeceras.findIndex((c) => c.includes("decant_10") || c.includes("dec_10") || c.includes("10ml"));
@@ -315,7 +356,11 @@ export function procesarMatrizFilas(
     const paisRaw = idxPais !== -1 ? col[idxPais] || "" : "";
     const ocasionRaw = idxOcasion !== -1 ? col[idxOcasion] || "" : "";
     const p50Raw = idxP50 !== -1 ? col[idxP50] || "" : "";
+    const p75Raw = idxP75 !== -1 ? col[idxP75] || "" : "";
     const p100Raw = idxP100 !== -1 ? col[idxP100] || "" : "";
+    const p125Raw = idxP125 !== -1 ? col[idxP125] || "" : "";
+    const p150Raw = idxP150 !== -1 ? col[idxP150] || "" : "";
+    const p200Raw = idxP200 !== -1 ? col[idxP200] || "" : "";
     const dec3Raw = idxDec3 !== -1 ? col[idxDec3] || "" : "";
     const dec5Raw = idxDec5 !== -1 ? col[idxDec5] || "" : "";
     const dec10Raw = idxDec10 !== -1 ? col[idxDec10] || "" : "";
@@ -332,12 +377,23 @@ export function procesarMatrizFilas(
     }
 
     const precio50 = normalizarPrecio(p50Raw);
+    const precio75 = normalizarPrecio(p75Raw);
     const precio100 = normalizarPrecio(p100Raw);
-    const tiene50 = precio50 !== null && precio50 > 0;
-    const tiene100 = precio100 !== null && precio100 > 0;
+    const precio125 = normalizarPrecio(p125Raw);
+    const precio150 = normalizarPrecio(p150Raw);
+    const precio200 = normalizarPrecio(p200Raw);
 
-    if (!tiene50 && !tiene100) {
-      errores.push("Debes ingresar al menos una presentación de frasco (50 ml o 100 ml).");
+    const tiene50 = precio50 !== null && precio50 > 0;
+    const tiene75 = precio75 !== null && precio75 > 0;
+    const tiene100 = precio100 !== null && precio100 > 0;
+    const tiene125 = precio125 !== null && precio125 > 0;
+    const tiene150 = precio150 !== null && precio150 > 0;
+    const tiene200 = precio200 !== null && precio200 > 0;
+
+    const tieneFrasco = tiene50 || tiene75 || tiene100 || tiene125 || tiene150 || tiene200;
+
+    if (!tieneFrasco) {
+      errores.push("Debes ingresar al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).");
     }
 
     const pDec3 = normalizarPrecio(dec3Raw);
@@ -404,7 +460,11 @@ export function procesarMatrizFilas(
       pais_origen,
       ocasion_uso,
       precio_50ml: tiene50 ? precio50 : null,
+      precio_75ml: tiene75 ? precio75 : null,
       precio_100ml: tiene100 ? precio100 : null,
+      precio_125ml: tiene125 ? precio125 : null,
+      precio_150ml: tiene150 ? precio150 : null,
+      precio_200ml: tiene200 ? precio200 : null,
       tiene_decants: tieneDecants,
       precio_decant_3ml: pDec3,
       precio_decant_5ml: pDec5,
@@ -489,17 +549,23 @@ export function descargarPlantillaCsv(): void {
     "pais_origen",
     "ocasion_uso",
     "precio_50ml",
+    "precio_75ml",
     "precio_100ml",
+    "precio_125ml",
+    "precio_150ml",
+    "precio_200ml",
     "precio_decant_3ml",
     "precio_decant_5ml",
     "precio_decant_10ml",
   ];
 
   const filasEjemplo = [
-    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Francia", "Noche y eventos", "790", "920", "50", "75", "135"],
-    ["Lattafa", "Khamrah", "arabe", "Unisex", "Eau de Parfum", "Emiratos Árabes Unidos", "Noche e invierno", "240", "320", "25", "35", "60"],
-    ["Tom Ford", "Oud Wood", "nicho", "Unisex", "Eau de Parfum", "Estados Unidos", "Otoño e invierno", "980", "1110", "60", "90", "165"],
-    ["Carolina Herrera", "Good Girl Blush", "disenador", "Mujer", "Eau de Parfum", "España", "Uso diario refinado", "520", "650", "", "", ""],
+    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Francia", "Noche y eventos de gala", "", "", "920", "", "", "", "50", "75", "135"],
+    ["Parfums de Marly", "Layton", "nicho", "Unisex", "Eau de Parfum", "Francia", "Otoño e invierno", "", "980", "", "1350", "", "", "65", "95", "175"],
+    ["Jean Paul Gaultier", "Le Male Elixir", "disenador", "Hombre", "Parfum", "Francia", "Noche y fiesta", "", "520", "", "680", "", "", "35", "55", "95"],
+    ["Bleu de Chanel", "Eau de Parfum", "disenador", "Hombre", "Eau de Parfum", "Francia", "Versatilidad total", "580", "", "740", "", "920", "", "", "", ""],
+    ["Giorgio Armani", "Acqua Di Gio", "disenador", "Hombre", "Eau de Toilette", "Italia", "Verano y frescura", "", "", "560", "", "", "820", "", "", ""],
+    ["Lattafa", "Khamrah", "arabe", "Unisex", "Eau de Parfum", "Emiratos Árabes Unidos", "Noche e invierno", "", "", "280", "", "", "", "25", "35", "60"],
   ];
 
   const csvLineas = [

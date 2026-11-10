@@ -6,7 +6,13 @@ import type {
 import type { Gender, Product, ProductVariant } from "@/types/product";
 import { products as fallbackProducts } from "@/data/products";
 import { normalizarTipoComercial } from "./utils";
-import { piramidePorDefecto, caracteristicasPorDefecto } from "./common";
+import { caracteristicasPorDefecto } from "./common";
+
+const piramideVacia: PiramideOlfativa = {
+  salida: [],
+  corazon: [],
+  fondo: [],
+};
 
 /**
  * Obtiene la lista de perfumes para el catálogo y la página de inicio.
@@ -135,28 +141,30 @@ export async function obtenerDetalleProductoPorSlug(
     .bind(producto.id)
     .all<{ clave_archivo: string }>();
 
-  // Pirámide olfativa estructurada (3 fases)
-  const { results: notas } = await db
-    .prepare(
-      `SELECT tipo_fase, nombre_nota
-       FROM piramide_olfativa
-       WHERE producto_id = ?
-       ORDER BY orden ASC`,
-    )
-    .bind(producto.id)
-    .all<{ tipo_fase: string; nombre_nota: string }>();
-
+  // Pirámide olfativa estructurada (3 fases: salida, corazón, fondo)
   const piramide: PiramideOlfativa = { salida: [], corazon: [], fondo: [] };
-  for (const n of notas) {
-    if (n.tipo_fase === "salida") piramide.salida.push(n.nombre_nota);
-    else if (n.tipo_fase === "corazon") piramide.corazon.push(n.nombre_nota);
-    else if (n.tipo_fase === "fondo") piramide.fondo.push(n.nombre_nota);
+  try {
+    const { results: notas } = await db
+      .prepare(
+        `SELECT n.nombre, pn.etapa
+         FROM producto_notas pn
+         JOIN notas_aromaticas n ON pn.nota_aromatica_id = n.id
+         WHERE pn.producto_id = ?`,
+      )
+      .bind(producto.id)
+      .all<{ nombre: string; etapa: "salida" | "corazon" | "fondo" }>();
+
+    for (const n of notas) {
+      if (n.etapa === "salida") piramide.salida.push(n.nombre);
+      else if (n.etapa === "corazon") piramide.corazon.push(n.nombre);
+      else if (n.etapa === "fondo") piramide.fondo.push(n.nombre);
+    }
+  } catch {
+    // Si no existen registros o tablas de notas olfativas, se utilizan los fallbacks editoriales
   }
 
-  // Fallbacks editoriales para enriquecer la experiencia si la base de datos no tiene notas cargadas
-  if (!piramide.salida.length) piramide.salida = ["Bergamota", "Pimienta rosa", "Acordes cítricos"];
-  if (!piramide.corazon.length) piramide.corazon = ["Jazmín", "Maderas nobles", "Especias envolventes"];
-  if (!piramide.fondo.length) piramide.fondo = ["Ámbar", "Almizcle blanco", "Vainilla de Madagascar"];
+  // Si no existen notas reales cargadas en BD, se retorna la pirámide vacía
+  // para que la interfaz oculte la sección editorial en lugar de mostrar notas genéricas.
 
   return {
     id: producto.id,
@@ -416,7 +424,7 @@ export async function obtenerDetalleProductoTienda(
     if (fallback) {
       return {
         producto: fallback,
-        piramide: piramidePorDefecto,
+        piramide: piramideVacia,
         caracteristicas: caracteristicasPorDefecto,
       };
     }
@@ -430,7 +438,7 @@ export async function obtenerDetalleProductoTienda(
       if (fallback) {
         return {
           producto: fallback,
-          piramide: piramidePorDefecto,
+          piramide: piramideVacia,
           caracteristicas: caracteristicasPorDefecto,
         };
       }
@@ -475,7 +483,7 @@ export async function obtenerDetalleProductoTienda(
 
     return {
       producto,
-      piramide: detalleDb.piramide_olfativa || piramidePorDefecto,
+      piramide: detalleDb.piramide_olfativa || piramideVacia,
       caracteristicas: {
         concentracion: detalleDb.concentracion || "Eau de Parfum",
         ocasion: detalleDb.ocasion_uso || "Día y noche",
@@ -488,7 +496,7 @@ export async function obtenerDetalleProductoTienda(
     if (fallback) {
       return {
         producto: fallback,
-        piramide: piramidePorDefecto,
+        piramide: piramideVacia,
         caracteristicas: caracteristicasPorDefecto,
       };
     }

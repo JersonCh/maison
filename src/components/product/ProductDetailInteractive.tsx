@@ -8,9 +8,10 @@ import Icon from "@/components/ui/Icon";
 interface Props {
   product: Product;
   phone?: string;
+  initialSize?: string;
 }
 
-export default function ProductDetailInteractive({ product, phone }: Props) {
+export default function ProductDetailInteractive({ product, phone, initialSize }: Props) {
   const [selectedImage, setSelectedImage] = useState(product.image);
 
   // Clasificación de variantes: frascos regulares vs decants
@@ -21,8 +22,16 @@ export default function ProductDetailInteractive({ product, phone }: Props) {
     Boolean(v.isDecant || v.size.toLowerCase().includes("decant")),
   );
 
-  // Variante predeterminada: preferir frasco de 100ml o 50ml si existe
+  // Si viene una presentación filtrada desde el catálogo (?presentacion=...), respetarla
+  const preselectedVariant = initialSize
+    ? product.variants.find(
+        (v) => v.size.trim().toLowerCase() === initialSize.trim().toLowerCase(),
+      )
+    : undefined;
+
+  // Variante predeterminada: preseleccionada, o preferir frasco de 100ml/50ml si existe
   const defaultVariant =
+    preselectedVariant ||
     frascos.find((v) => v.size.includes("100")) ||
     frascos.find((v) => v.size.includes("50")) ||
     frascos[0] ||

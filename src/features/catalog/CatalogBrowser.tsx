@@ -1,8 +1,37 @@
 import { useState, useMemo, useEffect } from "react";
-import type { Product, Gender } from "@/types/product";
+import type { Product, ProductVariant, Gender } from "@/types/product";
 import { formatPrice, formatDiscount } from "@/lib/formatters";
 import { addToCart } from "@/features/cart/cartStore";
 import Icon from "@/components/ui/Icon";
+
+function esVarianteDecant(v: ProductVariant): boolean {
+  return Boolean(
+    v.isDecant ||
+      v.size.toLowerCase().includes("decant") ||
+      (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
+  );
+}
+
+function resolverVarianteMostrada(
+  product: Product,
+  formato: string,
+  selectedSize: string,
+): ProductVariant {
+  if (selectedSize) {
+    const exacta = product.variants.find(
+      (v) => v.size.trim().toLowerCase() === selectedSize.trim().toLowerCase(),
+    );
+    if (exacta) return exacta;
+  }
+
+  const frascos = product.variants.filter((v) => !esVarianteDecant(v));
+  const decants = product.variants.filter((v) => esVarianteDecant(v));
+
+  if (formato === "decant") {
+    return decants[0] || product.variants[0];
+  }
+  return frascos[0] || product.variants[0];
+}
 
 interface Props {
   initialProducts: Product[];
@@ -189,31 +218,37 @@ export default function CatalogBrowser({
       if (tipo && p.commercialType !== tipo) return false;
 
       // Filtro de formato: Decants vs Frascos
-      if (formato === "decant") {
-        const hasDecant = p.variants.some(
-          (v) =>
-            v.isDecant ||
-            v.size.toLowerCase().includes("decant") ||
-            (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
-        );
-        if (!hasDecant) return false;
-      } else if (formato === "frasco") {
-        const hasFullBottle = p.variants.some((v) => parseFloat(v.size) >= 30);
-        if (!hasFullBottle) return false;
-      }
+      const decantsProd = p.variants.filter((v) => esVarianteDecant(v));
+      const frascosProd = p.variants.filter((v) => !esVarianteDecant(v));
 
-      if (
-        selectedSize &&
-        !p.variants.some(
-          (v) => v.size.trim().toLowerCase() === selectedSize.toLowerCase(),
-        )
-      ) {
+      if (formato === "decant" && decantsProd.length === 0) {
+        return false;
+      } else if (formato === "frasco" && frascosProd.length === 0) {
         return false;
       }
 
-      // Evaluar precio mínimo de variantes contra maxPrice
-      const minProductPrice = Math.min(...p.variants.map((v) => v.price));
-      if (minProductPrice > maxPrice) return false;
+      const varianteSeleccionada = selectedSize
+        ? p.variants.find(
+            (v) => v.size.trim().toLowerCase() === selectedSize.trim().toLowerCase(),
+          )
+        : undefined;
+
+      if (selectedSize && !varianteSeleccionada) {
+        return false;
+      }
+
+      // Evaluar precio de la presentación filtrada (o el mínimo aplicable) contra maxPrice
+      let precioEvaluado: number;
+      if (varianteSeleccionada) {
+        precioEvaluado = varianteSeleccionada.price;
+      } else if (formato === "decant") {
+        precioEvaluado = Math.min(...decantsProd.map((v) => v.price));
+      } else if (formato === "frasco") {
+        precioEvaluado = Math.min(...frascosProd.map((v) => v.price));
+      } else {
+        precioEvaluado = Math.min(...p.variants.map((v) => v.price));
+      }
+      if (precioEvaluado > maxPrice) return false;
 
       // Disponibilidad
       if (available && !p.active) return false;
@@ -221,9 +256,17 @@ export default function CatalogBrowser({
     });
 
     if (sort === "low") {
-      result.sort((a, b) => a.variants[0].price - b.variants[0].price);
+      result.sort(
+        (a, b) =>
+          resolverVarianteMostrada(a, formato, selectedSize).price -
+          resolverVarianteMostrada(b, formato, selectedSize).price,
+      );
     } else if (sort === "high") {
-      result.sort((a, b) => b.variants[0].price - a.variants[0].price);
+      result.sort(
+        (a, b) =>
+          resolverVarianteMostrada(b, formato, selectedSize).price -
+          resolverVarianteMostrada(a, formato, selectedSize).price,
+      );
     } else if (sort === "recent") {
       result.sort((a, b) => Number(b.recent) - Number(a.recent));
     }
@@ -442,7 +485,7 @@ export default function CatalogBrowser({
               }}
             >
               <option value="">Todos los formatos</option>
-              <option value="frasco">Frascos completos (50ml / 100ml)</option>
+              <option value="frasco">Frascos completos (50 ml - 200 ml)</option>
               <option value="decant">Decants y muestras (3ml / 5ml / 10ml)</option>
             </select>
           </div>
@@ -692,12 +735,14 @@ export default function CatalogBrowser({
               {/* Grilla de productos (9 por página) */}
               <div className="product-grid catalog">
                 {paginatedProducts.map((product) => {
-                  const frascos = product.variants.filter((v) => !Boolean(v.isDecant || v.size.toLowerCase().includes("decant")));
-                  const decants = product.variants.filter((v) => Boolean(v.isDecant || v.size.toLowerCase().includes("decant")));
-                  const defaultVariant = formato === "decant" ? (decants[0] || product.variants[0]) : (frascos[0] || product.variants[0]);
+                  const defaultVariant = resolverVarianteMostrada(product, formato, selectedSize);
                   const price = defaultVariant.price;
-                  const discount = formatDiscount(price, product.oldPrice);
-                  const productUrl = `/perfumes/${product.slug}`;
+                  const esDecantActual = esVarianteDecant(defaultVariant);
+                  const discount = !esDecantActual ? formatDiscount(price, product.oldPrice) : null;
+                  const productUrl =
+                    selectedSize || formato === "decant"
+                      ? `/perfumes/${product.slug}?presentacion=${encodeURIComponent(defaultVariant.size)}`
+                      : `/perfumes/${product.slug}`;
 
                   return (
                     <article className="product-card" key={product.id}>
@@ -758,7 +803,7 @@ export default function CatalogBrowser({
                         </p>
                         <div className="price-row">
                           <strong>{formatPrice(price)}</strong>
-                          {product.oldPrice && (
+                          {!esDecantActual && product.oldPrice && product.oldPrice > price && (
                             <s>{formatPrice(product.oldPrice)}</s>
                           )}
                         </div>
