@@ -25,9 +25,14 @@ if (!resultado) {
 }
 
 const { producto: product, piramide, caracteristicas } = resultado;
+const tieneNotasOlfativas =
+  piramide.salida.length > 0 ||
+  piramide.corazon.length > 0 ||
+  piramide.fondo.length > 0;
 
 const storeConfig = db ? await obtenerConfiguracionTienda(db) : {};
 const whatsappPhone = storeConfig.whatsapp_pedidos || "954159831";
+const initialSize = Astro.url.searchParams.get("presentacion") || undefined;
 
 // Obtener fragancias afines desde D1
 const todosLosProductos = await obtenerProductosTienda(db);
@@ -88,32 +93,34 @@ const productSchema = {
     </nav>
 
     <!-- Ficha interactiva (Galería, tamaños, cantidad, carrito y WhatsApp) -->
-    <ProductDetailInteractive product={product} phone={whatsappPhone} client:load />
+    <ProductDetailInteractive product={product} phone={whatsappPhone} initialSize={initialSize} client:load />
 
-    <!-- Sección de Composición y Notas Olfativas -->
-    <section class="notes-section">
-      <SectionTitle eyebrow="Composición" title="Notas olfativas" />
-      <div class="notes-grid">
-        <article>
-          <span>01</span>
-          <h3>Salida</h3>
-          <p>{piramide.salida.join(", ")}</p>
-        </article>
-        <article>
-          <span>02</span>
-          <h3>Corazón</h3>
-          <p>{piramide.corazon.join(", ")}</p>
-        </article>
-        <article>
-          <span>03</span>
-          <h3>Fondo</h3>
-          <p>{piramide.fondo.join(", ")}</p>
-        </article>
-      </div>
-    </section>
+    <!-- Sección de Composición y Notas Olfativas (solo visible si tiene notas registradas) -->
+    {tieneNotasOlfativas && (
+      <section class="notes-section">
+        <SectionTitle eyebrow="Composición" title="Notas olfativas" />
+        <div class="notes-grid">
+          <article>
+            <span>01</span>
+            <h3>Salida</h3>
+            <p>{piramide.salida.length > 0 ? piramide.salida.join(", ") : "—"}</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Corazón</h3>
+            <p>{piramide.corazon.length > 0 ? piramide.corazon.join(", ") : "—"}</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Fondo</h3>
+            <p>{piramide.fondo.length > 0 ? piramide.fondo.join(", ") : "—"}</p>
+          </article>
+        </div>
+      </section>
+    )}
 
     <!-- Características del Perfume -->
-    <section class="characteristics">
+    <section class={`characteristics ${!tieneNotasOlfativas ? "characteristics--no-notes" : ""}`}>
       <div>
         <p class="eyebrow">El carácter</p>
         <h2>Una estela que deja huella</h2>
