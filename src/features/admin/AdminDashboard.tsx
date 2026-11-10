@@ -6,6 +6,7 @@ import type {
   FamiliaOlfativaItem,
 } from "@/types/database";
 import Icon from "@/components/ui/Icon";
+import { obtenerPrecioMinimoFrasco } from "@/lib/frascos";
 import ProductTable from "./ProductTable";
 import ProductFormPage from "./ProductFormPage";
 import CsvImportModal from "./CsvImportModal";
@@ -303,7 +304,7 @@ export default function AdminDashboard({ }: Props) {
                       <b>{p.nombre}</b>
                       <small>{p.marca}</small>
                     </span>
-                    <strong>S/ {(p.precio_50ml || p.precio_100ml || 0).toLocaleString("es-PE")}</strong>
+                    <strong>S/ {obtenerPrecioMinimoFrasco(p).toLocaleString("es-PE")}</strong>
                     <i className={p.activo ? "on" : ""}>
                       {p.activo ? "Activo" : "Borrador"}
                     </i>

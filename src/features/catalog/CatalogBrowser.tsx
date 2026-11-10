@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import type { Product, ProductVariant, Gender } from "@/types/product";
-import { formatPrice, formatDiscount } from "@/lib/formatters";
+import { formatPrice, formatDiscount, getVariantOldPrice } from "@/lib/formatters";
 import { addToCart } from "@/features/cart/cartStore";
 import Icon from "@/components/ui/Icon";
 
 function esVarianteDecant(v: ProductVariant): boolean {
   return Boolean(
     v.isDecant ||
-      v.size.toLowerCase().includes("decant") ||
-      (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
+    v.size.toLowerCase().includes("decant") ||
+    (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
   );
 }
 
@@ -63,7 +63,6 @@ export default function CatalogBrowser({
   const [tipo, setTipo] = useState(initialTipo);
   const [formato, setFormato] = useState(initialFormato);
   const [selectedSize, setSelectedSize] = useState("");
-  const [available, setAvailable] = useState(false);
   const [sort, setSort] = useState("relevance");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -102,19 +101,27 @@ export default function CatalogBrowser({
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  // 3. Obtener presentaciones / mililitros disponibles dinámicamente
-  const availableSizes = useMemo(() => {
-    const sizes = new Set<string>();
+  // 3. Obtener presentaciones agrupadas en Frascos vs Decants ordenadas por ml
+  const { frascoSizes, decantSizes } = useMemo(() => {
+    const frascos = new Set<string>();
+    const decants = new Set<string>();
     for (const p of initialProducts) {
       for (const v of p.variants) {
-        if (v.size) sizes.add(v.size.trim());
+        if (!v.size) continue;
+        const limpio = v.size.trim();
+        if (esVarianteDecant(v)) {
+          decants.add(limpio);
+        } else {
+          frascos.add(limpio);
+        }
       }
     }
-    return Array.from(sizes).sort((a, b) => {
-      const numA = parseFloat(a) || 0;
-      const numB = parseFloat(b) || 0;
-      return numA - numB;
-    });
+    const ordenarPorMl = (a: string, b: string) =>
+      (parseFloat(a) || 0) - (parseFloat(b) || 0);
+    return {
+      frascoSizes: Array.from(frascos).sort(ordenarPorMl),
+      decantSizes: Array.from(decants).sort(ordenarPorMl),
+    };
   }, [initialProducts]);
 
   // 4. Leer parámetros de URL al montar en el navegador
@@ -229,8 +236,8 @@ export default function CatalogBrowser({
 
       const varianteSeleccionada = selectedSize
         ? p.variants.find(
-            (v) => v.size.trim().toLowerCase() === selectedSize.trim().toLowerCase(),
-          )
+          (v) => v.size.trim().toLowerCase() === selectedSize.trim().toLowerCase(),
+        )
         : undefined;
 
       if (selectedSize && !varianteSeleccionada) {
@@ -249,9 +256,6 @@ export default function CatalogBrowser({
         precioEvaluado = Math.min(...p.variants.map((v) => v.price));
       }
       if (precioEvaluado > maxPrice) return false;
-
-      // Disponibilidad
-      if (available && !p.active) return false;
       return true;
     });
 
@@ -272,7 +276,7 @@ export default function CatalogBrowser({
     }
 
     return result;
-  }, [initialProducts, search, gender, brand, tipo, formato, selectedSize, maxPrice, available, sort]);
+  }, [initialProducts, search, gender, brand, tipo, formato, selectedSize, maxPrice, sort]);
 
   // 7. Cálculo de paginación (9 productos por página)
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -312,20 +316,18 @@ export default function CatalogBrowser({
     setFormato("");
     setSelectedSize("");
     setMaxPrice(globalMaxPrice);
-    setAvailable(false);
     setCurrentPage(1);
   };
 
   // Comprobar si existen filtros activos para mostrar la barra de chips
   const hasActiveFilters = Boolean(
     search ||
-      gender ||
-      brand ||
-      tipo ||
-      formato ||
-      selectedSize ||
-      maxPrice < globalMaxPrice ||
-      available,
+    gender ||
+    brand ||
+    tipo ||
+    formato ||
+    selectedSize ||
+    maxPrice < globalMaxPrice,
   );
 
   const pageTitle = useMemo(() => {
@@ -531,13 +533,13 @@ export default function CatalogBrowser({
             </div>
           </div>
 
-          {/* Filtro Presentación / Mililitros funcional */}
+          {/* Filtro Presentación / Mililitros organizado en Frascos y Decants */}
           <div className="filter-group">
-            <label>Presentación</label>
-            <div className="size-pills">
+            <div className="filter-group-head">
+              <span>Presentación</span>
               <button
                 type="button"
-                className={`size-pill ${selectedSize === "" ? "active" : ""}`}
+                className={`size-pill size-pill-all ${selectedSize === "" ? "active" : ""}`}
                 onClick={() => {
                   setSelectedSize("");
                   setCurrentPage(1);
@@ -545,35 +547,59 @@ export default function CatalogBrowser({
               >
                 Todas
               </button>
-              {availableSizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`size-pill ${selectedSize === s ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedSize(selectedSize === s ? "" : s);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {s}
-                </button>
-              ))}
             </div>
-          </div>
 
-          {/* Filtro Solo Disponibles */}
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={available}
-              onChange={(e) => {
-                setAvailable(e.target.checked);
-                setCurrentPage(1);
-              }}
-            />
-            <span />
-            Solo disponibles
-          </label>
+            {frascoSizes.length > 0 && (
+              <div className="size-subgroup">
+                <span className="size-sublabel">Frascos completos</span>
+                <div className="size-pills-grid">
+                  {frascoSizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`size-pill ${selectedSize === s ? "active" : ""}`}
+                      onClick={() => {
+                        const next = selectedSize === s ? "" : s;
+                        setSelectedSize(next);
+                        if (next && formato === "decant") setFormato("");
+                        setCurrentPage(1);
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {decantSizes.length > 0 && (
+              <>
+                {frascoSizes.length > 0 && <div className="size-divider" />}
+                <div className="size-subgroup">
+                  <span className="size-sublabel size-sublabel--decant">
+                    <Icon name="decant" size={11} /> Decants
+                  </span>
+                  <div className="size-pills-grid">
+                    {decantSizes.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`size-pill ${selectedSize === s ? "active" : ""}`}
+                        onClick={() => {
+                          const next = selectedSize === s ? "" : s;
+                          setSelectedSize(next);
+                          if (next && formato === "frasco") setFormato("");
+                          setCurrentPage(1);
+                        }}
+                      >
+                        {s.replace(/\s*\(decant\)/i, "").trim()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           <button
             onClick={() => setFiltersOpen(false)}
@@ -692,19 +718,6 @@ export default function CatalogBrowser({
                 </button>
               )}
 
-              {available && (
-                <button
-                  type="button"
-                  className="filter-chip"
-                  onClick={() => {
-                    setAvailable(false);
-                    setCurrentPage(1);
-                  }}
-                >
-                  Disponibles <span className="remove-x">✕</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 className="filter-clear-all"
@@ -737,10 +750,10 @@ export default function CatalogBrowser({
                 {paginatedProducts.map((product) => {
                   const defaultVariant = resolverVarianteMostrada(product, formato, selectedSize);
                   const price = defaultVariant.price;
-                  const esDecantActual = esVarianteDecant(defaultVariant);
-                  const discount = !esDecantActual ? formatDiscount(price, product.oldPrice) : null;
+                  const oldPrice = getVariantOldPrice(product, defaultVariant);
+                  const discount = formatDiscount(price, oldPrice);
                   const productUrl =
-                    selectedSize || formato === "decant"
+                    selectedSize || formato === "decant" || oldPrice
                       ? `/perfumes/${product.slug}?presentacion=${encodeURIComponent(defaultVariant.size)}`
                       : `/perfumes/${product.slug}`;
 
@@ -753,13 +766,6 @@ export default function CatalogBrowser({
                         {product.recent && (
                           <span className="new-badge">Nuevo</span>
                         )}
-                        <button
-                          className="heart-btn"
-                          aria-label="Agregar a favoritos"
-                          type="button"
-                        >
-                          <Icon name="heart" />
-                        </button>
                         <a
                           href={productUrl}
                           aria-label={`Ver detalles de ${product.brand} ${product.name}`}
@@ -803,9 +809,7 @@ export default function CatalogBrowser({
                         </p>
                         <div className="price-row">
                           <strong>{formatPrice(price)}</strong>
-                          {!esDecantActual && product.oldPrice && product.oldPrice > price && (
-                            <s>{formatPrice(product.oldPrice)}</s>
-                          )}
+                          {oldPrice && <s>{formatPrice(oldPrice)}</s>}
                         </div>
                         <a className="detail-link" href={productUrl}>
                           Ver detalles <Icon name="arrow" size={16} />

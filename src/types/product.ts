@@ -4,6 +4,7 @@ export type CommercialType = "disenador" | "arabe" | "nicho";
 export interface ProductVariant {
     size: string;
     price: number;
+    oldPrice?: number;
     isDecant?: boolean;
 }
 

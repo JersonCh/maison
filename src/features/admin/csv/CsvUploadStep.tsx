@@ -341,7 +341,7 @@ export function CsvUploadStep({
                   4. Precios & Decants
                 </span>
                 <ul style={{ margin: 0, paddingLeft: "16px", color: "var(--charcoal)", fontSize: "12px", lineHeight: "1.6" }}>
-                  <li>Frascos: <code>precio_50ml</code> o <code>100ml</code> (al menos uno obligatorio, o ambos).</li>
+                  <li>Frascos: <code>50</code>, <code>75</code>, <code>100</code>, <code>125</code>, <code>150</code> o <code>200ml</code> (al menos uno obligatorio).</li>
                   <li><code>3ml</code>, <code>5ml</code>, <code>10ml</code> decants opcionales.</li>
                 </ul>
               </div>

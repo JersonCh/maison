@@ -14,7 +14,9 @@
 .detail-copy .brand { margin: 0; color: var(--gold); font-size: 10px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
 .detail-copy h1 { margin: 12px 0 16px; font-family: var(--serif); font-size: 52px; font-weight: 500; line-height: 1.05; }
 .detail-type { color: var(--muted); font-size: 11px; }
-.detail-price { margin: 25px 0; font-family: var(--serif); font-size: 28px; }
+.detail-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin: 25px 0; font-family: var(--serif); font-size: 28px; }
+.detail-old-price { color: #9a9893; font-family: var(--sans); font-size: 17px; font-weight: 400; }
+.detail-discount-badge { padding: 4px 8px; background: var(--ink); color: var(--white); font-family: var(--sans); font-size: 10px; font-weight: 600; letter-spacing: .06em; align-self: center; }
 .detail-description { padding-bottom: 23px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.75; }
 .stock { display: flex; align-items: center; gap: 6px; margin: 19px 0; color: var(--muted); font-size: 10px; }
 .stock i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Product, ProductVariant } from "@/types/product";
 import { addToCart } from "@/features/cart/cartStore";
 import { buildProductInquiryWhatsAppUrl } from "@/features/whatsapp/whatsapp";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDiscount, getVariantOldPrice } from "@/lib/formatters";
 import Icon from "@/components/ui/Icon";
 
 interface Props {
@@ -51,6 +51,9 @@ export default function ProductDetailInteractive({ product, phone, initialSize }
         selectedSize.replace(/\s*\(decant\)/i, "").trim(),
     ) ||
     defaultVariant || { size: "100 ml", price: 0 };
+
+  const activeOldPrice = getVariantOldPrice(product, activeVariant);
+  const activeDiscount = formatDiscount(activeVariant.price, activeOldPrice);
 
   const handleAddToCart = () => {
     addToCart(product.id, selectedSize, qty, product.name);
@@ -103,7 +106,15 @@ export default function ProductDetailInteractive({ product, phone, initialSize }
         <h1>{product.name}</h1>
         <p className="detail-type">Eau de Parfum · {product.gender}</p>
 
-        <div className="detail-price">{formatPrice(activeVariant.price)}</div>
+        <div className="detail-price">
+          <span>{formatPrice(activeVariant.price)}</span>
+          {activeOldPrice && (
+            <s className="detail-old-price">{formatPrice(activeOldPrice)}</s>
+          )}
+          {activeDiscount && (
+            <span className="detail-discount-badge">{activeDiscount}</span>
+          )}
+        </div>
         <p className="detail-description">{product.description}</p>
 
         <div className="stock">

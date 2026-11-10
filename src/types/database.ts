@@ -146,8 +146,17 @@ export interface ProductoAdminItem {
   activo: boolean;
   estado: "borrador" | "publicado" | "archivado";
   precio_50ml: number | null; // En Soles (null si no tiene presentación de 50 ml)
+  precio_75ml: number | null; // En Soles
   precio_100ml: number | null; // En Soles (null si no tiene presentación de 100 ml)
+  precio_125ml: number | null; // En Soles
+  precio_150ml: number | null; // En Soles
+  precio_200ml: number | null; // En Soles
   precio_referencia_50ml: number | null; // En Soles
+  precio_referencia_75ml: number | null;
+  precio_referencia_100ml: number | null;
+  precio_referencia_125ml: number | null;
+  precio_referencia_150ml: number | null;
+  precio_referencia_200ml: number | null;
   imagenes: string[]; // 1 a 3 fotos (portada obligatoria, caja y detalle opcionales)
   stock?: number;
 }
@@ -175,8 +184,17 @@ export interface DatosFormularioProducto {
   pais_origen?: string;
   ocasion_uso?: string;
   precio_50ml?: number | null; // En Soles (se persiste multiplicado por 100 en céntimos)
+  precio_75ml?: number | null; // En Soles
   precio_100ml?: number | null; // En Soles
+  precio_125ml?: number | null; // En Soles
+  precio_150ml?: number | null; // En Soles
+  precio_200ml?: number | null; // En Soles
   precio_referencia_50ml?: number | null; // En Soles
+  precio_referencia_75ml?: number | null;
+  precio_referencia_100ml?: number | null;
+  precio_referencia_125ml?: number | null;
+  precio_referencia_150ml?: number | null;
+  precio_referencia_200ml?: number | null;
   es_destacado: boolean;
   etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
   activo: boolean;

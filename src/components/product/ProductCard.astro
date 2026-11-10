@@ -1,6 +1,6 @@
 ---
 import type { Product } from "@/types/product";
-import { formatPrice, formatDiscount } from "@/lib/formatters";
+import { formatPrice, formatDiscount, getVariantOldPrice } from "@/lib/formatters";
 import QuickAddButton from "./QuickAddButton";
 import Icon from "@/components/ui/Icon";
 
@@ -12,7 +12,8 @@ const { product } = Astro.props;
 const frascos = product.variants?.filter((v) => !Boolean(v.isDecant || v.size.toLowerCase().includes("decant"))) || [];
 const defaultVariant = frascos.find((v) => v.size.includes("100")) || frascos[0] || (product.variants && product.variants[0]) || { size: "100 ml", price: 0 };
 const price = defaultVariant.price;
-const discount = formatDiscount(price, product.oldPrice);
+const oldPrice = getVariantOldPrice(product, defaultVariant);
+const discount = formatDiscount(price, oldPrice);
 const productUrl = `/perfumes/${product.slug}`;
 ---
 
@@ -20,13 +21,6 @@ const productUrl = `/perfumes/${product.slug}`;
     <div class="product-photo">
         {discount && <span class="sale-badge">{discount}</span>}
         {product.recent && <span class="new-badge">Nuevo</span>}
-        <button
-            class="heart-btn"
-            aria-label="Agregar a favoritos"
-            type="button"
-        >
-            <Icon name="heart" />
-        </button>
         <a
             href={productUrl}
             aria-label={`Ver detalles de ${product.brand} ${product.name}`}
@@ -55,7 +49,7 @@ const productUrl = `/perfumes/${product.slug}`;
         <p class="meta">{product.gender} · {defaultVariant.size}</p>
         <div class="price-row">
             <strong>{formatPrice(price)}</strong>
-            {product.oldPrice && <s>{formatPrice(product.oldPrice)}</s>}
+            {oldPrice && <s>{formatPrice(oldPrice)}</s>}
         </div>
         <a class="detail-link" href={productUrl}>
             Ver detalles <Icon name="arrow" size={16} />
