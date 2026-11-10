@@ -135,7 +135,9 @@ export default function ProductDetailInteractive({ product, phone }: Props) {
           {decants.length > 0 && (
             <div className={`presentation-row ${frascos.length > 0 ? "decants-group" : ""}`}>
               <div className="option-header">
-                <label>Decants</label>
+                <label className="decants-header-label">
+                  <Icon name="decant" size={13} /> Decants
+                </label>
                 <span>Atomizador de vidrio</span>
               </div>
               <div className="variant-pills">

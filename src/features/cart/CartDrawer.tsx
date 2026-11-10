@@ -92,7 +92,7 @@ export default function CartDrawer({ phone }: Props) {
                     <div className="cart-line-variant">
                       {line.size.toLowerCase().includes("decant") ? (
                         <span className="cart-decant-tag">
-                          ✦ Decant {line.size.replace(/\s*\(decant\)/i, "").trim()}
+                          <Icon name="decant" size={12} /> Decant {line.size.replace(/\s*\(decant\)/i, "").trim()}
                         </span>
                       ) : (
                         <span className="cart-bottle-tag">

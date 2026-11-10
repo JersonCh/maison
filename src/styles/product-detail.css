@@ -23,6 +23,8 @@
 .option-block { padding: 20px 0; border-top: 1px solid var(--line); }
 .option-header { display: flex; justify-content: space-between; font-size: 10px; font-weight: 600; text-transform: uppercase; }
 .option-header span { color: var(--muted); font-size: 8px; font-weight: 400; }
+.decants-header-label { display: inline-flex; align-items: center; gap: 5px; }
+.decants-header-label svg { color: var(--ink); }
 .decants-group { margin-top: 18px; }
 .variant-pills { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
 .variant-pills button { min-width: 105px; padding: 12px 17px; border: 1px solid var(--line); background: transparent; font-size: 11px; cursor: pointer; text-align: center; }

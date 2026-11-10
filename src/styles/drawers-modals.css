@@ -21,14 +21,21 @@
   gap: 6px;
 }
 .cart-lines article .cart-decant-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--gold-deep, #96702c);
   font-weight: 600;
   font-size: 8.5px;
   background: rgba(184, 150, 94, 0.12);
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: 2px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+.cart-lines article .cart-decant-tag svg {
+  flex-shrink: 0;
+  color: var(--gold-deep, #96702c);
 }
 .cart-lines article .cart-bottle-tag {
   color: var(--ink);
