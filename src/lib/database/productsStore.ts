@@ -279,8 +279,10 @@ export async function obtenerFraganciasRelacionadas(
 export async function obtenerProductosTienda(
   db?: D1Database,
 ): Promise<Product[]> {
+  const esDev = Boolean(import.meta.env?.DEV);
+
   if (!db) {
-    return fallbackProducts;
+    return esDev ? fallbackProducts : [];
   }
 
   try {
@@ -309,7 +311,7 @@ export async function obtenerProductosTienda(
       .all<any>();
 
     if (!productos || productos.length === 0) {
-      return fallbackProducts;
+      return esDev ? fallbackProducts : [];
     }
 
     // 2. Consultar variantes activas
@@ -406,8 +408,12 @@ export async function obtenerProductosTienda(
       };
     });
   } catch (error) {
-    console.warn("No se pudieron consultar productos de D1 (usando catálogo de respaldo):", error);
-    return fallbackProducts;
+    if (esDev) {
+      console.warn("No se pudieron consultar productos de D1 (usando catálogo de respaldo en DEV):", error);
+      return fallbackProducts;
+    }
+    console.error("Error al consultar productos en Cloudflare D1:", error);
+    return [];
   }
 }
 
@@ -427,21 +433,10 @@ export async function obtenerDetalleProductoTienda(
     procedencia: string;
   };
 } | null> {
-  if (!db) {
-    const fallback = fallbackProducts.find((p) => p.slug === slug);
-    if (fallback) {
-      return {
-        producto: fallback,
-        piramide: piramideVacia,
-        caracteristicas: caracteristicasPorDefecto,
-      };
-    }
-    return null;
-  }
+  const esDev = Boolean(import.meta.env?.DEV);
 
-  try {
-    const detalleDb = await obtenerDetalleProductoPorSlug(db, slug);
-    if (!detalleDb) {
+  if (!db) {
+    if (esDev) {
       const fallback = fallbackProducts.find((p) => p.slug === slug);
       if (fallback) {
         return {
@@ -449,6 +444,23 @@ export async function obtenerDetalleProductoTienda(
           piramide: piramideVacia,
           caracteristicas: caracteristicasPorDefecto,
         };
+      }
+    }
+    return null;
+  }
+
+  try {
+    const detalleDb = await obtenerDetalleProductoPorSlug(db, slug);
+    if (!detalleDb) {
+      if (esDev) {
+        const fallback = fallbackProducts.find((p) => p.slug === slug);
+        if (fallback) {
+          return {
+            producto: fallback,
+            piramide: piramideVacia,
+            caracteristicas: caracteristicasPorDefecto,
+          };
+        }
       }
       return null;
     }
@@ -507,14 +519,18 @@ export async function obtenerDetalleProductoTienda(
       },
     };
   } catch (error) {
-    console.warn("No se pudo obtener detalle de D1 para slug (usando producto de respaldo):", slug, error);
-    const fallback = fallbackProducts.find((p) => p.slug === slug);
-    if (fallback) {
-      return {
-        producto: fallback,
-        piramide: piramideVacia,
-        caracteristicas: caracteristicasPorDefecto,
-      };
+    if (esDev) {
+      console.warn("No se pudo obtener detalle de D1 para slug (usando producto de respaldo en DEV):", slug, error);
+      const fallback = fallbackProducts.find((p) => p.slug === slug);
+      if (fallback) {
+        return {
+          producto: fallback,
+          piramide: piramideVacia,
+          caracteristicas: caracteristicasPorDefecto,
+        };
+      }
+    } else {
+      console.error("Error al obtener detalle de producto en Cloudflare D1:", slug, error);
     }
     return null;
   }

@@ -247,19 +247,21 @@ const websiteSchema = {
       </div>
     </section>
 
-    <!-- Featured Products Section -->
-    <section class="products-section">
-      <div class="section-heading-row">
-        <SectionTitle
-          eyebrow="Selección Maison"
-          title="Fragancias destacadas"
-        />
-        <a href="/perfumes" class="section-link">Ver toda la colección <Icon name="arrow" size={16} /></a>
-      </div>
-      <div class="product-grid">
-        {featuredProducts.map((product) => <ProductCard product={product} />)}
-      </div>
-    </section>
+    <!-- Featured Products Section (visible cuando existan productos en catálogo) -->
+    {featuredProducts.length > 0 && (
+      <section class="products-section">
+        <div class="section-heading-row">
+          <SectionTitle
+            eyebrow="Selección Maison"
+            title="Fragancias destacadas"
+          />
+          <a href="/perfumes" class="section-link">Ver toda la colección <Icon name="arrow" size={16} /></a>
+        </div>
+        <div class="product-grid">
+          {featuredProducts.map((product) => <ProductCard product={product} />)}
+        </div>
+      </section>
+    )}
 
     <!-- Commercial Categories Section (Líneas comerciales ultralujo) -->
     <section

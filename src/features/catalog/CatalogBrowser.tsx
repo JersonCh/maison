@@ -867,6 +867,12 @@ export default function CatalogBrowser({
                 </nav>
               )}
             </>
+          ) : initialProducts.length === 0 ? (
+            <div className="empty-state">
+              <Icon name="sparkles" size={38} />
+              <h3>Colección en Curaduría</h3>
+              <p>Nuestra selección de fragancias se encuentra en proceso de curaduría oficial. Muy pronto nuevas piezas disponibles.</p>
+            </div>
           ) : (
             <div className="empty-state">
               <Icon name="search" size={38} />
