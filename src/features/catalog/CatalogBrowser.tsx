@@ -1,13 +1,44 @@
 import { useState, useMemo, useEffect } from "react";
-import type { Product, Gender } from "@/types/product";
-import { formatPrice, formatDiscount } from "@/lib/formatters";
+import type { Product, ProductVariant, Gender } from "@/types/product";
+import { formatPrice, formatDiscount, getVariantOldPrice } from "@/lib/formatters";
 import { addToCart } from "@/features/cart/cartStore";
 import Icon from "@/components/ui/Icon";
+
+function esVarianteDecant(v: ProductVariant): boolean {
+  return Boolean(
+    v.isDecant ||
+    v.size.toLowerCase().includes("decant") ||
+    (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
+  );
+}
+
+function resolverVarianteMostrada(
+  product: Product,
+  formato: string,
+  selectedSize: string,
+): ProductVariant {
+  if (selectedSize) {
+    const exacta = product.variants.find(
+      (v) => v.size.trim().toLowerCase() === selectedSize.trim().toLowerCase(),
+    );
+    if (exacta) return exacta;
+  }
+
+  const frascos = product.variants.filter((v) => !esVarianteDecant(v));
+  const decants = product.variants.filter((v) => esVarianteDecant(v));
+
+  if (formato === "decant") {
+    return decants[0] || product.variants[0];
+  }
+  return frascos[0] || product.variants[0];
+}
 
 interface Props {
   initialProducts: Product[];
   initialGender?: string;
   initialBrand?: string;
+  initialTipo?: string;
+  initialFormato?: string;
   initialQuery?: string;
   initialPage?: number;
 }
@@ -18,6 +49,8 @@ export default function CatalogBrowser({
   initialProducts,
   initialGender = "",
   initialBrand = "",
+  initialTipo = "",
+  initialFormato = "",
   initialQuery = "",
   initialPage = 1,
 }: Props) {
@@ -27,9 +60,9 @@ export default function CatalogBrowser({
 
   const [gender, setGender] = useState(initialGender);
   const [brand, setBrand] = useState(initialBrand);
-  const [family, setFamily] = useState("");
+  const [tipo, setTipo] = useState(initialTipo);
+  const [formato, setFormato] = useState(initialFormato);
   const [selectedSize, setSelectedSize] = useState("");
-  const [available, setAvailable] = useState(false);
   const [sort, setSort] = useState("relevance");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(initialPage);
@@ -68,19 +101,27 @@ export default function CatalogBrowser({
     return () => clearTimeout(handler);
   }, [searchInput]);
 
-  // 3. Obtener presentaciones / mililitros disponibles dinámicamente
-  const availableSizes = useMemo(() => {
-    const sizes = new Set<string>();
+  // 3. Obtener presentaciones agrupadas en Frascos vs Decants ordenadas por ml
+  const { frascoSizes, decantSizes } = useMemo(() => {
+    const frascos = new Set<string>();
+    const decants = new Set<string>();
     for (const p of initialProducts) {
       for (const v of p.variants) {
-        if (v.size) sizes.add(v.size.trim());
+        if (!v.size) continue;
+        const limpio = v.size.trim();
+        if (esVarianteDecant(v)) {
+          decants.add(limpio);
+        } else {
+          frascos.add(limpio);
+        }
       }
     }
-    return Array.from(sizes).sort((a, b) => {
-      const numA = parseFloat(a) || 0;
-      const numB = parseFloat(b) || 0;
-      return numA - numB;
-    });
+    const ordenarPorMl = (a: string, b: string) =>
+      (parseFloat(a) || 0) - (parseFloat(b) || 0);
+    return {
+      frascoSizes: Array.from(frascos).sort(ordenarPorMl),
+      decantSizes: Array.from(decants).sort(ordenarPorMl),
+    };
   }, [initialProducts]);
 
   // 4. Leer parámetros de URL al montar en el navegador
@@ -89,6 +130,8 @@ export default function CatalogBrowser({
     const params = new URLSearchParams(window.location.search);
     const paramGender = params.get("genero") || "";
     const paramBrand = params.get("marca") || "";
+    const paramTipo = params.get("tipo") || "";
+    const paramFormato = params.get("formato") || "";
     const paramQuery = params.get("q") || "";
     const paramPage = parseInt(params.get("pagina") || params.get("page") || "1", 10);
     const paramSize = params.get("presentacion") || "";
@@ -96,6 +139,8 @@ export default function CatalogBrowser({
 
     if (paramGender) setGender(paramGender);
     if (paramBrand) setBrand(paramBrand);
+    if (paramTipo) setTipo(paramTipo);
+    if (paramFormato) setFormato(paramFormato);
     if (paramQuery) {
       setSearchInput(paramQuery);
       setSearch(paramQuery);
@@ -111,8 +156,9 @@ export default function CatalogBrowser({
     const params = new URLSearchParams();
     if (gender) params.set("genero", gender);
     if (brand) params.set("marca", brand);
+    if (tipo) params.set("tipo", tipo);
+    if (formato) params.set("formato", formato);
     if (search) params.set("q", search);
-    if (family) params.set("familia", family);
     if (selectedSize) params.set("presentacion", selectedSize);
     if (maxPrice < globalMaxPrice) params.set("precio_max", maxPrice.toString());
     if (currentPage > 1) params.set("pagina", currentPage.toString());
@@ -141,17 +187,28 @@ export default function CatalogBrowser({
         link.classList.add("active");
       }
     });
-  }, [gender, brand, search, family, selectedSize, maxPrice, currentPage, globalMaxPrice]);
+  }, [gender, brand, tipo, formato, search, selectedSize, maxPrice, currentPage, globalMaxPrice]);
 
-  const brands = useMemo(
-    () => [...new Set(initialProducts.map((p) => p.brand))].sort(),
-    [initialProducts],
-  );
+  // Filtrar marcas disponibles según la línea seleccionada (Diseñador, Árabe, Nicho)
+  const brands = useMemo(() => {
+    let prods = initialProducts;
+    if (tipo) {
+      prods = prods.filter((p) => p.commercialType === tipo);
+    }
+    return [...new Set(prods.map((p) => p.brand))].sort();
+  }, [initialProducts, tipo]);
 
-  const families = useMemo(
-    () => [...new Set(initialProducts.map((p) => p.family))].sort(),
-    [initialProducts],
-  );
+  // Si cambia la línea comercial y la marca seleccionada no pertenece a ella, resetear marca
+  useEffect(() => {
+    if (brand && tipo) {
+      const brandValida = initialProducts.some(
+        (p) => p.brand.toLowerCase() === brand.toLowerCase() && p.commercialType === tipo,
+      );
+      if (!brandValida) {
+        setBrand("");
+      }
+    }
+  }, [tipo, brand, initialProducts]);
 
   // 6. Filtrado y ordenamiento de productos
   const filtered = useMemo(() => {
@@ -165,35 +222,61 @@ export default function CatalogBrowser({
       }
       if (gender && p.gender !== gender) return false;
       if (brand && p.brand !== brand) return false;
-      if (family && p.family !== family) return false;
-      if (
-        selectedSize &&
-        !p.variants.some(
-          (v) => v.size.trim().toLowerCase() === selectedSize.toLowerCase(),
-        )
-      ) {
+      if (tipo && p.commercialType !== tipo) return false;
+
+      // Filtro de formato: Decants vs Frascos
+      const decantsProd = p.variants.filter((v) => esVarianteDecant(v));
+      const frascosProd = p.variants.filter((v) => !esVarianteDecant(v));
+
+      if (formato === "decant" && decantsProd.length === 0) {
+        return false;
+      } else if (formato === "frasco" && frascosProd.length === 0) {
         return false;
       }
 
-      // Evaluar precio mínimo de variantes contra maxPrice
-      const minProductPrice = Math.min(...p.variants.map((v) => v.price));
-      if (minProductPrice > maxPrice) return false;
+      const varianteSeleccionada = selectedSize
+        ? p.variants.find(
+          (v) => v.size.trim().toLowerCase() === selectedSize.trim().toLowerCase(),
+        )
+        : undefined;
 
-      // Disponibilidad
-      if (available && !p.active) return false;
+      if (selectedSize && !varianteSeleccionada) {
+        return false;
+      }
+
+      // Evaluar precio de la presentación filtrada (o el mínimo aplicable) contra maxPrice
+      let precioEvaluado: number;
+      if (varianteSeleccionada) {
+        precioEvaluado = varianteSeleccionada.price;
+      } else if (formato === "decant") {
+        precioEvaluado = Math.min(...decantsProd.map((v) => v.price));
+      } else if (formato === "frasco") {
+        precioEvaluado = Math.min(...frascosProd.map((v) => v.price));
+      } else {
+        precioEvaluado = Math.min(...p.variants.map((v) => v.price));
+      }
+      if (precioEvaluado > maxPrice) return false;
       return true;
     });
 
     if (sort === "low") {
-      result.sort((a, b) => a.variants[0].price - b.variants[0].price);
+      result.sort(
+        (a, b) =>
+          resolverVarianteMostrada(a, formato, selectedSize).price -
+          resolverVarianteMostrada(b, formato, selectedSize).price,
+      );
     } else if (sort === "high") {
-      result.sort((a, b) => b.variants[0].price - a.variants[0].price);
+      result.sort(
+        (a, b) =>
+          resolverVarianteMostrada(b, formato, selectedSize).price -
+          resolverVarianteMostrada(a, formato, selectedSize).price,
+      );
     } else if (sort === "recent") {
       result.sort((a, b) => Number(b.recent) - Number(a.recent));
     }
 
     return result;
-  }, [initialProducts, search, gender, brand, family, selectedSize, maxPrice, available, sort]);
+  }, [initialProducts, search, gender, brand, tipo, formato, selectedSize, maxPrice, sort]);
 
   // 7. Cálculo de paginación (9 productos por página)
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -229,29 +312,56 @@ export default function CatalogBrowser({
     setSearch("");
     setGender("");
     setBrand("");
-    setFamily("");
+    setTipo("");
+    setFormato("");
     setSelectedSize("");
     setMaxPrice(globalMaxPrice);
-    setAvailable(false);
     setCurrentPage(1);
   };
 
   // Comprobar si existen filtros activos para mostrar la barra de chips
   const hasActiveFilters = Boolean(
     search ||
-      gender ||
-      brand ||
-      family ||
-      selectedSize ||
-      maxPrice < globalMaxPrice ||
-      available,
+    gender ||
+    brand ||
+    tipo ||
+    formato ||
+    selectedSize ||
+    maxPrice < globalMaxPrice,
   );
 
-  const pageTitle = gender
-    ? gender.toLowerCase() === "unisex"
-      ? "Perfumes Unisex"
-      : `Perfumes para ${gender.toLowerCase()}`
-    : "Todos los perfumes";
+  const pageTitle = useMemo(() => {
+    if (formato === "decant") {
+      if (gender) return `Decants para ${gender.toLowerCase()}`;
+      if (tipo === "nicho") return "Decants de Perfumes Nicho";
+      if (tipo === "arabe") return "Decants de Perfumería Árabe";
+      if (tipo === "disenador") return "Decants de Diseñador";
+      return "Decants y muestras de viaje";
+    }
+
+    if (tipo === "disenador") {
+      if (gender) return `Perfumes de Diseñador para ${gender.toLowerCase()}`;
+      return "Perfumes de Diseñador";
+    }
+
+    if (tipo === "arabe") {
+      if (gender) return `Perfumes Árabes para ${gender.toLowerCase()}`;
+      return "Alta Perfumería Árabe";
+    }
+
+    if (tipo === "nicho") {
+      if (gender) return `Perfumes Nicho para ${gender.toLowerCase()}`;
+      return "Perfumes de Autor y Nicho";
+    }
+
+    if (gender) {
+      return gender.toLowerCase() === "unisex"
+        ? "Perfumes Unisex"
+        : `Perfumes para ${gender.toLowerCase()}`;
+    }
+
+    return "Todos los perfumes";
+  }, [gender, tipo, formato]);
 
   return (
     <main className="catalog-page">
@@ -349,6 +459,39 @@ export default function CatalogBrowser({
             </select>
           </div>
 
+          {/* Filtro Línea / Gama Comercial */}
+          <div className="filter-group">
+            <label>Línea / Gama</label>
+            <select
+              value={tipo}
+              onChange={(e) => {
+                setTipo(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="">Todas las líneas</option>
+              <option value="disenador">Diseñador (Grandes firmas)</option>
+              <option value="arabe">Árabes (Tradición y fijación)</option>
+              <option value="nicho">Nichos (Perfumería de autor)</option>
+            </select>
+          </div>
+
+          {/* Filtro Formato de compra */}
+          <div className="filter-group">
+            <label>Formato de compra</label>
+            <select
+              value={formato}
+              onChange={(e) => {
+                setFormato(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="">Todos los formatos</option>
+              <option value="frasco">Frascos completos (50 ml - 200 ml)</option>
+              <option value="decant">Decants y muestras (3ml / 5ml / 10ml)</option>
+            </select>
+          </div>
+
           {/* Filtro Marca */}
           <div className="filter-group">
             <label>Marca</label>
@@ -363,25 +506,6 @@ export default function CatalogBrowser({
               {brands.map((b) => (
                 <option key={b} value={b}>
                   {b}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Filtro Familia Olfativa */}
-          <div className="filter-group">
-            <label>Familia olfativa</label>
-            <select
-              value={family}
-              onChange={(e) => {
-                setFamily(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="">Todas</option>
-              {families.map((f) => (
-                <option key={f} value={f}>
-                  {f}
                 </option>
               ))}
             </select>
@@ -409,13 +533,13 @@ export default function CatalogBrowser({
             </div>
           </div>
 
-          {/* Filtro Presentación / Mililitros funcional */}
+          {/* Filtro Presentación / Mililitros organizado en Frascos y Decants */}
           <div className="filter-group">
-            <label>Presentación</label>
-            <div className="size-pills">
+            <div className="filter-group-head">
+              <span>Presentación</span>
               <button
                 type="button"
-                className={`size-pill ${selectedSize === "" ? "active" : ""}`}
+                className={`size-pill size-pill-all ${selectedSize === "" ? "active" : ""}`}
                 onClick={() => {
                   setSelectedSize("");
                   setCurrentPage(1);
@@ -423,35 +547,59 @@ export default function CatalogBrowser({
               >
                 Todas
               </button>
-              {availableSizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`size-pill ${selectedSize === s ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedSize(selectedSize === s ? "" : s);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {s}
-                </button>
-              ))}
             </div>
-          </div>
 
-          {/* Filtro Solo Disponibles */}
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={available}
-              onChange={(e) => {
-                setAvailable(e.target.checked);
-                setCurrentPage(1);
-              }}
-            />
-            <span />
-            Solo disponibles
-          </label>
+            {frascoSizes.length > 0 && (
+              <div className="size-subgroup">
+                <span className="size-sublabel">Frascos completos</span>
+                <div className="size-pills-grid">
+                  {frascoSizes.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`size-pill ${selectedSize === s ? "active" : ""}`}
+                      onClick={() => {
+                        const next = selectedSize === s ? "" : s;
+                        setSelectedSize(next);
+                        if (next && formato === "decant") setFormato("");
+                        setCurrentPage(1);
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {decantSizes.length > 0 && (
+              <>
+                {frascoSizes.length > 0 && <div className="size-divider" />}
+                <div className="size-subgroup">
+                  <span className="size-sublabel size-sublabel--decant">
+                    <Icon name="decant" size={11} /> Decants
+                  </span>
+                  <div className="size-pills-grid">
+                    {decantSizes.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`size-pill ${selectedSize === s ? "active" : ""}`}
+                        onClick={() => {
+                          const next = selectedSize === s ? "" : s;
+                          setSelectedSize(next);
+                          if (next && formato === "frasco") setFormato("");
+                          setCurrentPage(1);
+                        }}
+                      >
+                        {s.replace(/\s*\(decant\)/i, "").trim()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           <button
             onClick={() => setFiltersOpen(false)}
@@ -491,6 +639,32 @@ export default function CatalogBrowser({
                 </button>
               )}
 
+              {tipo && (
+                <button
+                  type="button"
+                  className="filter-chip"
+                  onClick={() => {
+                    setTipo("");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Línea: {tipo === "disenador" ? "Diseñador" : tipo === "arabe" ? "Árabe" : "Nicho"} <span className="remove-x">✕</span>
+                </button>
+              )}
+
+              {formato && (
+                <button
+                  type="button"
+                  className="filter-chip"
+                  onClick={() => {
+                    setFormato("");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Formato: {formato === "decant" ? "Decants de viaje" : "Frascos completos"} <span className="remove-x">✕</span>
+                </button>
+              )}
+
               {brand && (
                 <button
                   type="button"
@@ -501,19 +675,6 @@ export default function CatalogBrowser({
                   }}
                 >
                   {brand} <span className="remove-x">✕</span>
-                </button>
-              )}
-
-              {family && (
-                <button
-                  type="button"
-                  className="filter-chip"
-                  onClick={() => {
-                    setFamily("");
-                    setCurrentPage(1);
-                  }}
-                >
-                  {family} <span className="remove-x">✕</span>
                 </button>
               )}
 
@@ -557,19 +718,6 @@ export default function CatalogBrowser({
                 </button>
               )}
 
-              {available && (
-                <button
-                  type="button"
-                  className="filter-chip"
-                  onClick={() => {
-                    setAvailable(false);
-                    setCurrentPage(1);
-                  }}
-                >
-                  Disponibles <span className="remove-x">✕</span>
-                </button>
-              )}
-
               <button
                 type="button"
                 className="filter-clear-all"
@@ -600,10 +748,14 @@ export default function CatalogBrowser({
               {/* Grilla de productos (9 por página) */}
               <div className="product-grid catalog">
                 {paginatedProducts.map((product) => {
-                  const defaultVariant = product.variants[0];
+                  const defaultVariant = resolverVarianteMostrada(product, formato, selectedSize);
                   const price = defaultVariant.price;
-                  const discount = formatDiscount(price, product.oldPrice);
-                  const productUrl = `/perfumes/${product.slug}`;
+                  const oldPrice = getVariantOldPrice(product, defaultVariant);
+                  const discount = formatDiscount(price, oldPrice);
+                  const productUrl =
+                    selectedSize || formato === "decant" || oldPrice
+                      ? `/perfumes/${product.slug}?presentacion=${encodeURIComponent(defaultVariant.size)}`
+                      : `/perfumes/${product.slug}`;
 
                   return (
                     <article className="product-card" key={product.id}>
@@ -614,13 +766,6 @@ export default function CatalogBrowser({
                         {product.recent && (
                           <span className="new-badge">Nuevo</span>
                         )}
-                        <button
-                          className="heart-btn"
-                          aria-label="Agregar a favoritos"
-                          type="button"
-                        >
-                          <Icon name="heart" />
-                        </button>
                         <a
                           href={productUrl}
                           aria-label={`Ver detalles de ${product.brand} ${product.name}`}
@@ -664,9 +809,7 @@ export default function CatalogBrowser({
                         </p>
                         <div className="price-row">
                           <strong>{formatPrice(price)}</strong>
-                          {product.oldPrice && (
-                            <s>{formatPrice(product.oldPrice)}</s>
-                          )}
+                          {oldPrice && <s>{formatPrice(oldPrice)}</s>}
                         </div>
                         <a className="detail-link" href={productUrl}>
                           Ver detalles <Icon name="arrow" size={16} />

@@ -1,25 +1,62 @@
 import { useState } from "react";
-import type { Product } from "@/types/product";
+import type { Product, ProductVariant } from "@/types/product";
 import { addToCart } from "@/features/cart/cartStore";
 import { buildProductInquiryWhatsAppUrl } from "@/features/whatsapp/whatsapp";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDiscount, getVariantOldPrice } from "@/lib/formatters";
 import Icon from "@/components/ui/Icon";
 
 interface Props {
   product: Product;
   phone?: string;
+  initialSize?: string;
 }
 
-export default function ProductDetailInteractive({ product, phone }: Props) {
+export default function ProductDetailInteractive({ product, phone, initialSize }: Props) {
   const [selectedImage, setSelectedImage] = useState(product.image);
-  const [selectedSize, setSelectedSize] = useState(product.variants[0].size);
+
+  // Clasificación de variantes: frascos regulares vs decants
+  const frascos = product.variants.filter(
+    (v) => !Boolean(v.isDecant || v.size.toLowerCase().includes("decant")),
+  );
+  const decants = product.variants.filter((v) =>
+    Boolean(v.isDecant || v.size.toLowerCase().includes("decant")),
+  );
+
+  // Si viene una presentación filtrada desde el catálogo (?presentacion=...), respetarla
+  const preselectedVariant = initialSize
+    ? product.variants.find(
+        (v) => v.size.trim().toLowerCase() === initialSize.trim().toLowerCase(),
+      )
+    : undefined;
+
+  // Variante predeterminada: preseleccionada, o preferir frasco de 100ml/50ml si existe
+  const defaultVariant =
+    preselectedVariant ||
+    frascos.find((v) => v.size.includes("100")) ||
+    frascos.find((v) => v.size.includes("50")) ||
+    frascos[0] ||
+    decants[0] ||
+    product.variants[0];
+
+  const [selectedSize, setSelectedSize] = useState(
+    defaultVariant?.size || "100 ml",
+  );
   const [qty, setQty] = useState(1);
 
-  const activeVariant =
-    product.variants.find((v) => v.size === selectedSize) || product.variants[0];
+  const activeVariant: ProductVariant =
+    product.variants.find((v) => v.size === selectedSize) ||
+    product.variants.find(
+      (v) =>
+        v.size.replace(/\s*\(decant\)/i, "").trim() ===
+        selectedSize.replace(/\s*\(decant\)/i, "").trim(),
+    ) ||
+    defaultVariant || { size: "100 ml", price: 0 };
+
+  const activeOldPrice = getVariantOldPrice(product, activeVariant);
+  const activeDiscount = formatDiscount(activeVariant.price, activeOldPrice);
 
   const handleAddToCart = () => {
-    addToCart(product.id, selectedSize, qty);
+    addToCart(product.id, selectedSize, qty, product.name);
   };
 
   const handleWhatsAppInquiry = () => {
@@ -69,7 +106,15 @@ export default function ProductDetailInteractive({ product, phone }: Props) {
         <h1>{product.name}</h1>
         <p className="detail-type">Eau de Parfum · {product.gender}</p>
 
-        <div className="detail-price">{formatPrice(activeVariant.price)}</div>
+        <div className="detail-price">
+          <span>{formatPrice(activeVariant.price)}</span>
+          {activeOldPrice && (
+            <s className="detail-old-price">{formatPrice(activeOldPrice)}</s>
+          )}
+          {activeDiscount && (
+            <span className="detail-discount-badge">{activeDiscount}</span>
+          )}
+        </div>
         <p className="detail-description">{product.description}</p>
 
         <div className="stock">
@@ -77,25 +122,63 @@ export default function ProductDetailInteractive({ product, phone }: Props) {
           <span>Disponible</span>
         </div>
 
-        {/* Variantes de tamaño */}
+        {/* Variantes de presentación */}
         <div className="option-block">
-          <div>
-            <label>Presentación</label>
-            <span>Selecciona una opción</span>
-          </div>
-          <div className="variant-pills">
-            {product.variants.map((v) => (
-              <button
-                type="button"
-                key={v.size}
-                className={selectedSize === v.size ? "active" : ""}
-                onClick={() => setSelectedSize(v.size)}
-              >
-                {v.size}
-                <small>{formatPrice(v.price)}</small>
-              </button>
-            ))}
-          </div>
+          {/* Fila 1: Frascos completos */}
+          {frascos.length > 0 && (
+            <div className="presentation-row">
+              <div className="option-header">
+                <label>{decants.length > 0 ? "Frasco" : "Presentación"}</label>
+                <span>Caja sellada</span>
+              </div>
+              <div className="variant-pills">
+                {frascos.map((v) => {
+                  const isSelected = selectedSize === v.size;
+                  const displaySize = v.size.replace(/\s*\(decant\)/i, "").trim();
+                  return (
+                    <button
+                      type="button"
+                      key={v.size}
+                      className={isSelected ? "active" : ""}
+                      onClick={() => setSelectedSize(v.size)}
+                    >
+                      {displaySize}
+                      <small>{formatPrice(v.price)}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Fila 2: Decants (SOLO si el perfume tiene decants registrados) */}
+          {decants.length > 0 && (
+            <div className={`presentation-row ${frascos.length > 0 ? "decants-group" : ""}`}>
+              <div className="option-header">
+                <label className="decants-header-label">
+                  <Icon name="decant" size={13} /> Decants
+                </label>
+                <span>Atomizador de vidrio</span>
+              </div>
+              <div className="variant-pills">
+                {decants.map((v) => {
+                  const isSelected = selectedSize === v.size;
+                  const cleanSize = v.size.replace(/\s*\(decant\)/i, "").trim();
+                  return (
+                    <button
+                      type="button"
+                      key={v.size}
+                      className={isSelected ? "active" : ""}
+                      onClick={() => setSelectedSize(v.size)}
+                    >
+                      Decant {cleanSize}
+                      <small>{formatPrice(v.price)}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Selector de cantidad y Agregar al carrito */}

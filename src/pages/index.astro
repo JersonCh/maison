@@ -23,6 +23,7 @@ const defaultHeroSlides: BannerSlide[] = [
     ubicacion: "hero_home",
     titulo: "Encuentra una fragancia que hable por ti",
     subtitulo: "Fragancias originales · Selección exclusiva",
+    descripcion: "Descubre aromas que trascienden el tiempo y convierten tu esencia en una firma inolvidable.",
     texto_boton: "Explorar perfumes",
     enlace_url: "/perfumes",
     imagen_desktop: "https://images.unsplash.com/photo-1594036436267-2750a8ab2ae2?auto=format&fit=crop&w=1800&q=90",
@@ -34,6 +35,7 @@ const defaultHeroSlides: BannerSlide[] = [
     ubicacion: "hero_home",
     titulo: "El arte de la distinción olfativa",
     subtitulo: "Casas de autor y alta perfumería europea",
+    descripcion: "Descubre aromas que trascienden el tiempo y convierten tu esencia en una firma inolvidable.",
     texto_boton: "Ver Novedades",
     enlace_url: "/perfumes",
     imagen_desktop: "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?auto=format&fit=crop&w=1800&q=90",
@@ -45,6 +47,7 @@ const defaultHeroSlides: BannerSlide[] = [
     ubicacion: "hero_home",
     titulo: "Asesoría cercana y personalizada",
     subtitulo: "Descubre notas creadas a la medida de tu estilo",
+    descripcion: "Atención boutique guiada por expertos para elegir tu firma olfativa ideal.",
     texto_boton: "Hablar con un asesor",
     enlace_url: "/contacto",
     imagen_desktop: "https://images.unsplash.com/photo-1705936118918-870095881e61?auto=format&fit=crop&w=1800&q=90",
@@ -55,40 +58,85 @@ const defaultHeroSlides: BannerSlide[] = [
 
 const heroSlides = bannersDb && bannersDb.length > 0 ? bannersDb : defaultHeroSlides;
 
-const featuredProducts = allProducts.filter((p) => p.featured).slice(0, 5);
-const recentProducts = allProducts
-  .filter((p) => p.recent || !p.featured)
-  .slice(0, 4);
+// Selección Híbrida Inteligente para la portada:
+// 1. Productos ordenados por último ingreso (más recientes primero)
+const latestProducts = [...allProducts].sort((a, b) => {
+  if (a.createdAt && b.createdAt) {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  }
+  return b.id - a.id;
+});
+
+// 2. Priorizar los perfumes expresamente marcados como destacados en el gestor
+const explicitlyFeatured = latestProducts.filter((p) => p.featured);
+
+const featuredSet = new Set<number>();
+const featuredProducts: typeof allProducts = [];
+
+for (const p of explicitlyFeatured) {
+  if (featuredProducts.length < 5) {
+    featuredProducts.push(p);
+    featuredSet.add(p.id);
+  }
+}
+
+// 3. Si faltan cupos para completar 5, rellenar automáticamente con los últimos ingresos
+for (const p of latestProducts) {
+  if (featuredProducts.length >= 5) break;
+  if (!featuredSet.has(p.id)) {
+    featuredProducts.push(p);
+    featuredSet.add(p.id);
+  }
+}
+
+// 4. Sección "Nuevos ingresos" (4 perfumes más recientes, evitando repetir los ya destacados)
+const recentCandidates = latestProducts.filter((p) => !featuredSet.has(p.id));
+const recentProducts = recentCandidates.length >= 4
+  ? recentCandidates.slice(0, 4)
+  : latestProducts.slice(0, 4);
+
 const categories: Gender[] = ["Hombre", "Mujer", "Unisex"];
 
 const commercialCategories = [
   {
     id: "disenador",
+    index: "01",
+    badge: "Tendencia & Estilo",
+    tagline: "Grandes Firmas",
     title: "Diseñador",
-    subtitle: "Grandes firmas",
-    image: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=900&q=85",
-    link: "/perfumes",
+    description: "Chanel, Dior, Tom Ford & clásicos atemporales de la moda global.",
+    image: "/assets/categories/categoria-disenador.jpg",
+    link: "/perfumes?tipo=disenador",
   },
   {
     id: "arabes",
+    index: "02",
+    badge: "Larga Fijación",
+    tagline: "Tradición y Fijación",
     title: "Árabes",
-    subtitle: "Tradición y fijación",
-    image: "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?auto=format&fit=crop&w=900&q=85",
-    link: "/perfumes",
+    description: "Oud majestuoso, aceites attar concentrados & estela legendaria infinita.",
+    image: "/assets/categories/categoria-arabes.jpg",
+    link: "/perfumes?tipo=arabe",
   },
   {
     id: "nichos",
+    index: "03",
+    badge: "Exclusividad",
+    tagline: "Perfumería de Autor",
     title: "Nichos",
-    subtitle: "Perfumería de autor",
-    image: "https://images.unsplash.com/photo-1672848700906-2b8ca62639e4?auto=format&fit=crop&w=900&q=85",
-    link: "/perfumes",
+    description: "Fórmulas raras, botánica selecta, acordes experimentales y piezas únicas.",
+    image: "/assets/categories/categoria-nichos.jpg",
+    link: "/perfumes?tipo=nicho",
   },
   {
     id: "decants",
+    index: "04",
+    badge: "Prueba en Piel",
+    tagline: "Muestras y Viajes",
     title: "Decants",
-    subtitle: "Muestras y viajes",
-    image: "https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&w=900&q=85",
-    link: "/contacto",
+    description: "Atomizadores de 3ml - 5ml - 10ml para catar en piel antes de invertir.",
+    image: "/assets/categories/categoria-decants.jpg",
+    link: "/perfumes?formato=decant",
   },
 ];
 
@@ -213,31 +261,65 @@ const websiteSchema = {
       </div>
     </section>
 
-    <!-- Commercial Categories Section -->
-    <section class="commercial-categories-section">
+    <!-- Commercial Categories Section (Líneas comerciales ultralujo) -->
+    <section
+      class="commercial-categories-section linen-pattern"
+      data-purpose="commercial-categories-showcase"
+      aria-label="Líneas comerciales de perfumería"
+    >
       <div class="commercial-categories-container">
-        <div class="commercial-header">
-          <span class="commercial-eyebrow">Categorías comerciales</span>
+        <!-- Header editorial -->
+        <header class="commercial-header">
+          <span class="commercial-eyebrow">Categorías Comerciales</span>
           <h2 class="commercial-title">Un universo de matices</h2>
           <p class="commercial-copy">
-            Cuatro expresiones de la alta perfumería: desde icónicas casas de moda internacionales hasta creaciones de autor, acordes orientales y decants para descubrir.
+            Cuatro expresiones de la alta perfumería: desde icónicas casas de moda internacionales
+            hasta creaciones de autor, acordes orientales y decants para descubrir.
           </p>
-        </div>
+        </header>
 
-        <div class="commercial-grid">
+        <!-- Grid de 4 Tarjetas de Ultralujo -->
+        <div class="commercial-grid" data-purpose="categories-grid">
           {
             commercialCategories.map((cat) => (
-              <a href={cat.link} class="commercial-card" aria-label={`Explorar categoría ${cat.title}`}>
-                <div class="commercial-card-media">
-                  <img src={cat.image} alt={cat.title} loading="lazy" decoding="async" />
-                  <div class="commercial-card-gradient" />
+              <a
+                href={cat.link}
+                class="commercial-card group"
+                data-purpose={`category-card-${cat.id}`}
+                aria-label={`Explorar categoría ${cat.title}`}
+              >
+                <!-- Imagen de fondo con zoom fluido -->
+                <img
+                  src={cat.image}
+                  alt={`Línea ${cat.title} - Maison des Parfums`}
+                  loading="lazy"
+                  decoding="async"
+                  class="commercial-card-img"
+                />
+
+                <!-- Degradado editorial profundo -->
+                <div class="commercial-card-overlay" />
+
+                <!-- Parte superior: Índice & Badge Glassmorphism -->
+                <div class="commercial-card-top">
+                  <span class="commercial-card-index">{cat.index}</span>
+                  <span class="commercial-card-badge">{cat.badge}</span>
                 </div>
-                <div class="commercial-card-info">
-                  <span class="commercial-card-badge">{cat.subtitle}</span>
-                  <h3 class="commercial-card-name">{cat.title}</h3>
-                  <span class="commercial-card-cta">
-                    Explorar colección <Icon name="arrow" size={14} />
-                  </span>
+
+                <!-- Contenido inferior -->
+                <div class="commercial-card-bottom">
+                  <p class="commercial-card-tagline">
+                    <span class="commercial-card-dot" />
+                    {cat.tagline}
+                  </p>
+                  <h3 class="commercial-card-heading">{cat.title}</h3>
+                  <p class="commercial-card-desc">{cat.description}</p>
+                  <div class="commercial-card-cta">
+                    <span>Explorar Colección</span>
+                    <span class="commercial-card-arrow">
+                      <Icon name="arrow" size={14} />
+                    </span>
+                  </div>
                 </div>
               </a>
             ))

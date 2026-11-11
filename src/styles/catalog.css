@@ -41,11 +41,14 @@
 .product-grid.four { grid-template-columns: repeat(4, 1fr); }
 .product-card { min-width: 0; }
 .product-photo { position: relative; aspect-ratio: .78; overflow: hidden; background: #eeeae1; }
-.product-photo > img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
-.product-card:hover .product-photo > img { transform: scale(1.03); }
-.sale-badge, .new-badge { position: absolute; z-index: 2; left: 12px; top: 12px; padding: 6px 8px; background: var(--ink); color: var(--white); font-size: 9px; letter-spacing: .05em; }
-.new-badge { background: var(--gold); color: var(--ink); }
-.heart-btn { position: absolute; z-index: 2; right: 9px; top: 9px; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(250,248,243,.9); }
+.product-photo > a { display: block; width: 100%; height: 100%; }
+.product-photo > img,
+.product-photo > a img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.product-card:hover .product-photo > img,
+.product-card:hover .product-photo > a img { transform: scale(1.03); }
+.sale-badge, .new-badge { position: absolute; z-index: 2; top: 12px; padding: 6px 8px; background: var(--ink); color: var(--white); font-size: 9px; font-weight: 600; letter-spacing: .05em; }
+.new-badge { left: 12px; background: var(--gold); color: var(--ink); }
+.sale-badge { right: 12px; background: var(--ink); color: var(--white); }
 .quick-add { position: absolute; z-index: 2; left: 10px; right: 10px; bottom: 10px; height: 41px; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: rgba(13,15,12,.93); color: var(--white); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; transform: translateY(60px); transition: .3s ease; }
 .product-card:hover .quick-add { transform: translateY(0); }
 .product-copy { padding: 17px 3px 0; }
@@ -61,7 +64,7 @@
 .catalog-intro { padding: 75px max(6vw, 32px) 65px; background: #ece5d7; text-align: center; }
 .catalog-intro h1 { margin: 12px 0 16px; font-family: var(--serif); font-size: clamp(46px, 5vw, 66px); font-weight: 500; line-height: 1.05; }
 .catalog-intro > p:last-child { max-width: 640px; margin: auto; color: var(--muted); font-size: 13px; line-height: 1.7; }
-.catalog-toolbar { height: 76px; display: flex; justify-content: space-between; align-items: center; padding: 0 max(5vw, 30px); border-bottom: 1px solid var(--line); background: var(--white); }
+.catalog-toolbar { height: 76px; display: flex; justify-content: space-between; align-items: center; padding: 0 max(5vw, 30px); border-bottom: 1px solid var(--line); background: var(--white); scroll-margin-top: 90px; }
 .catalog-search { position: relative; display: flex; align-items: center; gap: 11px; width: 330px; border-bottom: 1px solid #aaa; padding: 9px 0; }
 .catalog-search input { width: 100%; border: 0; outline: 0; background: none; font-size: 11px; padding-right: 20px; }
 .search-clear-btn { position: absolute; right: 0; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 2px 4px; display: grid; place-items: center; }
@@ -70,20 +73,36 @@
 .sort { display: flex; align-items: center; gap: 10px; font-size: 10px; }
 .sort span { color: var(--muted); }
 .sort select, .filter-group select { border: 0; outline: 0; background: transparent; font-size: 11px; font-weight: 600; cursor: pointer; }
-.catalog-layout { display: grid; grid-template-columns: 235px 1fr; gap: 40px; max-width: 1400px; margin: auto; padding: 45px 4%; }
+.catalog-layout { display: grid; grid-template-columns: 235px 1fr; gap: 40px; max-width: 1400px; margin: auto; padding: 45px 4%; scroll-margin-top: 90px; }
 .filters { padding-right: 10px; }
-.filter-title { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+@media (min-width: 781px) {
+  .filters {
+    position: sticky;
+    top: 102px;
+    align-self: start;
+  }
+}
+.filter-title { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
 .filter-title strong { font-family: var(--serif); font-size: 20px; }
 .filter-title button { border: 0; background: none; color: var(--muted); font-size: 9px; text-decoration: underline; cursor: pointer; }
 .filter-close, .filter-apply { display: none; }
-.filter-group { padding: 22px 0; border-bottom: 1px solid var(--line); }
-.filter-group > label { display: flex; justify-content: space-between; margin-bottom: 13px; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-.filter-group select { width: 100%; padding: 7px 0; color: var(--muted); font-weight: 400; }
+.filter-group { padding: 15px 0; border-bottom: 1px solid var(--line); }
+.filters > .filter-group:last-of-type { border-bottom: 0; }
+.filter-group > label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.filter-group select { width: 100%; padding: 4px 0; color: var(--muted); font-weight: 400; }
 .filter-group input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .range-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 9px; margin-top: 6px; }
 
 /* Pastillas de presentación interactivas */
+.filter-group-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.size-pill-all { padding: 4px 10px; font-size: 9.5px; }
+.size-subgroup { display: flex; flex-direction: column; gap: 7px; }
+.size-sublabel { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.size-sublabel--decant { color: var(--gold-deep, #9a7828); }
+.size-divider { border-top: 1px dashed var(--line); margin: 10px 0 9px; }
 .size-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+.size-pills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.size-pills-grid .size-pill { width: 100%; text-align: center; padding: 7px 4px; }
 .size-pill {
   border: 1px solid var(--line);
   padding: 6px 11px;

@@ -1,8 +1,11 @@
 export type Gender = "Hombre" | "Mujer" | "Unisex";
+export type CommercialType = "disenador" | "arabe" | "nicho";
 
 export interface ProductVariant {
     size: string;
     price: number;
+    oldPrice?: number;
+    isDecant?: boolean;
 }
 
 export interface Product {
@@ -12,6 +15,7 @@ export interface Product {
     name: string;
     gender: Gender;
     family: string;
+    commercialType?: CommercialType;
     description: string;
     image: string;
     gallery: string[];
@@ -21,4 +25,5 @@ export interface Product {
     featured?: boolean;
     recent?: boolean;
     active?: boolean;
+    createdAt?: string;
 }

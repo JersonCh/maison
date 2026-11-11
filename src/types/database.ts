@@ -10,6 +10,7 @@ export interface VarianteDb {
   es_predeterminada: number;
   controla_stock: number;
   modalidad_disponibilidad: string;
+  tipo_presentacion?: "frasco" | "decant";
   activo: number;
 }
 
@@ -42,12 +43,14 @@ export interface ProductoCatalogo {
   concentracion: string;
   marca: string;
   marca_slug: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
   familia_olfativa: string;
   imagen_principal: string;
   precio_minimo_centimos: number;
   precio_referencia_centimos: number | null;
   tamano_predeterminado_ml: number;
   es_destacado: boolean;
+  tiene_decants?: boolean;
 }
 
 export interface ProductoDetalleCompleto {
@@ -57,6 +60,7 @@ export interface ProductoDetalleCompleto {
   descripcion: string;
   genero: Gender;
   concentracion: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
   anio_lanzamiento: number | null;
   pais_origen: string | null;
   ocasion_uso: string | null;
@@ -69,6 +73,7 @@ export interface ProductoDetalleCompleto {
     precio_centimos: number;
     precio_referencia_centimos: number | null;
     es_predeterminada: boolean;
+    tipo_presentacion?: "frasco" | "decant";
   }[];
   galeria_imagenes: string[];
   piramide_olfativa: PiramideOlfativa;
@@ -79,11 +84,13 @@ export interface BannerSlide {
   ubicacion: string;
   titulo: string | null;
   subtitulo: string | null;
+  descripcion?: string | null;
   texto_boton: string | null;
   enlace_url: string | null;
   imagen_desktop: string;
   imagen_mobile: string | null;
   orden: number;
+  activo?: boolean | number;
 }
 
 // =============================================================================
@@ -94,6 +101,19 @@ export interface MarcaItem {
   id: number;
   nombre: string;
   slug: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
+}
+
+export interface MarcaAdminItem {
+  id: number;
+  nombre: string;
+  slug: string;
+  descripcion?: string | null;
+  tipo_comercial: "disenador" | "arabe" | "nicho";
+  activo: boolean;
+  total_productos: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface FamiliaOlfativaItem {
@@ -111,6 +131,11 @@ export interface ProductoAdminItem {
   slug: string;
   marca_id: number;
   marca: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
+  tiene_decants?: boolean;
+  precio_decant_3ml?: number | null;
+  precio_decant_5ml?: number | null;
+  precio_decant_10ml?: number | null;
   genero: Gender;
   concentracion: string;
   familia_olfativa_id: number | null;
@@ -119,11 +144,21 @@ export interface ProductoAdminItem {
   pais_origen: string | null;
   ocasion_uso: string | null;
   es_destacado: boolean;
+  etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
   activo: boolean;
   estado: "borrador" | "publicado" | "archivado";
-  precio_50ml: number; // En Soles
-  precio_100ml: number; // En Soles
+  precio_50ml: number | null; // En Soles (null si no tiene presentación de 50 ml)
+  precio_75ml: number | null; // En Soles
+  precio_100ml: number | null; // En Soles (null si no tiene presentación de 100 ml)
+  precio_125ml: number | null; // En Soles
+  precio_150ml: number | null; // En Soles
+  precio_200ml: number | null; // En Soles
   precio_referencia_50ml: number | null; // En Soles
+  precio_referencia_75ml: number | null;
+  precio_referencia_100ml: number | null;
+  precio_referencia_125ml: number | null;
+  precio_referencia_150ml: number | null;
+  precio_referencia_200ml: number | null;
   imagenes: string[]; // 1 a 3 fotos (portada obligatoria, caja y detalle opcionales)
   stock?: number;
 }
@@ -133,10 +168,16 @@ export interface ProductoAdminItem {
  * Admite de 1 a 3 fotos (Portada obligatoria, empaque y detalle opcionales).
  */
 export interface DatosFormularioProducto {
+  id?: number;
   nombre: string;
   slug?: string;
   marca_id?: number;
   nueva_marca?: string;
+  tipo_comercial?: "disenador" | "arabe" | "nicho";
+  tiene_decants?: boolean;
+  precio_decant_3ml?: number | null;
+  precio_decant_5ml?: number | null;
+  precio_decant_10ml?: number | null;
   genero: Gender;
   concentracion: string;
   familia_olfativa_id?: number | null;
@@ -144,10 +185,20 @@ export interface DatosFormularioProducto {
   descripcion: string;
   pais_origen?: string;
   ocasion_uso?: string;
-  precio_50ml: number; // En Soles (se persiste multiplicado por 100 en céntimos)
-  precio_100ml: number; // En Soles
+  precio_50ml?: number | null; // En Soles (se persiste multiplicado por 100 en céntimos)
+  precio_75ml?: number | null; // En Soles
+  precio_100ml?: number | null; // En Soles
+  precio_125ml?: number | null; // En Soles
+  precio_150ml?: number | null; // En Soles
+  precio_200ml?: number | null; // En Soles
   precio_referencia_50ml?: number | null; // En Soles
+  precio_referencia_75ml?: number | null;
+  precio_referencia_100ml?: number | null;
+  precio_referencia_125ml?: number | null;
+  precio_referencia_150ml?: number | null;
+  precio_referencia_200ml?: number | null;
   es_destacado: boolean;
+  etiqueta_destacada?: "ninguna" | "nuevo" | "mas_vendido" | "edicion_limitada";
   activo: boolean;
   fotos: string[]; // [Foto 1: Portada obligatoria, Foto 2?: Caja opcional, Foto 3?: Detalle opcional]
   stock?: number;

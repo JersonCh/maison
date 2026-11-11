@@ -2,11 +2,17 @@ import { useState, useEffect, useCallback } from "react";
 import type {
   ProductoAdminItem,
   MarcaItem,
+  MarcaAdminItem,
   FamiliaOlfativaItem,
 } from "@/types/database";
 import Icon from "@/components/ui/Icon";
+import { obtenerPrecioMinimoFrasco } from "@/lib/frascos";
 import ProductTable from "./ProductTable";
-import ProductFormModal from "./ProductFormModal";
+import ProductFormPage from "./ProductFormPage";
+import CsvImportModal from "./CsvImportModal";
+import BrandsManagementPage from "./BrandsManagementPage";
+import BannersManagementPage from "./BannersManagementPage";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Props {
   initialProducts?: any[];
@@ -17,14 +23,22 @@ export default function AdminDashboard({ }: Props) {
   const [section, setSection] = useState("dashboard");
   const [cargando, setCargando] = useState(false);
 
-  // Datos en vivo desde Cloudflare D1
+  // Datos en vivo desde la base de datos
   const [productos, setProductos] = useState<ProductoAdminItem[]>([]);
   const [marcas, setMarcas] = useState<MarcaItem[]>([]);
+  const [marcasAdmin, setMarcasAdmin] = useState<MarcaAdminItem[]>([]);
   const [familias, setFamilias] = useState<FamiliaOlfativaItem[]>([]);
 
-  // Estados del modal de producto
-  const [modalAbierto, setModalAbierto] = useState(false);
+  // Estados de vista de producto (Página dedicada - Opción A)
+  const [vistaProducto, setVistaProducto] = useState<"tabla" | "formulario">("tabla");
   const [productoEnEdicion, setProductoEnEdicion] = useState<ProductoAdminItem | null>(null);
+
+  // Modal de importación masiva CSV
+  const [mostrarModalCsv, setMostrarModalCsv] = useState(false);
+
+  // Modal de confirmación para eliminar fragancia
+  const [productoAEliminar, setProductoAEliminar] = useState<{ id: number; nombre: string } | null>(null);
+  const [eliminandoProducto, setEliminandoProducto] = useState(false);
 
   // Notificación tipo toast
   const [toastMensaje, setToastMensaje] = useState("");
@@ -34,21 +48,36 @@ export default function AdminDashboard({ }: Props) {
     window.setTimeout(() => setToastMensaje(""), 3500);
   };
 
-  // Cargar metadatos (marcas y familias olfativas) desde Cloudflare D1
+  // Cargar casas de perfumería con métricas completas
+  const cargarMarcas = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/admin/brands");
+      if (resp.ok) {
+        const datos = await resp.json();
+        if (datos.marcas) {
+          setMarcasAdmin(datos.marcas);
+          setMarcas(datos.marcas);
+        }
+      }
+    } catch (error) {
+      console.error("Error al cargar casas de perfumería:", error);
+    }
+  }, []);
+
+  // Cargar metadatos secundarios (familias olfativas)
   const cargarMetadatos = useCallback(async () => {
     try {
       const resp = await fetch("/api/admin/metadata");
       if (resp.ok) {
         const datos = await resp.json();
-        if (datos.marcas) setMarcas(datos.marcas);
         if (datos.familias) setFamilias(datos.familias);
       }
     } catch (error) {
-      console.error("Error al cargar metadatos de D1:", error);
+      console.error("Error al cargar metadatos:", error);
     }
   }, []);
 
-  // Cargar lista completa de productos desde Cloudflare D1
+  // Cargar lista completa de productos
   const cargarProductos = useCallback(async () => {
     setCargando(true);
     try {
@@ -58,7 +87,7 @@ export default function AdminDashboard({ }: Props) {
         setProductos(lista);
       }
     } catch (error) {
-      console.error("Error al cargar productos de D1:", error);
+      console.error("Error al cargar productos:", error);
     } finally {
       setCargando(false);
     }
@@ -66,20 +95,21 @@ export default function AdminDashboard({ }: Props) {
 
   useEffect(() => {
     if (logged) {
+      cargarMarcas();
       cargarMetadatos();
       cargarProductos();
     }
-  }, [logged, cargarMetadatos, cargarProductos]);
+  }, [logged, cargarMarcas, cargarMetadatos, cargarProductos]);
 
   // Manejadores de acciones del CRUD
   const manejarAbrirCreacion = () => {
     setProductoEnEdicion(null);
-    setModalAbierto(true);
+    setVistaProducto("formulario");
   };
 
   const manejarAbrirEdicion = (producto: ProductoAdminItem) => {
     setProductoEnEdicion(producto);
-    setModalAbierto(true);
+    setVistaProducto("formulario");
   };
 
   const manejarAlternarVisibilidad = async (id: number, actualActivo: boolean) => {
@@ -108,28 +138,32 @@ export default function AdminDashboard({ }: Props) {
     }
   };
 
-  const manejarEliminarOArchivar = async (id: number, nombre: string) => {
-    const confirmar = window.confirm(
-      `¿Deseas retirar "${nombre}" del catálogo oficial?\nSi el perfume tiene historial de pedidos, se archivará automáticamente para preservar los registros.`,
-    );
+  const solicitarEliminarProducto = async (id: number, nombre: string) => {
+    setProductoAEliminar({ id, nombre });
+  };
 
-    if (!confirmar) return;
+  const ejecutarEliminarProducto = async () => {
+    if (!productoAEliminar) return;
 
+    setEliminandoProducto(true);
     try {
-      const resp = await fetch(`/api/admin/products?id=${id}`, {
+      const resp = await fetch(`/api/admin/products?id=${productoAEliminar.id}`, {
         method: "DELETE",
       });
 
       const resultado = await resp.json();
 
       if (resp.ok) {
-        setProductos((prev) => prev.filter((p) => p.id !== id));
-        mostrarToast(`✓ ${resultado.mensaje || "Producto retirado correctamente."}`);
+        setProductos((prev) => prev.filter((p) => p.id !== productoAEliminar.id));
+        mostrarToast(`✓ ${resultado.mensaje || "Fragancia eliminada correctamente."}`);
+        setProductoAEliminar(null);
       } else {
-        mostrarToast(`⚠ ${resultado.error || "Error al retirar el producto."}`);
+        mostrarToast(`⚠ ${resultado.error || "Error al eliminar la fragancia."}`);
       }
     } catch (error) {
       mostrarToast("⚠ Error de comunicación con el servidor.");
+    } finally {
+      setEliminandoProducto(false);
     }
   };
 
@@ -138,7 +172,7 @@ export default function AdminDashboard({ }: Props) {
     return (
       <main className="admin-login">
         <div className="login-brand">
-          <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
+          <img src="/assets/brand/logo-no-fondo300.png" alt="Maison des Parfums" />
           <p>Gestión de la tienda</p>
         </div>
         <form
@@ -180,7 +214,7 @@ export default function AdminDashboard({ }: Props) {
   const menu = [
     ["dashboard", "Inicio"],
     ["products", "Productos y Catálogo"],
-    ["brands", "Marcas y Familias"],
+    ["brands", "Casas de Perfumería"],
     ["banners", "Banners y Carruseles"],
     ["settings", "Configuración Comercial"],
   ];
@@ -189,14 +223,21 @@ export default function AdminDashboard({ }: Props) {
     <main className="admin-shell">
       {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
-        <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
+        <img src="/assets/brand/logo-no-fondo300.png" alt="Maison des Parfums" />
         <span>Panel Administrativo</span>
         <nav>
           {menu.map((item) => (
             <button
               className={section === item[0] ? "active" : ""}
               key={item[0]}
-              onClick={() => setSection(item[0])}
+              onClick={() => {
+                if (item[0] === "banners") {
+                  // Desactivado temporalmente a solicitud: permanece en la misma pantalla sin acción
+                  return;
+                }
+                setSection(item[0]);
+                setVistaProducto("tabla");
+              }}
               type="button"
             >
               <i />
@@ -211,18 +252,20 @@ export default function AdminDashboard({ }: Props) {
 
       {/* CONTENIDO PRINCIPAL */}
       <section className="admin-content">
-        <header>
-          <div>
-            <p>Maison des Parfums · Panel de Control</p>
-            <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
-          </div>
-          <div className="admin-user">
-            <span>AD</span>
-            <p>
-              Administrador<small>Maison des Parfums</small>
-            </p>
-          </div>
-        </header>
+        {!(section === "products" && vistaProducto === "formulario") && (
+          <header>
+            <div>
+              <p>Maison des Parfums · Panel de Control</p>
+              <h1>{menu.find((item) => item[0] === section)?.[1]}</h1>
+            </div>
+            <div className="admin-user">
+              <span>AD</span>
+              <p>
+                Administrador<small>Maison des Parfums</small>
+              </p>
+            </div>
+          </header>
+        )}
 
         {/* 1. SECCIÓN DASHBOARD */}
         {section === "dashboard" && (
@@ -233,11 +276,19 @@ export default function AdminDashboard({ }: Props) {
                 value={productos.length}
                 note={`${productos.filter((p) => p.activo).length} activos`}
               />
-              <Stat label="Casas de Perfumería" value={marcas.length} note="Marcas verificadas" />
+              <Stat label="Casas de Perfumería" value={marcas.length} note="Marcas registradas" />
               <Stat
-                label="Familias olfativas"
-                value={familias.length}
-                note="Composiciones"
+                label="Con Decants"
+                value={
+                  productos.filter(
+                    (p) =>
+                      p.tiene_decants ||
+                      p.precio_decant_3ml ||
+                      p.precio_decant_5ml ||
+                      p.precio_decant_10ml,
+                  ).length
+                }
+                note="Muestras disponibles"
               />
               <Stat
                 label="Destacados en Home"
@@ -257,17 +308,17 @@ export default function AdminDashboard({ }: Props) {
                 {productos.slice(0, 5).map((p) => (
                   <div className="mini-product" key={p.id}>
                     <img
-                      src={p.imagenes[0] || "/assets/logo-no-fondo300.png"}
+                      src={p.imagenes[0] || "/assets/imagenxdefecto.svg"}
                       alt={p.nombre}
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/assets/logo-no-fondo300.png";
+                        (e.target as HTMLImageElement).src = "/assets/imagenxdefecto.svg";
                       }}
                     />
                     <span>
                       <b>{p.nombre}</b>
                       <small>{p.marca}</small>
                     </span>
-                    <strong>S/ {p.precio_50ml.toLocaleString("es-PE")}</strong>
+                    <strong>S/ {obtenerPrecioMinimoFrasco(p).toLocaleString("es-PE")}</strong>
                     <i className={p.activo ? "on" : ""}>
                       {p.activo ? "Activo" : "Borrador"}
                     </i>
@@ -298,82 +349,111 @@ export default function AdminDashboard({ }: Props) {
           </>
         )}
 
-        {/* 2. SECCIÓN PRODUCTOS / CATÁLOGO (CRUD COMPLETO) */}
+        {/* 2. SECCIÓN PRODUCTOS / CATÁLOGO (CRUD COMPLETO CON PÁGINA DEDICADA) */}
         {section === "products" && (
-          <ProductTable
-            products={productos}
-            onEdit={manejarAbrirEdicion}
-            onToggleActive={manejarAlternarVisibilidad}
-            onDelete={manejarEliminarOArchivar}
-            onAddNew={manejarAbrirCreacion}
-          />
+          vistaProducto === "formulario" ? (
+            <ProductFormPage
+              key={productoEnEdicion?.id ?? "nuevo"}
+              initialProduct={productoEnEdicion}
+              marcasDisponibles={marcas}
+              familiasDisponibles={familias}
+              onBack={() => {
+                setVistaProducto("tabla");
+                setProductoEnEdicion(null);
+              }}
+              onSuccess={(mensaje) => {
+                mostrarToast(mensaje);
+                cargarProductos();
+              }}
+              onReloadMetadata={cargarMetadatos}
+              onOpenImportCsv={() => setMostrarModalCsv(true)}
+            />
+          ) : (
+            <ProductTable
+              products={productos}
+              onEdit={manejarAbrirEdicion}
+              onToggleActive={manejarAlternarVisibilidad}
+              onDelete={solicitarEliminarProducto}
+              onAddNew={manejarAbrirCreacion}
+              onOpenImportCsv={() => setMostrarModalCsv(true)}
+            />
+          )
         )}
 
-        {/* 3. SECCIÓN MARCAS Y FAMILIAS */}
+        {/* 3. SECCIÓN MARCAS / CASAS DE PERFUMERÍA */}
         {section === "brands" && (
-          <div className="admin-placeholder">
-            <header>
-              <small className="eyebrow">Catálogo · Clasificaciones</small>
-              <h2>Casas de Perfumería y Familias</h2>
-              <p>Casas de perfumería y clasificaciones olfativas del catálogo.</p>
-            </header>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "25px" }}>
-              {marcas.slice(0, 12).map((m) => (
-                <article key={m.id}>
-                  <span>{m.nombre.slice(0, 2).toUpperCase()}</span>
-                  <strong>{m.nombre}</strong>
-                  <span style={{ fontSize: "12px", color: "var(--muted)" }}>Activa</span>
-                </article>
-              ))}
-            </div>
-          </div>
+          <BrandsManagementPage
+            marcas={marcasAdmin}
+            onRecargarMarcas={async () => {
+              await cargarMarcas();
+              await cargarProductos();
+            }}
+            onMostrarToast={mostrarToast}
+          />
         )}
 
         {/* 4. SECCIÓN BANNERS */}
         {section === "banners" && (
-          <div className="admin-placeholder">
-            <header>
-              <small className="eyebrow">Visual merchandising</small>
-              <h2>Banners y carruseles</h2>
-              <p>Control visual de diapositivas del hero y promociones intermedias.</p>
-            </header>
-            <div>
-              {[
-                "Hero Home · Diapositiva 1 (Baccarat Rouge 540) — Activo",
-                "Hero Home · Diapositiva 2 (Distinción Olfativa) — Activo",
-                "Hero Home · Diapositiva 3 (Asesoría Personalizada) — Activo",
-                "Promo Mitad · Tu aroma habla antes que tú — Activo",
-              ].map((item) => (
-                <article key={item}>
-                  <span>HD</span>
-                  <strong>{item}</strong>
-                  <span style={{ fontSize: "12px", color: "var(--gold-deep)", fontWeight: 600 }}>Activo</span>
-                </article>
-              ))}
-            </div>
-          </div>
+          <BannersManagementPage onMostrarToast={mostrarToast} />
         )}
 
         {/* 5. SECCIÓN CONFIGURACIÓN COMERCIAL */}
         {section === "settings" && <SettingsSection />}
       </section>
 
-      {/* MODAL RESPONSABILIDAD ÚNICA: CREACIÓN / EDICIÓN */}
-      <ProductFormModal
-        key={productoEnEdicion?.id ?? "nuevo"}
-        isOpen={modalAbierto}
-        onClose={() => {
-          setModalAbierto(false);
-          setProductoEnEdicion(null);
-        }}
+      {/* MODAL DE IMPORTACIÓN MASIVA CSV */}
+      <CsvImportModal
+        marcas={marcas}
+        productos={productos}
+        isOpen={mostrarModalCsv}
+        onClose={() => setMostrarModalCsv(false)}
         onSuccess={(mensaje) => {
           mostrarToast(mensaje);
           cargarProductos();
+          cargarMetadatos();
         }}
-        initialProduct={productoEnEdicion}
-        marcasDisponibles={marcas}
-        familiasDisponibles={familias}
-        onReloadMetadata={cargarMetadatos}
+      />
+
+      {/* MODAL REUTILIZABLE DE CONFIRMACIÓN (ELIMINAR FRAGANCIA) */}
+      <ConfirmModal
+        isOpen={Boolean(productoAEliminar)}
+        onClose={() => !eliminandoProducto && setProductoAEliminar(null)}
+        onConfirm={ejecutarEliminarProducto}
+        title="¿Eliminar fragancia definitivamente?"
+        subtitle="Gestión de Catálogo"
+        confirmText="Eliminar fragancia"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={eliminandoProducto}
+        message={
+          productoAEliminar ? (
+            <div>
+              <p
+                style={{
+                  margin: "0 0 14px 0",
+                  fontSize: "14px",
+                  color: "var(--ink)",
+                  lineHeight: "1.5",
+                }}
+              >
+                ¿Estás seguro de retirar <strong>"{productoAEliminar.nombre}"</strong> del catálogo oficial?
+              </p>
+              <div
+                style={{
+                  padding: "12px 14px",
+                  background: "rgba(185, 28, 28, 0.08)",
+                  border: "1px solid rgba(185, 28, 28, 0.22)",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  color: "#991b1b",
+                  lineHeight: "1.5",
+                }}
+              >
+                Esta acción eliminará el perfume, sus presentaciones y sus opciones de decants de forma permanente.
+              </div>
+            </div>
+          ) : null
+        }
       />
 
       {/* TOAST DE FEEDBACK VISUAL */}

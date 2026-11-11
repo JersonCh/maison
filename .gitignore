@@ -27,7 +27,12 @@ logs/
 # Archivos temporales
 .claude-replay.*
 .tmp-*
+~$*
 
 # Herramientas y agentes del entorno
 .plugins/
 .opencode-skills/
+
+# Utilidades y scripts locales no requeridos en producción/despliegue
+scripts/
+migrations/_archive/

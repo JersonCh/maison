@@ -9,7 +9,7 @@ interface Props {
 
 export default function HeroCrossfadeCarousel({
   slides,
-  intervalMs = 6000,
+  intervalMs = 5000,
 }: Props) {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -131,10 +131,11 @@ export default function HeroCrossfadeCarousel({
             <h1>
               {slide.titulo}
             </h1>
-            <p>
-              Descubre aromas que trascienden el tiempo y convierten tu esencia en
-              una firma inolvidable.
-            </p>
+            {slide.descripcion && (
+              <p>
+                {slide.descripcion}
+              </p>
+            )}
             {slide.texto_boton && (
               <a href={slide.enlace_url || "/perfumes"} className="btn btn-gold">
                 {slide.texto_boton} <Icon name="arrow" />

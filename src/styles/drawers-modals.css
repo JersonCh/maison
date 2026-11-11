@@ -14,6 +14,34 @@
 .cart-lines article small { color: var(--muted); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; }
 .cart-lines article h3 { margin: 5px 0 5px; font-family: var(--serif); font-size: 17px; font-weight: 500; }
 .cart-lines article p { margin: 0; color: var(--muted); font-size: 9px; }
+.cart-lines article .cart-line-variant {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cart-lines article .cart-decant-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--gold-deep, #96702c);
+  font-weight: 600;
+  font-size: 8.5px;
+  background: rgba(184, 150, 94, 0.12);
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cart-lines article .cart-decant-tag svg {
+  flex-shrink: 0;
+  color: var(--gold-deep, #96702c);
+}
+.cart-lines article .cart-bottle-tag {
+  color: var(--ink);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+}
 .cart-line-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 17px; }
 .cart-line-bottom .qty { width: 88px; height: 30px; }
 .cart-line-bottom .qty button { width: 28px; }

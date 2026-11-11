@@ -89,7 +89,10 @@ export function addToCart(id: number, size = "50 ml", qty = 1, productName = "Pe
         $cart.set([...current, { id, size: finalSize, qty }]);
     }
 
-    showToast(`${productName} se añadió al carrito`);
+    const labelSize = finalSize.toLowerCase().includes("decant")
+        ? `Decant ${finalSize.replace(/\s*\(decant\)/i, "").trim()}`
+        : finalSize;
+    showToast(`${productName} (${labelSize}) se añadió al carrito`);
 }
 
 export function updateCartQty(id: number, size: string, delta: number): void {

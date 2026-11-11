@@ -7,8 +7,45 @@ import {
   archivarOEliminarProducto,
 } from "@/lib/db";
 import type { DatosFormularioProducto } from "@/types/database";
+import { TAMANOS_FRASCO_ESTANDAR } from "@/lib/frascos";
 
 export const prerender = false;
+
+function validarDatosProducto(datos: DatosFormularioProducto): string | null {
+  if (!datos.nombre || !datos.nombre.trim()) {
+    return "El nombre del perfume es obligatorio.";
+  }
+
+  const tieneAlgunFrasco = TAMANOS_FRASCO_ESTANDAR.some(({ field }) =>
+    Boolean(datos[field] && Number(datos[field]) > 0),
+  );
+
+  if (!tieneAlgunFrasco) {
+    return "Debes ingresar al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).";
+  }
+
+  for (const { ml, field, refField } of TAMANOS_FRASCO_ESTANDAR) {
+    const precioNormal = Number(datos[field] || 0);
+    const precioRef = Number(datos[refField] || 0);
+    if (precioRef > 0) {
+      if (precioNormal <= 0) {
+        return `Para asignar precio referencial a ${ml} ml, primero ingresa su precio de venta.`;
+      }
+      if (precioRef <= precioNormal) {
+        return `El precio referencial de ${ml} ml debe ser mayor al precio normal (S/ ${precioNormal}).`;
+      }
+    }
+  }
+
+  return null;
+}
+
+function normalizarFotosProducto(fotos?: unknown): string[] {
+  const fotosValidas = Array.isArray(fotos)
+    ? fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
+    : [];
+  return fotosValidas.length > 0 ? fotosValidas : ["/assets/imagenxdefecto.svg"];
+}
 
 /**
  * GET /api/admin/products
@@ -59,41 +96,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const datos: DatosFormularioProducto = await request.json();
 
-    // Validaciones de negocio y arquitectura limpia
-    if (!datos.nombre || !datos.nombre.trim()) {
-      return new Response(
-        JSON.stringify({ error: "El nombre del perfume es obligatorio." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
+    const errorValidacion = validarDatosProducto(datos);
+    if (errorValidacion) {
+      return new Response(JSON.stringify({ error: errorValidacion }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    if (!datos.precio_50ml || datos.precio_50ml <= 0) {
-      return new Response(
-        JSON.stringify({ error: "El precio de la presentación de 50 ml es obligatorio y debe ser mayor a 0." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    if (!datos.precio_100ml || datos.precio_100ml <= 0) {
-      return new Response(
-        JSON.stringify({ error: "El precio de la presentación de 100 ml es obligatorio y debe ser mayor a 0." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    // Regla de imágenes: Foto 1 (portada) obligatoria, fotos secundarias opcionales
-    const fotosValidas = Array.isArray(datos.fotos)
-      ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
-      : [];
-
-    if (fotosValidas.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "La foto de portada (Foto 1) es obligatoria." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    datos.fotos = fotosValidas;
+    datos.fotos = normalizarFotosProducto(datos.fotos);
 
     const nuevoId = await crearNuevoProductoEnDb(db, datos);
 
@@ -140,26 +151,15 @@ export const PUT: APIRoute = async ({ request, locals }) => {
 
     const datos: DatosFormularioProducto = payload;
 
-    if (!datos.nombre || !datos.nombre.trim()) {
-      return new Response(
-        JSON.stringify({ error: "El nombre del perfume es obligatorio." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
+    const errorValidacion = validarDatosProducto(datos);
+    if (errorValidacion) {
+      return new Response(JSON.stringify({ error: errorValidacion }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // Regla de imágenes: Foto 1 (portada) obligatoria, fotos secundarias opcionales
-    const fotosValidas = Array.isArray(datos.fotos)
-      ? datos.fotos.map((f) => (typeof f === "string" ? f.trim() : "")).filter(Boolean)
-      : [];
-
-    if (fotosValidas.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "La foto de portada (Foto 1) es obligatoria." }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    datos.fotos = fotosValidas;
+    datos.fotos = normalizarFotosProducto(datos.fotos);
 
     await actualizarProductoEnDb(db, id, datos);
 
@@ -253,10 +253,7 @@ export const DELETE: APIRoute = async ({ request, url, locals }) => {
       JSON.stringify({
         ok: true,
         accion: resultado.accion,
-        mensaje:
-          resultado.accion === "archivado"
-            ? "El perfume fue archivado para preservar el historial de pedidos y trazabilidad."
-            : "El perfume fue eliminado permanentemente.",
+        mensaje: "Fragancia eliminada del catálogo correctamente.",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } },
     );

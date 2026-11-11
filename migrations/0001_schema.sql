@@ -1,28 +1,30 @@
 -- =============================================================================
--- MAISON DES PARFUMS - ESQUEMA DE BASE DE DATOS INICIAL (REVISIÓN AUDITADA)
--- Motor: SQLite / Cloudflare D1
--- Migración: 0001_initial_schema.sql
+-- MAISON DES PARFUMS - ESQUEMA ESTRUCTURAL UNIFICADO (D1 / SQLITE)
+-- Archivo: 0001_schema.sql
+-- Propósito: Definición limpia y definitiva de tablas, índices, disparadores y
+--            configuración base inicial sin parches ni ALTER TABLE intermedios.
 -- =============================================================================
 
 PRAGMA foreign_keys = ON;
 
 -- -----------------------------------------------------------------------------
--- 1. CATÁLOGO BASE
+-- 1. CATÁLOGO BASE Y CASAS DE PERFUMERÍA
 -- -----------------------------------------------------------------------------
 
--- Marcas / Casas de Perfumería (ej. Dior, Tom Ford, Creed, MFK)
+-- Marcas / Casas de Perfumería (Diseñador, Árabe, Nicho)
 CREATE TABLE IF NOT EXISTS marcas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     descripcion TEXT,
+    tipo_comercial TEXT DEFAULT 'disenador' CHECK(tipo_comercial IN ('disenador', 'arabe', 'nicho')),
     logo_key TEXT,
     activo INTEGER NOT NULL DEFAULT 1 CHECK(activo IN (0, 1)),
     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- Perfumes / Productos principales
+-- Perfumes y Fragancias Principales
 CREATE TABLE IF NOT EXISTS productos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     marca_id INTEGER NOT NULL REFERENCES marcas(id) ON DELETE RESTRICT,
@@ -30,12 +32,13 @@ CREATE TABLE IF NOT EXISTS productos (
     slug TEXT NOT NULL UNIQUE,
     descripcion TEXT,
     genero TEXT NOT NULL CHECK(genero IN ('Hombre', 'Mujer', 'Unisex')),
-    concentracion TEXT DEFAULT 'Eau de Parfum', -- EDP, EDT, Parfum, Extrait
+    concentracion TEXT DEFAULT 'Eau de Parfum', -- EDP, EDT, Parfum, Extrait, Cologne
     anio_lanzamiento INTEGER CHECK(anio_lanzamiento IS NULL OR anio_lanzamiento > 1900),
-    pais_origen TEXT,                           -- Opcional, sin valor por defecto arbitrario
-    ocasion_uso TEXT,                           -- 'Noche y eventos', 'Uso diario'
+    pais_origen TEXT,
+    ocasion_uso TEXT,
     meta_titulo TEXT,
     meta_descripcion TEXT,
+    etiqueta_destacada TEXT DEFAULT 'ninguna' CHECK(etiqueta_destacada IN ('ninguna', 'nuevo', 'mas_vendido', 'edicion_limitada')),
     estado TEXT NOT NULL DEFAULT 'borrador' CHECK(estado IN ('borrador', 'publicado', 'archivado')),
     es_destacado INTEGER NOT NULL DEFAULT 0 CHECK(es_destacado IN (0, 1)),
     publicado_en TEXT,
@@ -43,16 +46,17 @@ CREATE TABLE IF NOT EXISTS productos (
     updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- Variantes de tamaño y presentación (tamano_ml admite decimales para decants/discovery sets)
+-- Variantes de Tamaño, Presentación (Frascos Regulares y Decants Artesanales)
 CREATE TABLE IF NOT EXISTS variantes_producto (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
     sku TEXT UNIQUE,
-    tamano_ml REAL NOT NULL CHECK(tamano_ml > 0),             -- Admite 1.5, 2.5, 50, 100 ml
+    tamano_ml REAL NOT NULL CHECK(tamano_ml > 0),
     precio_centimos INTEGER NOT NULL CHECK(precio_centimos >= 0),
     precio_referencia_centimos INTEGER CHECK(precio_referencia_centimos IS NULL OR precio_referencia_centimos >= 0),
+    tipo_presentacion TEXT NOT NULL DEFAULT 'frasco' CHECK(tipo_presentacion IN ('frasco', 'decant')),
     es_predeterminada INTEGER NOT NULL DEFAULT 0 CHECK(es_predeterminada IN (0, 1)),
-    controla_stock INTEGER NOT NULL DEFAULT 0 CHECK(controla_stock IN (0, 1)), -- 0 por defecto hasta inicializar inventario
+    controla_stock INTEGER NOT NULL DEFAULT 0 CHECK(controla_stock IN (0, 1)),
     modalidad_disponibilidad TEXT NOT NULL DEFAULT 'venta_regular' 
         CHECK(modalidad_disponibilidad IN ('venta_regular', 'bajo_pedido', 'preventa')),
     activo INTEGER NOT NULL DEFAULT 1 CHECK(activo IN (0, 1)),
@@ -60,7 +64,7 @@ CREATE TABLE IF NOT EXISTS variantes_producto (
     updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- Categorías temáticas (ej. Perfumería Árabe, Nicho, Sets de Regalo)
+-- Categorías Temáticas y Comerciales
 CREATE TABLE IF NOT EXISTS categorias (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
@@ -78,7 +82,7 @@ CREATE TABLE IF NOT EXISTS producto_categorias (
     PRIMARY KEY (producto_id, categoria_id)
 );
 
--- Galería de imágenes múltiples por perfume (Cloudflare R2)
+-- Galería de Imágenes Múltiples por Perfume (Cloudflare R2)
 CREATE TABLE IF NOT EXISTS imagenes_producto (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
@@ -90,7 +94,7 @@ CREATE TABLE IF NOT EXISTS imagenes_producto (
     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
--- Selección manual de fragancias afines ("También te puede gustar")
+-- Recomendaciones Manuales ("También te puede gustar")
 CREATE TABLE IF NOT EXISTS productos_relacionados (
     producto_origen_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
     producto_relacionado_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
@@ -100,7 +104,7 @@ CREATE TABLE IF NOT EXISTS productos_relacionados (
 );
 
 -- -----------------------------------------------------------------------------
--- 2. CONTENIDO ESPECIALIZADO DE PERFUMERÍA
+-- 2. CONTENIDO ESPECIALIZADO DE PERFUMERÍA (PIRÁMIDE OLFATIVA)
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS familias_olfativas (
@@ -159,6 +163,7 @@ CREATE TABLE IF NOT EXISTS banners (
     ubicacion TEXT NOT NULL,              -- 'hero_home', 'promo_mitad', 'barra_anuncio'
     titulo TEXT,
     subtitulo TEXT,
+    descripcion TEXT,
     texto_boton TEXT,
     enlace_url TEXT,
     imagen_desktop_key TEXT NOT NULL,     -- Imagen PC (R2)
@@ -170,7 +175,7 @@ CREATE TABLE IF NOT EXISTS banners (
 );
 
 -- -----------------------------------------------------------------------------
--- 4. INVENTARIO Y MOVIMIENTOS HISTÓRICOS (PROTEGIDOS CONTRA BORRADO)
+-- 4. INVENTARIO Y MOVIMIENTOS HISTÓRICOS
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS almacenes (
@@ -180,7 +185,6 @@ CREATE TABLE IF NOT EXISTS almacenes (
     activo INTEGER NOT NULL DEFAULT 1 CHECK(activo IN (0, 1))
 );
 
--- Existencias reales (ON DELETE RESTRICT para evitar inconsistencias contables)
 CREATE TABLE IF NOT EXISTS inventario (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     variante_id INTEGER NOT NULL REFERENCES variantes_producto(id) ON DELETE RESTRICT,
@@ -192,62 +196,9 @@ CREATE TABLE IF NOT EXISTS inventario (
     UNIQUE(variante_id, almacen_id)
 );
 
--- Bitácora inmutable de movimientos
-CREATE TABLE IF NOT EXISTS movimientos_inventario (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    variante_id INTEGER NOT NULL REFERENCES variantes_producto(id) ON DELETE RESTRICT,
-    almacen_id INTEGER NOT NULL REFERENCES almacenes(id) ON DELETE RESTRICT,
-    tipo TEXT NOT NULL CHECK(tipo IN ('ENTRADA', 'SALIDA_VENTA', 'AJUSTE_POSITIVO', 'AJUSTE_NEGATIVO', 'RESERVA', 'LIBERACION')),
-    cantidad INTEGER NOT NULL CHECK(cantidad > 0),
-    motivo TEXT,
-    usuario_admin_id INTEGER REFERENCES usuarios_admin(id) ON DELETE SET NULL,
-    referencia TEXT,
-    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
-);
-
 -- -----------------------------------------------------------------------------
--- 5. GESTIÓN DE PEDIDOS Y CONSULTAS WHATSAPP
+-- 5. USUARIOS ADMINISTRADORES Y SESIONES
 -- -----------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS pedidos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    codigo_pedido TEXT NOT NULL UNIQUE,   -- ej. 'MDP-1001'
-    cliente_nombre TEXT NOT NULL,
-    cliente_telefono TEXT NOT NULL,
-    cliente_direccion TEXT,
-    ciudad TEXT DEFAULT 'Lima',
-    subtotal_centimos INTEGER NOT NULL CHECK(subtotal_centimos >= 0),
-    costo_envio_centimos INTEGER NOT NULL DEFAULT 0 CHECK(costo_envio_centimos >= 0),
-    total_centimos INTEGER NOT NULL CHECK(total_centimos >= 0),
-    estado TEXT NOT NULL DEFAULT 'pendiente_whatsapp' 
-        CHECK(estado IN ('pendiente_whatsapp', 'confirmado', 'pagado', 'enviado', 'entregado', 'cancelado')),
-    metodo_pago_coordinado TEXT,
-    notas_cliente TEXT,
-    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
-    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
-);
-
-CREATE TABLE IF NOT EXISTS pedido_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    pedido_id INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
-    variante_id INTEGER REFERENCES variantes_producto(id) ON DELETE RESTRICT, -- Preserva trazabilidad de variante vendida
-    producto_nombre_historico TEXT NOT NULL,
-    tamano_ml_historico REAL NOT NULL,
-    precio_unitario_centimos INTEGER NOT NULL CHECK(precio_unitario_centimos >= 0),
-    cantidad INTEGER NOT NULL CHECK(cantidad > 0)
-);
-
--- -----------------------------------------------------------------------------
--- 6. CONFIGURACIÓN COMERCIAL Y ADMINISTRACIÓN
--- -----------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS configuracion_tienda (
-    clave TEXT PRIMARY KEY,
-    valor TEXT,
-    descripcion TEXT,
-    categoria TEXT NOT NULL DEFAULT 'general',
-    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
-);
 
 CREATE TABLE IF NOT EXISTS usuarios_admin (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -278,17 +229,74 @@ CREATE TABLE IF NOT EXISTS historial_admin (
     created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
+CREATE TABLE IF NOT EXISTS movimientos_inventario (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    variante_id INTEGER NOT NULL REFERENCES variantes_producto(id) ON DELETE RESTRICT,
+    almacen_id INTEGER NOT NULL REFERENCES almacenes(id) ON DELETE RESTRICT,
+    tipo TEXT NOT NULL CHECK(tipo IN ('ENTRADA', 'SALIDA_VENTA', 'AJUSTE_POSITIVO', 'AJUSTE_NEGATIVO', 'RESERVA', 'LIBERACION')),
+    cantidad INTEGER NOT NULL CHECK(cantidad > 0),
+    motivo TEXT,
+    usuario_admin_id INTEGER REFERENCES usuarios_admin(id) ON DELETE SET NULL,
+    referencia TEXT,
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+);
+
 -- -----------------------------------------------------------------------------
--- 7. ÍNDICES OPTIMIZADOS (SIN REDUNDANCIAS Y CON COBERTURA INVERSA)
+-- 6. GESTIÓN DE PEDIDOS Y CONSULTAS WHATSAPP
 -- -----------------------------------------------------------------------------
 
--- Filtros frecuentes de catálogo
+CREATE TABLE IF NOT EXISTS pedidos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo_pedido TEXT NOT NULL UNIQUE,
+    cliente_nombre TEXT NOT NULL,
+    cliente_telefono TEXT NOT NULL,
+    cliente_direccion TEXT,
+    ciudad TEXT DEFAULT 'Lima',
+    subtotal_centimos INTEGER NOT NULL CHECK(subtotal_centimos >= 0),
+    costo_envio_centimos INTEGER NOT NULL DEFAULT 0 CHECK(costo_envio_centimos >= 0),
+    total_centimos INTEGER NOT NULL CHECK(total_centimos >= 0),
+    estado TEXT NOT NULL DEFAULT 'pendiente_whatsapp' 
+        CHECK(estado IN ('pendiente_whatsapp', 'confirmado', 'pagado', 'enviado', 'entregado', 'cancelado')),
+    metodo_pago_coordinado TEXT,
+    notas_cliente TEXT,
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE TABLE IF NOT EXISTS pedido_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pedido_id INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+    variante_id INTEGER REFERENCES variantes_producto(id) ON DELETE RESTRICT,
+    producto_nombre_historico TEXT NOT NULL,
+    tamano_ml_historico REAL NOT NULL,
+    precio_unitario_centimos INTEGER NOT NULL CHECK(precio_unitario_centimos >= 0),
+    cantidad INTEGER NOT NULL CHECK(cantidad > 0)
+);
+
+-- -----------------------------------------------------------------------------
+-- 7. CONFIGURACIÓN INSTITUCIONAL Y COMERCIAL
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS configuracion_tienda (
+    clave TEXT PRIMARY KEY,
+    valor TEXT,
+    descripcion TEXT,
+    categoria TEXT NOT NULL DEFAULT 'general',
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+);
+
+-- -----------------------------------------------------------------------------
+-- 8. ÍNDICES OPTIMIZADOS
+-- -----------------------------------------------------------------------------
+
+-- Filtros de catálogo y búsquedas
 CREATE INDEX IF NOT EXISTS idx_productos_marca ON productos(marca_id);
 CREATE INDEX IF NOT EXISTS idx_productos_genero ON productos(genero);
 CREATE INDEX IF NOT EXISTS idx_productos_estado ON productos(estado);
 CREATE INDEX IF NOT EXISTS idx_variantes_producto ON variantes_producto(producto_id);
+CREATE INDEX IF NOT EXISTS idx_variantes_tipo_presentacion ON variantes_producto(producto_id, tipo_presentacion);
 
--- Índices inversos en tablas intermedias para acelerar filtros de catálogo
+-- Índices inversos en tablas intermedias
 CREATE INDEX IF NOT EXISTS idx_producto_categorias_cat ON producto_categorias(categoria_id);
 CREATE INDEX IF NOT EXISTS idx_producto_familias_fam ON producto_familias_olfativas(familia_olfativa_id);
 CREATE INDEX IF NOT EXISTS idx_producto_notas_nota ON producto_notas(nota_aromatica_id);
@@ -302,12 +310,12 @@ CREATE INDEX IF NOT EXISTS idx_banners_ubicacion ON banners(ubicacion, orden, ac
 CREATE INDEX IF NOT EXISTS idx_pedidos_estado ON pedidos(estado);
 CREATE INDEX IF NOT EXISTS idx_movimientos_inv_fecha ON movimientos_inventario(created_at);
 
--- ÍNDICE ÚNICO PARCIAL: Garantiza que un producto tenga a lo sumo UNA imagen principal
+-- Índice único parcial: máximo una imagen principal por producto
 CREATE UNIQUE INDEX IF NOT EXISTS idx_producto_imagen_principal 
 ON imagenes_producto(producto_id) WHERE es_principal = 1;
 
 -- -----------------------------------------------------------------------------
--- 8. TRIGGERS PARA ACTUALIZACIÓN AUTOMÁTICA DE updated_at
+-- 9. TRIGGERS PARA ACTUALIZACIÓN AUTOMÁTICA DE updated_at
 -- -----------------------------------------------------------------------------
 
 CREATE TRIGGER IF NOT EXISTS trg_marcas_updated_at AFTER UPDATE ON marcas
@@ -346,7 +354,7 @@ BEGIN
 END;
 
 -- -----------------------------------------------------------------------------
--- 9. VALORES INICIALES POR DEFECTO PARA CONFIGURACIÓN COMERCIAL
+-- 10. VALORES INICIALES POR DEFECTO DEL SISTEMA
 -- -----------------------------------------------------------------------------
 
 INSERT OR IGNORE INTO configuracion_tienda (clave, valor, descripcion, categoria) VALUES
@@ -359,8 +367,8 @@ INSERT OR IGNORE INTO configuracion_tienda (clave, valor, descripcion, categoria
 ('email_contacto', 'maisondesparfums.peru@gmail.com', 'Correo electrónico de contacto y atención', 'contacto'),
 ('anuncio_superior_texto', '🚚 Despachos los jueves a todo el Perú por Shalom y Olva Courier · Fragancias 100% originales', 'Texto de la barra de anuncios superior', 'anuncios'),
 ('anuncio_superior_activo', '1', '1: visible, 0: oculto', 'anuncios'),
-('direccion_local', 'Asoc. Centro Comercial Mercadillo Bolognesi', 'Nombre del centro comercial o galería', 'ubicacion'),
-('direccion_interior', 'Int. D-312 · 1ra Fila', 'Número de stand o interior', 'ubicacion'),
+('direccion_local', 'Centro Comercial Mercadillo Bolognesi', 'Nombre de la sede o galería', 'ubicacion'),
+('direccion_interior', 'Puerta 4 - 1ra Fila - Int. D-312', 'Detalle de puerta e interior', 'ubicacion'),
 ('direccion_avenida', 'Av. Crnl. Mendoza Nº 1945', 'Avenida o calle principal', 'ubicacion'),
 ('direccion_ciudad', 'Tacna, Perú', 'Ciudad y país de la sede física', 'ubicacion'),
 ('google_maps_link', 'https://maps.app.goo.gl/XDkotmawNbUdNEyb7', 'Enlace directo para abrir en Google Maps', 'ubicacion'),
@@ -370,3 +378,4 @@ INSERT OR IGNORE INTO configuracion_tienda (clave, valor, descripcion, categoria
 -- Almacén principal por defecto
 INSERT OR IGNORE INTO almacenes (id, nombre, ubicacion, activo) VALUES
 (1, 'Sede Principal Tacna', 'Tacna, Perú', 1);
+

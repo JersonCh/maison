@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import type { ProductoAdminItem } from "@/types/database";
+import { TAMANOS_FRASCO_ESTANDAR } from "@/lib/frascos";
 import Icon from "@/components/ui/Icon";
 
 interface Props {
@@ -8,9 +9,29 @@ interface Props {
   onToggleActive: (id: number, currentActive: boolean) => Promise<void>;
   onDelete: (id: number, name: string) => Promise<void>;
   onAddNew: () => void;
+  onOpenImportCsv?: () => void;
 }
 
 const ITEMS_PER_PAGE = 8;
+
+export const esFotoPendiente = (p: ProductoAdminItem) => {
+  return (
+    p.imagenes.length === 0 ||
+    (p.imagenes.length === 1 &&
+      (p.imagenes[0].includes("logo-no-fondo300") ||
+        p.imagenes[0].includes("imagenxdefecto") ||
+        p.imagenes[0].trim() === ""))
+  );
+};
+
+export const tieneDecants = (p: ProductoAdminItem) => {
+  return Boolean(
+    p.tiene_decants ||
+      p.precio_decant_3ml ||
+      p.precio_decant_5ml ||
+      p.precio_decant_10ml,
+  );
+};
 
 export default function ProductTable({
   products,
@@ -18,16 +39,48 @@ export default function ProductTable({
   onToggleActive,
   onDelete,
   onAddNew,
+  onOpenImportCsv,
 }: Props) {
   const [busqueda, setBusqueda] = useState("");
   const [filtroGenero, setFiltroGenero] = useState<string>("todos");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
+  const [filtroDecants, setFiltroDecants] = useState<string>("todos");
+  const [filtroFotos, setFiltroFotos] = useState<string>("todos");
   const [paginaActual, setPaginaActual] = useState(1);
 
-  // Filtrado de productos
+  // Contadores dinámicos para los selectores
+  const totalPendientesFoto = useMemo(() => {
+    return products.filter(esFotoPendiente).length;
+  }, [products]);
+
+  const totalConDecants = useMemo(() => {
+    return products.filter(tieneDecants).length;
+  }, [products]);
+
+  const hayFiltrosActivos = useMemo(() => {
+    return (
+      Boolean(busqueda.trim()) ||
+      filtroGenero !== "todos" ||
+      filtroTipo !== "todos" ||
+      filtroDecants !== "todos" ||
+      filtroFotos !== "todos"
+    );
+  }, [busqueda, filtroGenero, filtroTipo, filtroDecants, filtroFotos]);
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setFiltroGenero("todos");
+    setFiltroTipo("todos");
+    setFiltroDecants("todos");
+    setFiltroFotos("todos");
+    setPaginaActual(1);
+  };
+
+  // Filtrado de productos multi-criterio
   const productosFiltrados = useMemo(() => {
     return products.filter((p) => {
       const coincideTexto =
-        `${p.marca} ${p.nombre} ${p.familia_olfativa}`
+        `${p.marca} ${p.nombre} ${p.familia_olfativa || ""}`
           .toLowerCase()
           .includes(busqueda.toLowerCase());
 
@@ -35,9 +88,32 @@ export default function ProductTable({
         filtroGenero === "todos" ||
         p.genero.toLowerCase() === filtroGenero.toLowerCase();
 
-      return coincideTexto && coincideGenero;
+      const coincideTipo =
+        filtroTipo === "todos" ? true : p.tipo_comercial === filtroTipo;
+
+      const coincideDecants =
+        filtroDecants === "todos"
+          ? true
+          : filtroDecants === "con_decants"
+            ? tieneDecants(p)
+            : !tieneDecants(p);
+
+      const coincideFotos =
+        filtroFotos === "todos"
+          ? true
+          : filtroFotos === "pendientes"
+            ? esFotoPendiente(p)
+            : !esFotoPendiente(p);
+
+      return (
+        coincideTexto &&
+        coincideGenero &&
+        coincideTipo &&
+        coincideDecants &&
+        coincideFotos
+      );
     });
-  }, [products, busqueda, filtroGenero]);
+  }, [products, busqueda, filtroGenero, filtroTipo, filtroDecants, filtroFotos]);
 
   // Cálculo de páginas
   const totalPaginas = Math.max(
@@ -78,17 +154,19 @@ export default function ProductTable({
 
   return (
     <div className="products-admin">
-      <div className="admin-tools">
+      <div className="admin-tools" style={{ gap: "14px", alignItems: "center", flexWrap: "wrap" }}>
         <div
           style={{
             display: "flex",
-            gap: "10px",
+            gap: "8px",
             alignItems: "center",
             flex: 1,
-            maxWidth: "560px",
+            flexWrap: "wrap",
+            minWidth: "300px",
           }}
         >
-          <div className="catalog-search" style={{ position: "relative", flex: 1 }}>
+          {/* 1. Buscador */}
+          <div className="catalog-search" style={{ position: "relative", minWidth: "220px", flex: "1 1 220px" }}>
             <Icon name="search" />
             <input
               placeholder="Buscar por fragancia, casa o familia..."
@@ -126,6 +204,31 @@ export default function ProductTable({
             )}
           </div>
 
+          {/* 2. Filtro Línea */}
+          <select
+            value={filtroTipo}
+            onChange={(e) => {
+              setFiltroTipo(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroTipo !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroTipo !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroTipo !== "todos" ? 600 : "normal",
+            }}
+            title="Filtrar por línea o gama comercial"
+          >
+            <option value="todos">Todas las líneas</option>
+            <option value="disenador">Diseñador</option>
+            <option value="arabe">Árabes</option>
+            <option value="nicho">Nichos</option>
+          </select>
+
+          {/* 3. Filtro Género */}
           <select
             value={filtroGenero}
             onChange={(e) => {
@@ -133,23 +236,121 @@ export default function ProductTable({
               setPaginaActual(1);
             }}
             style={{
-              padding: "10px 14px",
-              fontSize: "13px",
-              border: "1px solid #dcdad3",
-              background: "#fff",
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroGenero !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroGenero !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
               cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroGenero !== "todos" ? 600 : "normal",
             }}
+            title="Filtrar por género olfativo"
           >
             <option value="todos">Todos los géneros</option>
             <option value="unisex">Unisex</option>
             <option value="hombre">Hombre</option>
             <option value="mujer">Mujer</option>
           </select>
+
+          {/* 4. Filtro Decants */}
+          <select
+            value={filtroDecants}
+            onChange={(e) => {
+              setFiltroDecants(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroDecants !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroDecants !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroDecants !== "todos" ? 600 : "normal",
+            }}
+            title="Filtrar por disponibilidad de decants"
+          >
+            <option value="todos">Decants: Todos</option>
+            <option value="con_decants">✦ Con Decants {totalConDecants > 0 ? `(${totalConDecants})` : ""}</option>
+            <option value="sin_decants">Solo frascos sellados</option>
+          </select>
+
+          {/* 5. Filtro Fotografías (Foto Pendiente) */}
+          <select
+            value={filtroFotos}
+            onChange={(e) => {
+              setFiltroFotos(e.target.value);
+              setPaginaActual(1);
+            }}
+            style={{
+              padding: "10px 12px",
+              fontSize: "12.5px",
+              border: filtroFotos !== "todos" ? "1px solid var(--gold)" : "1px solid #dcdad3",
+              background: filtroFotos === "pendientes" ? "rgba(240, 212, 126, 0.2)" : filtroFotos !== "todos" ? "rgba(215, 173, 87, 0.08)" : "#fff",
+              color: filtroFotos === "pendientes" ? "var(--gold-deep)" : "inherit",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontWeight: filtroFotos !== "todos" ? 600 : "normal",
+            }}
+            title="Filtrar por estado de fotografías de producto"
+          >
+            <option value="todos">Fotos: Todas</option>
+            <option value="con_foto">Con fotografías oficiales</option>
+            <option value="pendientes">
+              Pendientes de foto {totalPendientesFoto > 0 ? `(${totalPendientesFoto})` : ""}
+            </option>
+          </select>
+
+          {/* Botón Restablecer si hay filtros activos */}
+          {hayFiltrosActivos && (
+            <button
+              type="button"
+              onClick={limpiarFiltros}
+              style={{
+                background: "none",
+                border: "1px dashed #c0bcaf",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                fontSize: "12px",
+                color: "var(--muted)",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                transition: "all 0.15s ease",
+              }}
+              title="Restablecer todos los filtros y búsqueda"
+            >
+              <Icon name="close" size={10} />
+              <span>Limpiar filtros</span>
+            </button>
+          )}
         </div>
 
-        <button type="button" className="btn btn-gold" onClick={onAddNew}>
-          <Icon name="plus" /> Nueva fragancia
-        </button>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          {onOpenImportCsv && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{
+                borderColor: "var(--gold)",
+                color: "var(--ink)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "7px",
+                background: "var(--white)",
+              }}
+              onClick={onOpenImportCsv}
+              title="Importar catálogo masivamente desde archivo Excel o CSV"
+            >
+              <Icon name="upload" size={15} />
+              <span>Importar Excel / CSV</span>
+            </button>
+          )}
+          <button type="button" className="btn btn-gold" onClick={onAddNew}>
+            <Icon name="plus" /> Nueva fragancia
+          </button>
+        </div>
       </div>
 
       <div className="admin-table">
@@ -168,13 +369,25 @@ export default function ProductTable({
         {productosFiltrados.length === 0 ? (
           <div
             style={{
-              padding: "45px",
+              padding: "45px 20px",
               textAlign: "center",
               color: "var(--muted)",
               fontSize: "14px",
             }}
           >
-            No se encontraron perfumes que coincidan con la búsqueda o filtro.
+            <p style={{ margin: "0 0 12px", color: "var(--charcoal)", fontSize: "14px" }}>
+              No se encontraron fragancias que coincidan con la búsqueda o filtros aplicados.
+            </p>
+            {hayFiltrosActivos && (
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ fontSize: "12px", padding: "6px 14px", borderColor: "var(--gold)", color: "var(--gold-deep)" }}
+                onClick={limpiarFiltros}
+              >
+                Restablecer todos los filtros
+              </button>
+            )}
           </div>
         ) : (
           productosPaginados.map((p) => (
@@ -185,11 +398,11 @@ export default function ProductTable({
             >
               <span className="table-product">
                 <img
-                  src={p.imagenes[0] || "/assets/logo-no-fondo300.png"}
+                  src={p.imagenes[0] || "/assets/imagenxdefecto.svg"}
                   alt={p.nombre}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      "/assets/logo-no-fondo300.png";
+                      "/assets/imagenxdefecto.svg";
                   }}
                 />
                 <b>
@@ -197,28 +410,99 @@ export default function ProductTable({
                   <small>
                     {p.marca} · {p.concentracion}
                   </small>
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "4px" }}>
+                    <span
+                      style={{
+                        fontSize: "9.5px",
+                        letterSpacing: "0.05em",
+                        padding: "1px 6px",
+                        borderRadius: "3px",
+                        textTransform: "uppercase",
+                        fontWeight: 600,
+                        background:
+                          p.tipo_comercial === "arabe"
+                            ? "rgba(16, 185, 129, 0.12)"
+                            : p.tipo_comercial === "nicho"
+                              ? "rgba(147, 51, 234, 0.12)"
+                              : "rgba(215, 173, 87, 0.15)",
+                        color:
+                          p.tipo_comercial === "arabe"
+                            ? "#059669"
+                            : p.tipo_comercial === "nicho"
+                              ? "#7c3aed"
+                              : "#9a7828",
+                      }}
+                    >
+                      {p.tipo_comercial === "arabe" ? "Árabe" : p.tipo_comercial === "nicho" ? "Nicho" : "Diseñador"}
+                    </span>
+                    {p.tiene_decants && (
+                      <span
+                        style={{
+                          fontSize: "9.5px",
+                          padding: "1px 5px",
+                          borderRadius: "3px",
+                          fontWeight: 600,
+                          background: "#f1f5f9",
+                          color: "#475569",
+                          border: "1px solid #cbd5e1",
+                        }}
+                      >
+                        ✦ Decants
+                      </span>
+                    )}
+                  </div>
                 </b>
               </span>
 
               <span>{p.genero}</span>
 
               <span style={{ fontSize: "13px", lineHeight: "1.5" }}>
-                <div>
-                  <strong>50ml:</strong> S/ {p.precio_50ml.toLocaleString("es-PE")}
-                  {p.precio_referencia_50ml && (
-                    <del style={{ color: "#999", marginLeft: "4px" }}>
-                      S/ {p.precio_referencia_50ml.toLocaleString("es-PE")}
-                    </del>
-                  )}
-                </div>
-                <div>
-                  <strong>100ml:</strong> S/{" "}
-                  {p.precio_100ml.toLocaleString("es-PE")}
-                </div>
+                {TAMANOS_FRASCO_ESTANDAR.map(({ ml, field, refField }) => {
+                  const valor = p[field];
+                  if (!valor || valor <= 0) return null;
+                  const refValor = p[refField];
+                  return (
+                    <div key={ml}>
+                      <strong>{ml}ml:</strong> S/ {valor.toLocaleString("es-PE")}
+                      {refValor && refValor > valor ? (
+                        <del style={{ color: "#999", marginLeft: "4px" }}>
+                          S/ {refValor.toLocaleString("es-PE")}
+                        </del>
+                      ) : null}
+                    </div>
+                  );
+                })}
+                {(p.precio_decant_3ml || p.precio_decant_5ml || p.precio_decant_10ml) && (
+                  <div style={{ color: "#b48c36", fontSize: "11.5px", marginTop: "3px", fontWeight: 500 }}>
+                    Decant: {[
+                      p.precio_decant_3ml ? `3ml S/${p.precio_decant_3ml}` : null,
+                      p.precio_decant_5ml ? `5ml S/${p.precio_decant_5ml}` : null,
+                      p.precio_decant_10ml ? `10ml S/${p.precio_decant_10ml}` : null,
+                    ].filter(Boolean).join(" · ")}
+                  </div>
+                )}
               </span>
 
               <span style={{ fontSize: "12.5px", color: "var(--gold-deep)", fontWeight: 500 }}>
-                {p.imagenes.length} {p.imagenes.length === 1 ? "foto" : "fotos"}
+                {esFotoPendiente(p) ? (
+                  <span
+                    style={{
+                      fontSize: "10.5px",
+                      color: "var(--gold-deep)",
+                      background: "rgba(240, 212, 126, 0.15)",
+                      border: "1px solid rgba(150, 108, 40, 0.3)",
+                      padding: "2px 7px",
+                      borderRadius: "3px",
+                      fontWeight: 600,
+                      letterSpacing: "0.03em",
+                    }}
+                    title="Fragancia sin fotografías: pendiente de adjuntar fotos oficiales"
+                  >
+                    Foto pendiente
+                  </span>
+                ) : (
+                  `${p.imagenes.length} ${p.imagenes.length === 1 ? "foto" : "fotos"}`
+                )}
               </span>
 
               <span>
@@ -248,8 +532,8 @@ export default function ProductTable({
 
                 <button
                   onClick={() => onDelete(p.id, p.nombre)}
-                  aria-label="Eliminar o archivar fragancia"
-                  title="Eliminar o archivar"
+                  aria-label="Eliminar fragancia"
+                  title="Eliminar fragancia"
                   type="button"
                 >
                   <Icon name="trash" />

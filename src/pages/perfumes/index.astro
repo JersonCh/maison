@@ -9,6 +9,8 @@ const db = Astro.locals.runtime?.env?.DB;
 const allProducts = await obtenerProductosTienda(db);
 const genderParam = Astro.url.searchParams.get("genero") || "";
 const brandParam = Astro.url.searchParams.get("marca") || "";
+const tipoParam = Astro.url.searchParams.get("tipo") || "";
+const formatoParam = Astro.url.searchParams.get("formato") || "";
 const queryParam = Astro.url.searchParams.get("q") || "";
 const pageParamRaw =
   Astro.url.searchParams.get("pagina") ||
@@ -17,14 +19,33 @@ const pageParamRaw =
 const pageParam = parseInt(pageParamRaw, 10);
 const initialPage = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
 
-const title = genderParam
-  ? genderParam.toLowerCase() === "unisex"
+// Título dinámico según los filtros activos
+let title = "Catálogo de Perfumes Originales | Maison des Parfums";
+
+if (formatoParam === "decant") {
+  title = genderParam
+    ? `Decants para ${genderParam} | Maison des Parfums`
+    : "Decants y Muestras de Perfumes Originales | Maison des Parfums";
+} else if (tipoParam === "disenador") {
+  title = genderParam
+    ? `Perfumes de Diseñador para ${genderParam} | Maison des Parfums`
+    : "Perfumes de Diseñador | Grandes Firmas | Maison des Parfums";
+} else if (tipoParam === "arabe") {
+  title = genderParam
+    ? `Perfumes Árabes para ${genderParam} | Maison des Parfums`
+    : "Alta Perfumería Árabe y Oriental | Maison des Parfums";
+} else if (tipoParam === "nicho") {
+  title = genderParam
+    ? `Perfumes Nicho para ${genderParam} | Maison des Parfums`
+    : "Perfumes de Autor y Nicho | Maison des Parfums";
+} else if (genderParam) {
+  title = genderParam.toLowerCase() === "unisex"
     ? "Perfumes Unisex | Maison des Parfums"
-    : `Perfumes para ${genderParam} | Maison des Parfums`
-  : "Catálogo de Perfumes Originales | Maison des Parfums";
+    : `Perfumes para ${genderParam} | Maison des Parfums`;
+}
 
 const description =
-  "Descubre nuestra cuidada selección de fragancias originales de lujo en Perú. Perfumes para hombre, mujer y unisex. Atención personalizada por WhatsApp.";
+  "Descubre nuestra cuidada selección de fragancias originales de lujo en Perú. Perfumes de diseñador, nichos, árabes y decants. Atención presencial en Tacna y envíos a todo el Perú.";
 ---
 
 <Layout
@@ -38,6 +59,8 @@ const description =
     initialProducts={allProducts}
     initialGender={genderParam}
     initialBrand={brandParam}
+    initialTipo={tipoParam}
+    initialFormato={formatoParam}
     initialQuery={queryParam}
     initialPage={initialPage}
   />
