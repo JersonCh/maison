@@ -172,7 +172,7 @@ export default function AdminDashboard({ }: Props) {
     return (
       <main className="admin-login">
         <div className="login-brand">
-          <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
+          <img src="/assets/brand/logo-no-fondo300.png" alt="Maison des Parfums" />
           <p>Gestión de la tienda</p>
         </div>
         <form
@@ -223,7 +223,7 @@ export default function AdminDashboard({ }: Props) {
     <main className="admin-shell">
       {/* BARRA LATERAL */}
       <aside className="admin-sidebar">
-        <img src="/assets/logo-no-fondo300.png" alt="Maison des Parfums" />
+        <img src="/assets/brand/logo-no-fondo300.png" alt="Maison des Parfums" />
         <span>Panel Administrativo</span>
         <nav>
           {menu.map((item) => (

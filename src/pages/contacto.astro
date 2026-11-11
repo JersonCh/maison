@@ -20,8 +20,9 @@ const emailContact = config.email_contacto || "contacto@maisondesparfums.pe";
 
 // Datos de ubicación comercial extraídos de la sede oficial
 const direccionLocal =
-  config.direccion_local || "Asoc. Centro Comercial Mercadillo Bolognesi";
-const direccionInterior = config.direccion_interior || "Int. D-312 · 1ra Fila";
+  config.direccion_local || "Centro Comercial Mercadillo Bolognesi";
+const direccionInterior =
+  config.direccion_interior || "Puerta 4 - 1ra Fila - Int. D-312";
 const direccionAvenida =
   config.direccion_avenida || "Av. Crnl. Mendoza Nº 1945";
 const direccionCiudad = config.direccion_ciudad || "Tacna, Perú";
@@ -56,8 +57,8 @@ const seguimientoWaUrl = buildWaLink(
 // Preguntas frecuentes contextuales de contacto y sede
 const contactFaqs: [string, string][] = [
   [
-    "¿Puedo visitar su tienda y probar las fragancias en persona?",
-    "¡Por supuesto! Te esperamos en nuestra sede física ubicada en la Asoc. Centro Comercial Mercadillo Bolognesi, Int. D-312 (1ra Fila), Av. Crnl. Mendoza Nº 1945, Tacna. También puedes escribirnos por WhatsApp con anticipación para consultar stock de probadores o tener tu fragancia lista.",
+    "¿Puedo visitar su tienda física y probar las fragancias en persona?",
+    "¡Por supuesto! Te esperamos en nuestra sede oficial ubicada en Centro Comercial Mercadillo Bolognesi (Puerta 4 - 1ra Fila - Int. D-312 • Av. Crnl. Mendoza Nº 1945), Tacna. También puedes escribirnos por WhatsApp con anticipación para consultar stock de probadores o tener tu fragancia lista.",
   ],
   [
     "¿Hacen envíos a Lima y a todas las provincias del Perú?",
@@ -368,19 +369,26 @@ const description =
 
   <script>
     function setupEmailLink() {
-      const emailLink = document.getElementById("email-contact-link") as HTMLAnchorElement | null;
+      const emailLink = document.getElementById(
+        "email-contact-link",
+      ) as HTMLAnchorElement | null;
       if (!emailLink) return;
 
       emailLink.addEventListener("click", (e) => {
         // Detectar si el usuario está en móvil / pantalla táctil
         const isMobile =
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent,
+          ) ||
           (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
 
         // Si es PC: prevenimos mailto y copiamos al portapapeles
         if (!isMobile) {
           e.preventDefault();
-          const email = emailLink.getAttribute("data-email") || emailLink.textContent?.trim() || "";
+          const email =
+            emailLink.getAttribute("data-email") ||
+            emailLink.textContent?.trim() ||
+            "";
           if (email) {
             navigator.clipboard
               .writeText(email)

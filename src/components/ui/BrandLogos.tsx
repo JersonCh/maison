@@ -17,15 +17,15 @@ interface BrandLogoProps {
 }
 
 export default function BrandLogo({ name, className = "", height = 36 }: BrandLogoProps) {
-  // Mapeo a las imágenes reales 120x60 subidas en public/assets/
+  // Mapeo a las imágenes reales 120x60 subidas en public/assets/payments/
   const realLogos: Record<string, { src: string; alt: string }> = {
-    bbva: { src: "/assets/bbva.png", alt: "BBVA" },
-    bcp: { src: "/assets/bcp.png", alt: "BCP" },
-    interbank: { src: "/assets/interbank.png", alt: "Interbank" },
-    olva: { src: "/assets/olva.png", alt: "Olva Courier" },
-    plin: { src: "/assets/plin.png", alt: "Plin" },
-    shalom: { src: "/assets/shalom.png", alt: "Shalom" },
-    yape: { src: "/assets/yape.png", alt: "Yape" },
+    bbva: { src: "/assets/payments/bbva.png", alt: "BBVA" },
+    bcp: { src: "/assets/payments/bcp.png", alt: "BCP" },
+    interbank: { src: "/assets/payments/interbank.png", alt: "Interbank" },
+    olva: { src: "/assets/payments/olva.png", alt: "Olva Courier" },
+    plin: { src: "/assets/payments/plin.png", alt: "Plin" },
+    shalom: { src: "/assets/payments/shalom.png", alt: "Shalom" },
+    yape: { src: "/assets/payments/yape.png", alt: "Yape" },
   };
 
   if (realLogos[name]) {

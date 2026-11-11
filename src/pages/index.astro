@@ -100,30 +100,42 @@ const categories: Gender[] = ["Hombre", "Mujer", "Unisex"];
 const commercialCategories = [
   {
     id: "disenador",
+    index: "01",
+    badge: "Tendencia & Estilo",
+    tagline: "Grandes Firmas",
     title: "Diseñador",
-    subtitle: "Grandes firmas",
-    image: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=900&q=85",
+    description: "Chanel, Dior, Tom Ford & clásicos atemporales de la moda global.",
+    image: "/assets/categories/categoria-disenador.jpg",
     link: "/perfumes?tipo=disenador",
   },
   {
     id: "arabes",
+    index: "02",
+    badge: "Larga Fijación",
+    tagline: "Tradición y Fijación",
     title: "Árabes",
-    subtitle: "Tradición y fijación",
-    image: "https://images.unsplash.com/photo-1622618991746-fe6004db3a47?auto=format&fit=crop&w=900&q=85",
+    description: "Oud majestuoso, aceites attar concentrados & estela legendaria infinita.",
+    image: "/assets/categories/categoria-arabes.jpg",
     link: "/perfumes?tipo=arabe",
   },
   {
     id: "nichos",
+    index: "03",
+    badge: "Exclusividad",
+    tagline: "Perfumería de Autor",
     title: "Nichos",
-    subtitle: "Perfumería de autor",
-    image: "https://images.unsplash.com/photo-1672848700906-2b8ca62639e4?auto=format&fit=crop&w=900&q=85",
+    description: "Fórmulas raras, botánica selecta, acordes experimentales y piezas únicas.",
+    image: "/assets/categories/categoria-nichos.jpg",
     link: "/perfumes?tipo=nicho",
   },
   {
     id: "decants",
+    index: "04",
+    badge: "Prueba en Piel",
+    tagline: "Muestras y Viajes",
     title: "Decants",
-    subtitle: "Muestras y viajes",
-    image: "https://images.unsplash.com/photo-1616949755610-8c9bbc08f138?auto=format&fit=crop&w=900&q=85",
+    description: "Atomizadores de 3ml - 5ml - 10ml para catar en piel antes de invertir.",
+    image: "/assets/categories/categoria-decants.jpg",
     link: "/perfumes?formato=decant",
   },
 ];
@@ -249,31 +261,65 @@ const websiteSchema = {
       </div>
     </section>
 
-    <!-- Commercial Categories Section -->
-    <section class="commercial-categories-section">
+    <!-- Commercial Categories Section (Líneas comerciales ultralujo) -->
+    <section
+      class="commercial-categories-section linen-pattern"
+      data-purpose="commercial-categories-showcase"
+      aria-label="Líneas comerciales de perfumería"
+    >
       <div class="commercial-categories-container">
-        <div class="commercial-header">
-          <span class="commercial-eyebrow">Categorías comerciales</span>
+        <!-- Header editorial -->
+        <header class="commercial-header">
+          <span class="commercial-eyebrow">Categorías Comerciales</span>
           <h2 class="commercial-title">Un universo de matices</h2>
           <p class="commercial-copy">
-            Cuatro expresiones de la alta perfumería: desde icónicas casas de moda internacionales hasta creaciones de autor, acordes orientales y decants para descubrir.
+            Cuatro expresiones de la alta perfumería: desde icónicas casas de moda internacionales
+            hasta creaciones de autor, acordes orientales y decants para descubrir.
           </p>
-        </div>
+        </header>
 
-        <div class="commercial-grid">
+        <!-- Grid de 4 Tarjetas de Ultralujo -->
+        <div class="commercial-grid" data-purpose="categories-grid">
           {
             commercialCategories.map((cat) => (
-              <a href={cat.link} class="commercial-card" aria-label={`Explorar categoría ${cat.title}`}>
-                <div class="commercial-card-media">
-                  <img src={cat.image} alt={cat.title} loading="lazy" decoding="async" />
-                  <div class="commercial-card-gradient" />
+              <a
+                href={cat.link}
+                class="commercial-card group"
+                data-purpose={`category-card-${cat.id}`}
+                aria-label={`Explorar categoría ${cat.title}`}
+              >
+                <!-- Imagen de fondo con zoom fluido -->
+                <img
+                  src={cat.image}
+                  alt={`Línea ${cat.title} - Maison des Parfums`}
+                  loading="lazy"
+                  decoding="async"
+                  class="commercial-card-img"
+                />
+
+                <!-- Degradado editorial profundo -->
+                <div class="commercial-card-overlay" />
+
+                <!-- Parte superior: Índice & Badge Glassmorphism -->
+                <div class="commercial-card-top">
+                  <span class="commercial-card-index">{cat.index}</span>
+                  <span class="commercial-card-badge">{cat.badge}</span>
                 </div>
-                <div class="commercial-card-info">
-                  <span class="commercial-card-badge">{cat.subtitle}</span>
-                  <h3 class="commercial-card-name">{cat.title}</h3>
-                  <span class="commercial-card-cta">
-                    Explorar colección <Icon name="arrow" size={14} />
-                  </span>
+
+                <!-- Contenido inferior -->
+                <div class="commercial-card-bottom">
+                  <p class="commercial-card-tagline">
+                    <span class="commercial-card-dot" />
+                    {cat.tagline}
+                  </p>
+                  <h3 class="commercial-card-heading">{cat.title}</h3>
+                  <p class="commercial-card-desc">{cat.description}</p>
+                  <div class="commercial-card-cta">
+                    <span>Explorar Colección</span>
+                    <span class="commercial-card-arrow">
+                      <Icon name="arrow" size={14} />
+                    </span>
+                  </div>
                 </div>
               </a>
             ))
