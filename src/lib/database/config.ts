@@ -55,10 +55,10 @@ export async function obtenerBannersPorUbicacion(
   try {
     const { results } = await db
       .prepare(
-        `SELECT id, ubicacion, titulo, subtitulo, texto_boton, enlace_url, 
+        `SELECT id, ubicacion, titulo, subtitulo, descripcion, texto_boton, enlace_url, 
                 imagen_desktop_key AS imagen_desktop, 
                 imagen_mobile_key AS imagen_mobile, 
-                orden
+                orden, activo
          FROM banners
          WHERE ubicacion = ? AND activo = 1
          ORDER BY orden ASC`,

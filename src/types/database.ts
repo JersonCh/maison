@@ -84,11 +84,13 @@ export interface BannerSlide {
   ubicacion: string;
   titulo: string | null;
   subtitulo: string | null;
+  descripcion?: string | null;
   texto_boton: string | null;
   enlace_url: string | null;
   imagen_desktop: string;
   imagen_mobile: string | null;
   orden: number;
+  activo?: boolean | number;
 }
 
 // =============================================================================

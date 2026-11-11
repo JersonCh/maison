@@ -131,10 +131,11 @@ export default function HeroCrossfadeCarousel({
             <h1>
               {slide.titulo}
             </h1>
-            <p>
-              Descubre aromas que trascienden el tiempo y convierten tu esencia en
-              una firma inolvidable.
-            </p>
+            {slide.descripcion && (
+              <p>
+                {slide.descripcion}
+              </p>
+            )}
             {slide.texto_boton && (
               <a href={slide.enlace_url || "/perfumes"} className="btn btn-gold">
                 {slide.texto_boton} <Icon name="arrow" />

@@ -11,6 +11,7 @@ import ProductTable from "./ProductTable";
 import ProductFormPage from "./ProductFormPage";
 import CsvImportModal from "./CsvImportModal";
 import BrandsManagementPage from "./BrandsManagementPage";
+import BannersManagementPage from "./BannersManagementPage";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Props {
@@ -230,6 +231,10 @@ export default function AdminDashboard({ }: Props) {
               className={section === item[0] ? "active" : ""}
               key={item[0]}
               onClick={() => {
+                if (item[0] === "banners") {
+                  // Desactivado temporalmente a solicitud: permanece en la misma pantalla sin acción
+                  return;
+                }
                 setSection(item[0]);
                 setVistaProducto("tabla");
               }}
@@ -389,27 +394,7 @@ export default function AdminDashboard({ }: Props) {
 
         {/* 4. SECCIÓN BANNERS */}
         {section === "banners" && (
-          <div className="admin-placeholder">
-            <header>
-              <small className="eyebrow">Visual merchandising</small>
-              <h2>Banners y carruseles</h2>
-              <p>Control visual de diapositivas del hero y promociones intermedias.</p>
-            </header>
-            <div>
-              {[
-                "Hero Home · Diapositiva 1 (Baccarat Rouge 540) — Activo",
-                "Hero Home · Diapositiva 2 (Distinción Olfativa) — Activo",
-                "Hero Home · Diapositiva 3 (Asesoría Personalizada) — Activo",
-                "Promo Mitad · Tu aroma habla antes que tú — Activo",
-              ].map((item) => (
-                <article key={item}>
-                  <span>HD</span>
-                  <strong>{item}</strong>
-                  <span style={{ fontSize: "12px", color: "var(--gold-deep)", fontWeight: 600 }}>Activo</span>
-                </article>
-              ))}
-            </div>
-          </div>
+          <BannersManagementPage onMostrarToast={mostrarToast} />
         )}
 
         {/* 5. SECCIÓN CONFIGURACIÓN COMERCIAL */}
