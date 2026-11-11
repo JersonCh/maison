@@ -13,5 +13,11 @@
       "database_id": "c33f19a2-76cc-4b7f-800d-5b1ca2f1c029",
       "migrations_dir": "migrations"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "maison-imagenes"
+    }
   ]
 }
