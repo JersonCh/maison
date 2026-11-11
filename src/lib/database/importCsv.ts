@@ -125,7 +125,7 @@ export async function importarProductosCsvEnDb(
           `INSERT INTO productos (
             marca_id, nombre, slug, descripcion, genero, concentracion, 
             pais_origen, ocasion_uso, estado, es_destacado, etiqueta_destacada, publicado_en
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'publicado', 0, 'ninguna', CURRENT_TIMESTAMP)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'borrador', 0, 'ninguna', NULL)`,
         )
         .bind(
           marcaIdFinal,

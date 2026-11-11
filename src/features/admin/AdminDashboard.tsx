@@ -11,6 +11,7 @@ import ProductTable from "./ProductTable";
 import ProductFormPage from "./ProductFormPage";
 import CsvImportModal from "./CsvImportModal";
 import BrandsManagementPage from "./BrandsManagementPage";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Props {
   initialProducts?: any[];
@@ -33,6 +34,10 @@ export default function AdminDashboard({ }: Props) {
 
   // Modal de importación masiva CSV
   const [mostrarModalCsv, setMostrarModalCsv] = useState(false);
+
+  // Modal de confirmación para eliminar fragancia
+  const [productoAEliminar, setProductoAEliminar] = useState<{ id: number; nombre: string } | null>(null);
+  const [eliminandoProducto, setEliminandoProducto] = useState(false);
 
   // Notificación tipo toast
   const [toastMensaje, setToastMensaje] = useState("");
@@ -132,28 +137,32 @@ export default function AdminDashboard({ }: Props) {
     }
   };
 
-  const manejarEliminarProducto = async (id: number, nombre: string) => {
-    const confirmar = window.confirm(
-      `¿Estás seguro de eliminar "${nombre}" del catálogo oficial?`,
-    );
+  const solicitarEliminarProducto = async (id: number, nombre: string) => {
+    setProductoAEliminar({ id, nombre });
+  };
 
-    if (!confirmar) return;
+  const ejecutarEliminarProducto = async () => {
+    if (!productoAEliminar) return;
 
+    setEliminandoProducto(true);
     try {
-      const resp = await fetch(`/api/admin/products?id=${id}`, {
+      const resp = await fetch(`/api/admin/products?id=${productoAEliminar.id}`, {
         method: "DELETE",
       });
 
       const resultado = await resp.json();
 
       if (resp.ok) {
-        setProductos((prev) => prev.filter((p) => p.id !== id));
+        setProductos((prev) => prev.filter((p) => p.id !== productoAEliminar.id));
         mostrarToast(`✓ ${resultado.mensaje || "Fragancia eliminada correctamente."}`);
+        setProductoAEliminar(null);
       } else {
         mostrarToast(`⚠ ${resultado.error || "Error al eliminar la fragancia."}`);
       }
     } catch (error) {
       mostrarToast("⚠ Error de comunicación con el servidor.");
+    } finally {
+      setEliminandoProducto(false);
     }
   };
 
@@ -359,7 +368,7 @@ export default function AdminDashboard({ }: Props) {
               products={productos}
               onEdit={manejarAbrirEdicion}
               onToggleActive={manejarAlternarVisibilidad}
-              onDelete={manejarEliminarProducto}
+              onDelete={solicitarEliminarProducto}
               onAddNew={manejarAbrirCreacion}
               onOpenImportCsv={() => setMostrarModalCsv(true)}
             />
@@ -418,6 +427,48 @@ export default function AdminDashboard({ }: Props) {
           cargarProductos();
           cargarMetadatos();
         }}
+      />
+
+      {/* MODAL REUTILIZABLE DE CONFIRMACIÓN (ELIMINAR FRAGANCIA) */}
+      <ConfirmModal
+        isOpen={Boolean(productoAEliminar)}
+        onClose={() => !eliminandoProducto && setProductoAEliminar(null)}
+        onConfirm={ejecutarEliminarProducto}
+        title="¿Eliminar fragancia definitivamente?"
+        subtitle="Gestión de Catálogo"
+        confirmText="Eliminar fragancia"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={eliminandoProducto}
+        message={
+          productoAEliminar ? (
+            <div>
+              <p
+                style={{
+                  margin: "0 0 14px 0",
+                  fontSize: "14px",
+                  color: "var(--ink)",
+                  lineHeight: "1.5",
+                }}
+              >
+                ¿Estás seguro de retirar <strong>"{productoAEliminar.nombre}"</strong> del catálogo oficial?
+              </p>
+              <div
+                style={{
+                  padding: "12px 14px",
+                  background: "rgba(185, 28, 28, 0.08)",
+                  border: "1px solid rgba(185, 28, 28, 0.22)",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  color: "#991b1b",
+                  lineHeight: "1.5",
+                }}
+              >
+                Esta acción eliminará el perfume, sus presentaciones y sus opciones de decants de forma permanente.
+              </div>
+            </div>
+          ) : null
+        }
       />
 
       {/* TOAST DE FEEDBACK VISUAL */}

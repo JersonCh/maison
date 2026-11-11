@@ -116,7 +116,7 @@ export function CsvResultStep({ resultadoFinal }: CsvResultStepProps) {
           <CameraIcon size={16} color="var(--gold-deep)" />
         </div>
         <div>
-          <strong style={{ color: "var(--ink)" }}>Fotografías del producto:</strong> Cada fragancia se ha creado con una imagen por defecto. Puedes abrir su ficha técnica desde el catálogo para adjuntar sus fotografías.
+          <strong style={{ color: "var(--ink)" }}>Estado inicial y fotografías:</strong> Los perfumes nuevos se guardan como <strong>Borrador</strong> (ocultos al público) con imagen por defecto para que puedas adjuntar sus fotografías antes de publicarlos; los ya existentes conservan su estado actual.
         </div>
       </div>
     </div>
