@@ -622,7 +622,7 @@ function SettingsSection() {
               />
             </label>
             <p style={{ fontSize: "12.5px", color: "var(--muted)", margin: "6px 0 16px 0", lineHeight: 1.5 }}>
-              💡 <strong>Tip de diseño:</strong> Separa las frases con <code> · </code> (espacio, punto medio, espacio). En computadoras se muestran todas las frases con puntos de separación; en teléfonos móviles se muestra prioritariamente la primera frase para mantener el diseño limpio.
+              <strong>Recomendación:</strong> Separa las frases con <code> · </code> (espacio, punto medio, espacio). En computadoras se muestran todas las frases con puntos de separación; en teléfonos móviles se muestra prioritariamente la primera frase para mantener el diseño limpio.
             </p>
 
             {/* VISTA PREVIA EN VIVO */}

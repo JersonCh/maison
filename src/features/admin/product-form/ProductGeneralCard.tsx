@@ -654,7 +654,7 @@ export function ProductGeneralCard({
                 >
                   {PAISES_ORIGEN_COMBO.map((pais) => (
                     <option key={pais} value={pais}>
-                      📍 {pais}
+                      {pais}
                     </option>
                   ))}
                 </select>

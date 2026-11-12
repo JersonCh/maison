@@ -624,13 +624,9 @@ export default function BrandsManagementPage({
                       color: "var(--muted)",
                       lineHeight: "1.45",
                       margin: "0 0 12px 0",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
                     }}
                   >
-                    <span>📍</span>
-                    <span>{m.pais_origen || "Francia"}</span>
+                    Origen: {m.pais_origen || "Francia"}
                   </p>
 
                   {/* Contador de perfumes vinculados */}
