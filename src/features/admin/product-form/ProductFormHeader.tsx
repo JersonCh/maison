@@ -29,9 +29,11 @@ export function ProductFormHeader({
           ← Volver a Perfumes
         </button>
         <div className="product-page-title-group">
-          <span className="product-page-eyebrow">
-            {esEdicion ? "Edición de Perfume" : "Nueva Fragancia"}
-          </span>
+          {(nombre || esEdicion) && (
+            <span className="product-page-eyebrow">
+              {esEdicion ? "Edición de Perfume" : "Nueva fragancia"}
+            </span>
+          )}
           <h1 className="product-page-title">
             {nombre || (esEdicion ? "Sin título" : "Nueva fragancia")}
           </h1>
@@ -39,14 +41,6 @@ export function ProductFormHeader({
       </div>
 
       <div className="product-page-header-actions">
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={onBack}
-          disabled={guardando}
-        >
-          Descartar
-        </button>
         {!esEdicion && onOpenImportCsv && (
           <button
             type="button"
