@@ -12,8 +12,8 @@ export interface OpcionesOptimizacion {
 }
 
 const OPCIONES_POR_DEFECTO: Required<OpcionesOptimizacion> = {
-  maxAncho: 1200,
-  maxAlto: 1600,
+  maxAncho: 900,
+  maxAlto: 1200,
   calidadInicial: 0.85,
   maxBytes: 1024 * 1024, // 1 MB máximo garantizado
 };
@@ -137,3 +137,4 @@ export async function optimizarImagenParaWebP(
     img.src = urlObjeto;
   });
 }
+

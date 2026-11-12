@@ -187,8 +187,8 @@ export default function ProductFormPage({
     try {
       // Optimizar y convertir automáticamente a WebP de alta definición (< 1 MB)
       const archivoOptimizado = await optimizarImagenParaWebP(archivo, {
-        maxAncho: 1200,
-        maxAlto: 1600,
+        maxAncho: 900,
+        maxAlto: 1200,
         calidadInicial: 0.85,
         maxBytes: 1024 * 1024, // 1 MB máximo garantizado
       });
