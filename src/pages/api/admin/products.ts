@@ -16,6 +16,10 @@ function validarDatosProducto(datos: DatosFormularioProducto): string | null {
     return "El nombre del perfume es obligatorio.";
   }
 
+  if (!datos.nueva_marca?.trim() && (!datos.marca_id || Number(datos.marca_id) <= 0)) {
+    return "Debes seleccionar una casa de perfumería o escribir el nombre de una nueva marca.";
+  }
+
   const tieneAlgunFrasco = TAMANOS_FRASCO_ESTANDAR.some(({ field }) =>
     Boolean(datos[field] && Number(datos[field]) > 0),
   );

@@ -124,17 +124,16 @@ export async function importarProductosCsvEnDb(
         .prepare(
           `INSERT INTO productos (
             marca_id, nombre, slug, descripcion, genero, concentracion, 
-            pais_origen, ocasion_uso, estado, es_destacado, etiqueta_destacada, publicado_en
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'borrador', 0, 'ninguna', NULL)`,
+            ocasion_uso, estado, es_destacado, etiqueta_destacada, publicado_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, 'borrador', 0, 'ninguna', NULL)`,
         )
         .bind(
           marcaIdFinal,
           fila.nombre.trim(),
           slugFinal,
-          `Fragancia ${fila.nombre} de ${fila.marca}. Concentración ${fila.concentracion}. Procedencia: ${fila.pais_origen}.`,
+          `Fragancia ${fila.nombre} de ${fila.marca}. Concentración ${fila.concentracion}. Colección ${fila.linea_comercial}.`,
           fila.genero,
           fila.concentracion,
-          fila.pais_origen,
           fila.ocasion_uso,
         )
         .run();

@@ -12,5 +12,6 @@ export interface ProductFormProps {
   onSuccess: (mensaje: string) => void;
   onReloadMetadata?: () => Promise<void>;
   onOpenImportCsv?: () => void;
+  onNavigateToBrands?: () => void;
 }
 

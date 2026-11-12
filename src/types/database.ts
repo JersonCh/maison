@@ -101,6 +101,7 @@ export interface MarcaItem {
   id: number;
   nombre: string;
   slug: string;
+  pais_origen?: string;
   tipo_comercial?: "disenador" | "arabe" | "nicho";
 }
 
@@ -108,7 +109,7 @@ export interface MarcaAdminItem {
   id: number;
   nombre: string;
   slug: string;
-  descripcion?: string | null;
+  pais_origen?: string;
   tipo_comercial: "disenador" | "arabe" | "nicho";
   activo: boolean;
   total_productos: number;

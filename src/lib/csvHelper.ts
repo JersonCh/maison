@@ -546,7 +546,6 @@ export function descargarPlantillaCsv(): void {
     "linea_comercial",
     "genero",
     "concentracion",
-    "pais_origen",
     "ocasion_uso",
     "precio_50ml",
     "precio_75ml",
@@ -560,12 +559,12 @@ export function descargarPlantillaCsv(): void {
   ];
 
   const filasEjemplo = [
-    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Francia", "Noche y eventos de gala", "", "", "920", "", "", "", "50", "75", "135"],
-    ["Parfums de Marly", "Layton", "nicho", "Unisex", "Eau de Parfum", "Francia", "Otoño e invierno", "", "980", "", "1350", "", "", "65", "95", "175"],
-    ["Jean Paul Gaultier", "Le Male Elixir", "disenador", "Hombre", "Parfum", "Francia", "Noche y fiesta", "", "520", "", "680", "", "", "35", "55", "95"],
-    ["Bleu de Chanel", "Eau de Parfum", "disenador", "Hombre", "Eau de Parfum", "Francia", "Versatilidad total", "580", "", "740", "", "920", "", "", "", ""],
-    ["Giorgio Armani", "Acqua Di Gio", "disenador", "Hombre", "Eau de Toilette", "Italia", "Verano y frescura", "", "", "560", "", "", "820", "", "", ""],
-    ["Lattafa", "Khamrah", "arabe", "Unisex", "Eau de Parfum", "Emiratos Árabes Unidos", "Noche e invierno", "", "", "280", "", "", "", "25", "35", "60"],
+    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Noche y eventos de gala", "", "", "920", "", "", "", "50", "75", "135"],
+    ["Parfums de Marly", "Layton", "nicho", "Unisex", "Eau de Parfum", "Otoño e invierno", "", "980", "", "1350", "", "", "65", "95", "175"],
+    ["Jean Paul Gaultier", "Le Male Elixir", "disenador", "Hombre", "Parfum", "Noche y fiesta", "", "520", "", "680", "", "", "35", "55", "95"],
+    ["Bleu de Chanel", "Eau de Parfum", "disenador", "Hombre", "Eau de Parfum", "Versatilidad total", "580", "", "740", "", "920", "", "", "", ""],
+    ["Giorgio Armani", "Acqua Di Gio", "disenador", "Hombre", "Eau de Toilette", "Verano y frescura", "", "", "560", "", "", "820", "", "", ""],
+    ["Lattafa", "Khamrah", "arabe", "Unisex", "Eau de Parfum", "Noche e invierno", "", "", "280", "", "", "", "25", "35", "60"],
   ];
 
   const csvLineas = [

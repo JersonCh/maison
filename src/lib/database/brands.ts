@@ -13,12 +13,13 @@ export async function obtenerMarcasDisponibles(
   db: D1Database,
 ): Promise<MarcaItem[]> {
   const { results } = await db
-    .prepare("SELECT id, nombre, slug, tipo_comercial FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
+    .prepare("SELECT id, nombre, slug, tipo_comercial, COALESCE(pais_origen, 'Francia') AS pais_origen FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
     .all<any>();
   return results.map((r) => ({
     id: r.id,
     nombre: r.nombre,
     slug: r.slug,
+    pais_origen: r.pais_origen || "Francia",
     tipo_comercial: normalizarTipoComercial(r.tipo_comercial),
   }));
 }
@@ -36,7 +37,7 @@ export async function obtenerMarcasAdmin(
         m.id, 
         m.nombre, 
         m.slug, 
-        m.descripcion, 
+        COALESCE(m.pais_origen, 'Francia') AS pais_origen, 
         m.tipo_comercial, 
         m.activo, 
         m.created_at,
@@ -53,7 +54,7 @@ export async function obtenerMarcasAdmin(
     id: r.id,
     nombre: r.nombre,
     slug: r.slug,
-    descripcion: r.descripcion || null,
+    pais_origen: r.pais_origen || "Francia",
     tipo_comercial: normalizarTipoComercial(r.tipo_comercial),
     activo: Boolean(r.activo),
     total_productos: Number(r.total_productos) || 0,
@@ -71,7 +72,7 @@ export async function crearMarcaAdmin(
     nombre: string;
     slug?: string;
     tipo_comercial: CommercialType;
-    descripcion?: string;
+    pais_origen?: string;
   },
 ): Promise<number> {
   const nombreLimpio = datos.nombre.trim();
@@ -80,7 +81,7 @@ export async function crearMarcaAdmin(
   const slugBase = datos.slug?.trim() || nombreLimpio;
   const slug = normalizarTextoParaSlug(slugBase);
   const tipoComercial = normalizarTipoComercial(datos.tipo_comercial);
-  const descripcion = datos.descripcion?.trim() || null;
+  const paisOrigen = datos.pais_origen?.trim() || "Francia";
 
   const existente = await db
     .prepare("SELECT id, nombre FROM marcas WHERE LOWER(nombre) = LOWER(?) OR slug = ? LIMIT 1")
@@ -92,8 +93,8 @@ export async function crearMarcaAdmin(
   }
 
   await db
-    .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, descripcion, activo) VALUES (?, ?, ?, ?, 1)")
-    .bind(nombreLimpio, slug, tipoComercial, descripcion)
+    .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, pais_origen, activo) VALUES (?, ?, ?, ?, 1)")
+    .bind(nombreLimpio, slug, tipoComercial, paisOrigen)
     .run();
 
   const nueva = await db
@@ -114,7 +115,7 @@ export async function actualizarMarcaAdmin(
     nombre: string;
     slug?: string;
     tipo_comercial: CommercialType;
-    descripcion?: string;
+    pais_origen?: string;
     activo?: boolean;
   },
 ): Promise<void> {
@@ -124,7 +125,7 @@ export async function actualizarMarcaAdmin(
   const slugBase = datos.slug?.trim() || nombreLimpio;
   const slug = normalizarTextoParaSlug(slugBase);
   const tipoComercial = normalizarTipoComercial(datos.tipo_comercial);
-  const descripcion = datos.descripcion?.trim() || null;
+  const paisOrigen = datos.pais_origen?.trim() || "Francia";
   const activo = datos.activo !== undefined ? (datos.activo ? 1 : 0) : 1;
 
   const colision = await db
@@ -142,8 +143,8 @@ export async function actualizarMarcaAdmin(
     .first<{ tipo_comercial: string }>();
 
   await db
-    .prepare("UPDATE marcas SET nombre = ?, slug = ?, tipo_comercial = ?, descripcion = ?, activo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
-    .bind(nombreLimpio, slug, tipoComercial, descripcion, activo, id)
+    .prepare("UPDATE marcas SET nombre = ?, slug = ?, tipo_comercial = ?, pais_origen = ?, activo = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+    .bind(nombreLimpio, slug, tipoComercial, paisOrigen, activo, id)
     .run();
 
   // Sincronizar categorías en lote si cambió la línea comercial
@@ -263,11 +264,13 @@ export async function asegurarMarca(
   marcaId?: number,
   nuevaMarcaNombre?: string,
   tipoComercial?: string,
+  paisOrigen?: string,
 ): Promise<number> {
   if (nuevaMarcaNombre && nuevaMarcaNombre.trim()) {
     const nombreLimpio = nuevaMarcaNombre.trim();
     const slug = normalizarTextoParaSlug(nombreLimpio);
     const tipoFinal = normalizarTipoComercial(tipoComercial);
+    const paisFinal = paisOrigen?.trim() || "Francia";
 
     // Verificar si ya existe por nombre o slug
     const existente = await db
@@ -276,21 +279,13 @@ export async function asegurarMarca(
       .first<{ id: number }>();
 
     if (existente) {
-      if (tipoComercial) {
-        try {
-          await db
-            .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
-            .bind(tipoFinal, existente.id)
-            .run();
-        } catch { }
-      }
       return existente.id;
     }
 
-    // Crear la nueva marca con su clasificación
+    // Crear la nueva marca con su clasificación y país
     await db
-      .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, activo) VALUES (?, ?, ?, 1)")
-      .bind(nombreLimpio, slug, tipoFinal)
+      .prepare("INSERT INTO marcas (nombre, slug, tipo_comercial, pais_origen, activo) VALUES (?, ?, ?, ?, 1)")
+      .bind(nombreLimpio, slug, tipoFinal, paisFinal)
       .run();
 
     const nueva = await db
@@ -300,17 +295,19 @@ export async function asegurarMarca(
     return nueva?.id || 1;
   }
 
-  // Si se seleccionó una marca existente y se especificó un tipo comercial, actualizarla
-  if (marcaId && tipoComercial) {
-    try {
-      await db
-        .prepare("UPDATE marcas SET tipo_comercial = ? WHERE id = ?")
-        .bind(normalizarTipoComercial(tipoComercial), marcaId)
-        .run();
-    } catch { }
+  if (marcaId && !isNaN(Number(marcaId))) {
+    const idNum = Number(marcaId);
+    const existente = await db
+      .prepare("SELECT id FROM marcas WHERE id = ? LIMIT 1")
+      .bind(idNum)
+      .first<{ id: number }>();
+
+    if (existente) {
+      return existente.id;
+    }
   }
 
-  return marcaId || 1;
+  throw new Error("Debes seleccionar una casa de perfumería válida o registrar una nueva.");
 }
 
 /**

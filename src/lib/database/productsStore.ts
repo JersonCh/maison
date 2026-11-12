@@ -32,7 +32,7 @@ export async function obtenerProductosCatalogo(
       p.es_destacado,
       m.nombre AS marca,
       m.slug AS marca_slug,
-      m.tipo_comercial,
+      COALESCE(p.tipo_comercial, m.tipo_comercial) AS tipo_comercial,
       COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
       COALESCE(
         (SELECT clave_archivo FROM imagenes_producto WHERE producto_id = p.id AND es_principal = 1 LIMIT 1),
@@ -102,7 +102,8 @@ export async function obtenerDetalleProductoPorSlug(
         p.genero,
         p.concentracion,
         p.anio_lanzamiento,
-        p.pais_origen,
+        COALESCE(p.pais_origen, m.pais_origen, 'Francia') AS pais_origen,
+        COALESCE(p.tipo_comercial, m.tipo_comercial) AS tipo_comercial,
         p.ocasion_uso,
         m.nombre AS marca,
         m.slug AS marca_slug,
@@ -294,7 +295,7 @@ export async function obtenerProductosTienda(
           p.nombre,
           p.slug,
           m.nombre AS marca,
-          m.tipo_comercial,
+          COALESCE(p.tipo_comercial, m.tipo_comercial) AS tipo_comercial,
           p.genero,
           COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
           COALESCE(p.descripcion, '') AS descripcion,
@@ -430,7 +431,8 @@ export async function obtenerDetalleProductoTienda(
   caracteristicas: {
     concentracion: string;
     ocasion: string;
-    procedencia: string;
+    linea?: string;
+    procedencia?: string;
   };
 } | null> {
   const esDev = Boolean(import.meta.env?.DEV);
@@ -515,7 +517,8 @@ export async function obtenerDetalleProductoTienda(
       caracteristicas: {
         concentracion: detalleDb.concentracion || "Eau de Parfum",
         ocasion: detalleDb.ocasion_uso || "Día y noche",
-        procedencia: detalleDb.pais_origen || "Importado",
+        linea: detalleDb.tipo_comercial === "nicho" ? "Nicho / Autor" : detalleDb.tipo_comercial === "arabe" ? "Perfumería Árabe" : "Diseñador",
+        procedencia: "Importado",
       },
     };
   } catch (error) {

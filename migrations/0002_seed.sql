@@ -37,44 +37,44 @@ INSERT OR IGNORE INTO categorias (id, nombre, slug, descripcion, orden, activo) 
 (4, 'Decants', 'decants', 'Muestras de viaje y fracciones de perfumes 100% auténticos.', 4, 1);
 
 -- -----------------------------------------------------------------------------
--- 3. MARCAS / CASAS DE PERFUMERÍA (30 CASAS CON SU TIPO COMERCIAL)
+-- 3. MARCAS / CASAS DE PERFUMERÍA (30 CASAS CON SU PAÍS DE ORIGEN Y LÍNEA)
 -- -----------------------------------------------------------------------------
-INSERT OR IGNORE INTO marcas (id, nombre, slug, descripcion, tipo_comercial, activo) VALUES
+INSERT OR IGNORE INTO marcas (id, nombre, slug, pais_origen, tipo_comercial, activo) VALUES
 -- Casas Nicho / Autor
-(1, 'Maison Francis Kurkdjian', 'maison-francis-kurkdjian', 'Alta perfumería francesa creada por uno de los maestros perfumistas más aclamados.', 'nicho', 1),
-(4, 'Creed', 'creed', 'Herencia de perfumería real británica con ingredientes naturales seleccionados a mano.', 'nicho', 1),
-(5, 'Tom Ford', 'tom-ford', 'Lujo provocador, suntuoso y audaz.', 'nicho', 1),
-(8, 'Parfums de Marly', 'parfums-de-marly', 'Esplendor ecuestre y opulencia de la corte francesa del siglo XVIII.', 'nicho', 1),
-(9, 'Byredo', 'byredo', 'Perfumería nicho contemporánea de raíces suecas y memorias visuales.', 'nicho', 1),
-(14, 'Le Labo', 'le-labo', 'Artesanía neoyorquina de perfumería lenta y formulación individual.', 'nicho', 1),
-(17, 'Jo Malone', 'jo-malone', 'Fragancias etéreas británicas diseñadas para ser combinadas.', 'nicho', 1),
-(20, 'Diptyque', 'diptyque', 'Paisajes botánicos y narrativa poética del bulevar Saint-Germain.', 'nicho', 1),
+(1, 'Maison Francis Kurkdjian', 'maison-francis-kurkdjian', 'Francia', 'nicho', 1),
+(4, 'Creed', 'creed', 'Reino Unido', 'nicho', 1),
+(5, 'Tom Ford', 'tom-ford', 'Estados Unidos', 'nicho', 1),
+(8, 'Parfums de Marly', 'parfums-de-marly', 'Francia', 'nicho', 1),
+(9, 'Byredo', 'byredo', 'Suecia', 'nicho', 1),
+(14, 'Le Labo', 'le-labo', 'Estados Unidos', 'nicho', 1),
+(17, 'Jo Malone', 'jo-malone', 'Reino Unido', 'nicho', 1),
+(20, 'Diptyque', 'diptyque', 'Francia', 'nicho', 1),
 
 -- Grandes Firmas de Diseñador
-(2, 'Dior', 'dior', 'Maison de alta costura y fragancias legendarias francesas.', 'disenador', 1),
-(3, 'Carolina Herrera', 'carolina-herrera', 'Elegancia atemporal y sofisticación cosmopolita neoyorquina.', 'disenador', 1),
-(6, 'Giorgio Armani', 'giorgio-armani', 'Belleza minimalista, sobria y de elegancia italiana impecable.', 'disenador', 1),
-(7, 'Yves Saint Laurent', 'yves-saint-laurent', 'Espíritu rebelde, libre y de carácter cautivador.', 'disenador', 1),
-(10, 'Chanel', 'chanel', 'El epítome de la sofisticación parisina y la distinción eterna.', 'disenador', 1),
-(11, 'Lancôme', 'lancome', 'Celebración de la feminidad radiante y la gracia francesa.', 'disenador', 1),
-(12, 'Versace', 'versace', 'Fuerza mitológica, sensualidad y magnetismo mediterráneo.', 'disenador', 1),
-(13, 'Narciso Rodriguez', 'narciso-rodriguez', 'Maestría del almizcle moderno con siluetas olfativas puras.', 'disenador', 1),
-(15, 'Jean Paul Gaultier', 'jean-paul-gaultier', 'Seducción transgresora y carisma icónico.', 'disenador', 1),
-(16, 'Valentino', 'valentino', 'Alta costura romana impregnada de actitud contemporánea.', 'disenador', 1),
-(18, 'Hermès', 'hermes', 'Nobleza artesanal, poética botánica y pureza olfativa.', 'disenador', 1),
-(19, 'Mugler', 'mugler', 'Creaciones visionarias, potentes y sobrenaturales.', 'disenador', 1),
-(25, 'Paco Rabanne', 'paco-rabanne', 'Audacia vanguardista, magnetismo y seducción metálica legendaria.', 'disenador', 1),
-(26, 'Dolce & Gabbana', 'dolce-gabbana', 'Pasión mediterránea, frescura cítrica y sensualidad italiana inconfundible.', 'disenador', 1),
-(27, 'Givenchy', 'givenchy', 'Alta costura y aristocracia francesa contemporánea con distinción cosmopolita.', 'disenador', 1),
-(28, 'Prada', 'prada', 'Sofisticación intelectual, elegancia refinada y limpieza olfativa sublime.', 'disenador', 1),
-(29, 'Hugo Boss', 'hugo-boss', 'Carácter ejecutivo contemporáneo, determinación y presencia impecable.', 'disenador', 1),
-(30, 'Montblanc', 'montblanc', 'Espíritu de exploración noble, artesanía de precisión y masculinidad distinguida.', 'disenador', 1),
+(2, 'Dior', 'dior', 'Francia', 'disenador', 1),
+(3, 'Carolina Herrera', 'carolina-herrera', 'Estados Unidos', 'disenador', 1),
+(6, 'Giorgio Armani', 'giorgio-armani', 'Italia', 'disenador', 1),
+(7, 'Yves Saint Laurent', 'yves-saint-laurent', 'Francia', 'disenador', 1),
+(10, 'Chanel', 'chanel', 'Francia', 'disenador', 1),
+(11, 'Lancôme', 'lancome', 'Francia', 'disenador', 1),
+(12, 'Versace', 'versace', 'Italia', 'disenador', 1),
+(13, 'Narciso Rodriguez', 'narciso-rodriguez', 'Estados Unidos', 'disenador', 1),
+(15, 'Jean Paul Gaultier', 'jean-paul-gaultier', 'Francia', 'disenador', 1),
+(16, 'Valentino', 'valentino', 'Italia', 'disenador', 1),
+(18, 'Hermès', 'hermes', 'Francia', 'disenador', 1),
+(19, 'Mugler', 'mugler', 'Francia', 'disenador', 1),
+(25, 'Paco Rabanne', 'paco-rabanne', 'España', 'disenador', 1),
+(26, 'Dolce & Gabbana', 'dolce-gabbana', 'Italia', 'disenador', 1),
+(27, 'Givenchy', 'givenchy', 'Francia', 'disenador', 1),
+(28, 'Prada', 'prada', 'Italia', 'disenador', 1),
+(29, 'Hugo Boss', 'hugo-boss', 'Alemania', 'disenador', 1),
+(30, 'Montblanc', 'montblanc', 'Alemania', 'disenador', 1),
 
 -- Perfumería Árabe / Oriental
-(21, 'Lattafa', 'lattafa', 'Perfumería oriental emiratí célebre por su rica opulencia y extraordinaria fijación.', 'arabe', 1),
-(22, 'Armaf', 'armaf', 'Fragancias cosmopolitas inspiradas en la elegancia con estelas intensas y memorables.', 'arabe', 1),
-(23, 'Rasasi', 'rasasi', 'Herencia de perfumería de Dubái con un balance impecable entre frescura y maderas nobles.', 'arabe', 1),
-(24, 'Afnan', 'afnan', 'Composiciones orientales contemporáneas de calidad superior y proyección sofisticada.', 'arabe', 1);
+(21, 'Lattafa', 'lattafa', 'Emiratos Árabes Unidos', 'arabe', 1),
+(22, 'Armaf', 'armaf', 'Emiratos Árabes Unidos', 'arabe', 1),
+(23, 'Rasasi', 'rasasi', 'Emiratos Árabes Unidos', 'arabe', 1),
+(24, 'Afnan', 'afnan', 'Emiratos Árabes Unidos', 'arabe', 1);
 
 -- -----------------------------------------------------------------------------
 -- 4. PRODUCTOS (32 PERFUMES PUBLICADOS)

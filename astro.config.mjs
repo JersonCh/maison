@@ -11,6 +11,7 @@ const isBuild = process.argv.includes('build') || process.env.NODE_ENV === 'prod
 export default defineConfig({
   site: 'https://maison.pe',
   adapter: cloudflare({
+    imageService: 'compile',
     platformProxy: {
       enabled: true,
     },

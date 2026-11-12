@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const nombre = String(payload?.nombre || "").trim();
     const slug = payload?.slug ? String(payload.slug).trim() : undefined;
     const tipoComercial = (payload?.tipo_comercial || "disenador") as CommercialType;
-    const descripcion = payload?.descripcion ? String(payload.descripcion).trim() : undefined;
+    const paisOrigen = String(payload?.pais_origen || "Francia").trim();
 
     if (!nombre) {
       return new Response(
@@ -81,7 +81,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       nombre,
       slug,
       tipo_comercial: tipoComercial,
-      descripcion,
+      pais_origen: paisOrigen,
     });
 
     return new Response(
@@ -120,7 +120,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     const nombre = String(payload?.nombre || "").trim();
     const slug = payload?.slug ? String(payload.slug).trim() : undefined;
     const tipoComercial = (payload?.tipo_comercial || "disenador") as CommercialType;
-    const descripcion = payload?.descripcion !== undefined ? String(payload.descripcion).trim() : undefined;
+    const paisOrigen = payload?.pais_origen ? String(payload.pais_origen).trim() : undefined;
     const activo = payload?.activo !== undefined ? Boolean(payload.activo) : undefined;
 
     if (!id || isNaN(id)) {
@@ -141,7 +141,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
       nombre,
       slug,
       tipo_comercial: tipoComercial,
-      descripcion,
+      pais_origen: paisOrigen,
       activo,
     });
 

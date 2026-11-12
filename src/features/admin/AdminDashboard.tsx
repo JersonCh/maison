@@ -367,6 +367,7 @@ export default function AdminDashboard({ }: Props) {
               }}
               onReloadMetadata={cargarMetadatos}
               onOpenImportCsv={() => setMostrarModalCsv(true)}
+              onNavigateToBrands={() => setSection("brands")}
             />
           ) : (
             <ProductTable

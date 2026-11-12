@@ -28,13 +28,13 @@ export async function obtenerProductosParaAdmin(
         p.slug,
         p.marca_id,
         m.nombre AS marca,
-        m.tipo_comercial,
+        COALESCE(p.tipo_comercial, m.tipo_comercial) AS tipo_comercial,
         p.genero,
         p.concentracion,
         pf.familia_olfativa_id,
         COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
         COALESCE(p.descripcion, '') AS descripcion,
-        p.pais_origen,
+        COALESCE(p.pais_origen, m.pais_origen, 'Francia') AS pais_origen,
         p.ocasion_uso,
         p.es_destacado,
         p.etiqueta_destacada,
@@ -208,36 +208,40 @@ export async function crearNuevoProductoEnDb(
     datos.familia_olfativa_id,
     datos.nueva_familia,
   );
+  const marcaFila = await db
+    .prepare("SELECT nombre, pais_origen, tipo_comercial FROM marcas WHERE id = ?")
+    .bind(marcaIdFinal)
+    .first<{ nombre: string; pais_origen: string; tipo_comercial: string }>();
+
   // Obtener nombre de la marca para generar slug SEO limpio si no vino explícito
   let baseSlug = datos.slug?.trim();
   if (!baseSlug) {
-    const marcaFila = await db
-      .prepare("SELECT nombre FROM marcas WHERE id = ?")
-      .bind(marcaIdFinal)
-      .first<{ nombre: string }>();
     baseSlug = `${marcaFila?.nombre || ""} ${datos.nombre}`.trim();
   }
   const slugFinal = await generarSlugUnico(db, baseSlug);
   const estadoFinal = datos.activo ? "publicado" : "borrador";
   const esDestacado = datos.es_destacado ? 1 : 0;
   const etiquetaDestacada = datos.etiqueta_destacada || "ninguna";
+  const tipoComercialFinal = datos.tipo_comercial || marcaFila?.tipo_comercial || "disenador";
+  const paisFinal = datos.pais_origen?.trim() || marcaFila?.pais_origen || "Francia";
 
   // 1. Insertar producto principal
   await db
     .prepare(
       `INSERT INTO productos (
-        marca_id, nombre, slug, descripcion, genero, concentracion, 
+        marca_id, nombre, slug, descripcion, tipo_comercial, genero, concentracion, 
         pais_origen, ocasion_uso, estado, es_destacado, etiqueta_destacada, publicado_en
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
     )
     .bind(
       marcaIdFinal,
       datos.nombre.trim(),
       slugFinal,
       datos.descripcion.trim(),
+      tipoComercialFinal,
       datos.genero,
       datos.concentracion,
-      datos.pais_origen?.trim() || "Francia",
+      paisFinal,
       datos.ocasion_uso?.trim() || "Ocasiones especiales y uso distinguido",
       estadoFinal,
       esDestacado,
@@ -436,11 +440,19 @@ export async function actualizarProductoEnDb(
   const esDestacado = datos.es_destacado ? 1 : 0;
   const etiquetaDestacada = datos.etiqueta_destacada || "ninguna";
 
+  const marcaFila = await db
+    .prepare("SELECT pais_origen, tipo_comercial FROM marcas WHERE id = ?")
+    .bind(marcaIdFinal)
+    .first<{ pais_origen: string; tipo_comercial: string }>();
+
+  const tipoComercialFinal = datos.tipo_comercial || marcaFila?.tipo_comercial || "disenador";
+  const paisFinal = datos.pais_origen?.trim() || marcaFila?.pais_origen || "Francia";
+
   // 1. Actualizar tabla productos
   await db
     .prepare(
       `UPDATE productos 
-       SET marca_id = ?, nombre = ?, slug = ?, descripcion = ?, genero = ?, concentracion = ?,
+       SET marca_id = ?, nombre = ?, slug = ?, descripcion = ?, tipo_comercial = ?, genero = ?, concentracion = ?,
            pais_origen = ?, ocasion_uso = ?, estado = ?, es_destacado = ?, etiqueta_destacada = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
     )
@@ -449,9 +461,10 @@ export async function actualizarProductoEnDb(
       datos.nombre.trim(),
       slugFinal,
       datos.descripcion.trim(),
+      tipoComercialFinal,
       datos.genero,
       datos.concentracion,
-      datos.pais_origen?.trim() || "Francia",
+      paisFinal,
       datos.ocasion_uso?.trim() || "Ocasiones especiales y uso distinguido",
       estadoFinal,
       esDestacado,

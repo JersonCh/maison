@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS marcas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
-    descripcion TEXT,
+    pais_origen TEXT NOT NULL DEFAULT 'Francia',
     tipo_comercial TEXT DEFAULT 'disenador' CHECK(tipo_comercial IN ('disenador', 'arabe', 'nicho')),
     logo_key TEXT,
     activo INTEGER NOT NULL DEFAULT 1 CHECK(activo IN (0, 1)),
@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS productos (
     nombre TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     descripcion TEXT,
+    tipo_comercial TEXT CHECK(tipo_comercial IS NULL OR tipo_comercial IN ('disenador', 'arabe', 'nicho')),
     genero TEXT NOT NULL CHECK(genero IN ('Hombre', 'Mujer', 'Unisex')),
     concentracion TEXT DEFAULT 'Eau de Parfum', -- EDP, EDT, Parfum, Extrait, Cologne
     anio_lanzamiento INTEGER CHECK(anio_lanzamiento IS NULL OR anio_lanzamiento > 1900),

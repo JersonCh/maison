@@ -33,7 +33,7 @@ export function ProductFormHeader({
             {esEdicion ? "Edición de Perfume" : "Nueva Fragancia"}
           </span>
           <h1 className="product-page-title">
-            {nombre || (esEdicion ? "Sin título" : "Nueva creación olfativa")}
+            {nombre || (esEdicion ? "Sin título" : "Nueva fragancia")}
           </h1>
         </div>
       </div>

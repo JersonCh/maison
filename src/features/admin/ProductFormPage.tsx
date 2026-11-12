@@ -29,6 +29,7 @@ export default function ProductFormPage({
   onSuccess,
   onReloadMetadata,
   onOpenImportCsv,
+  onNavigateToBrands,
 }: ProductFormProps) {
   const esEdicion = Boolean(initialProduct?.id);
 
@@ -46,7 +47,7 @@ export default function ProductFormPage({
   const inputNombreRef = useRef<HTMLInputElement>(null);
   const [mensajeExitoTemporal, setMensajeExitoTemporal] = useState<string | null>(null);
   const [marcaId, setMarcaId] = useState<number>(
-    initialProduct?.marca_id || marcasDisponibles[0]?.id || 1,
+    initialProduct?.marca_id || (marcasDisponibles.length > 0 ? marcasDisponibles[0].id : 0),
   );
   const [modoNuevaMarca, setModoNuevaMarca] = useState(false);
   const [nuevaMarca, setNuevaMarca] = useState("");
@@ -229,6 +230,18 @@ export default function ProductFormPage({
       return;
     }
 
+    if (!modoNuevaMarca && (!marcaId || !marcasDisponibles.some((m) => m.id === marcaId))) {
+      setErrorValidacion("Debes seleccionar una casa de perfumería (marca).");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (modoNuevaMarca && !nuevaMarca.trim()) {
+      setErrorValidacion("Debes escribir el nombre de la nueva casa de perfumería.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const tieneAlgunFrasco = TAMANOS_FRASCO_ESTANDAR.some(
       ({ field }) => preciosFrascos[field] !== "" && Number(preciosFrascos[field]) > 0,
     );
@@ -305,7 +318,7 @@ export default function ProductFormPage({
       const cargaUtil: DatosFormularioProducto & { id?: number } = {
         nombre: nombre.trim(),
         slug: slug.trim() || undefined,
-        marca_id: modoNuevaMarca ? undefined : marcaId,
+        marca_id: modoNuevaMarca ? undefined : (marcaId || undefined),
         nueva_marca: modoNuevaMarca ? nuevaMarca.trim() : undefined,
         tipo_comercial: tipoComercial,
         tiene_decants: tieneDecants,
@@ -503,6 +516,8 @@ export default function ProductFormPage({
             setModoOcasionPersonalizada={setModoOcasionPersonalizada}
             descripcion={descripcion}
             setDescripcion={setDescripcion}
+            onNavigateToBrands={onNavigateToBrands}
+            onReloadMetadata={onReloadMetadata}
           />
 
           {/* CARD 2: FORMATOS Y PRECIOS */}

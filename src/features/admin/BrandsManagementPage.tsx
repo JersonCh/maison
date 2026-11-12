@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import type { MarcaAdminItem } from "@/types/database";
 import type { CommercialType } from "@/types/product";
 import Icon from "@/components/ui/Icon";
+import { PAISES_ORIGEN_COMBO } from "./product-form/constants";
 
 interface Props {
   marcas: MarcaAdminItem[];
@@ -27,7 +28,8 @@ export default function BrandsManagementPage({
   const [nombreForm, setNombreForm] = useState("");
   const [slugForm, setSlugForm] = useState("");
   const [lineaForm, setLineaForm] = useState<CommercialType>("disenador");
-  const [descripcionForm, setDescripcionForm] = useState("");
+  const [paisOrigenForm, setPaisOrigenForm] = useState("Francia");
+  const [modoPaisPersonalizado, setModoPaisPersonalizado] = useState(false);
   const [activoForm, setActivoForm] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [errorModal, setErrorModal] = useState<string | null>(null);
@@ -66,7 +68,8 @@ export default function BrandsManagementPage({
     setNombreForm("");
     setSlugForm("");
     setLineaForm("disenador");
-    setDescripcionForm("");
+    setPaisOrigenForm("Francia");
+    setModoPaisPersonalizado(false);
     setActivoForm(true);
     setErrorModal(null);
     setModalMarcaAbierto(true);
@@ -78,7 +81,9 @@ export default function BrandsManagementPage({
     setNombreForm(m.nombre);
     setSlugForm(m.slug);
     setLineaForm(m.tipo_comercial);
-    setDescripcionForm(m.descripcion || "");
+    const pais = m.pais_origen || "Francia";
+    setPaisOrigenForm(pais);
+    setModoPaisPersonalizado(!PAISES_ORIGEN_COMBO.includes(pais));
     setActivoForm(m.activo);
     setErrorModal(null);
     setModalMarcaAbierto(true);
@@ -105,7 +110,7 @@ export default function BrandsManagementPage({
         nombre: nombreForm.trim(),
         slug: slugForm.trim() || undefined,
         tipo_comercial: lineaForm,
-        descripcion: descripcionForm.trim() || undefined,
+        pais_origen: paisOrigenForm.trim() || "Francia",
         activo: activoForm,
       };
 
@@ -612,23 +617,21 @@ export default function BrandsManagementPage({
                     </span>
                   </div>
 
-                  {/* Descripción breve (si existe) */}
-                  {m.descripcion && (
-                    <p
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--muted)",
-                        lineHeight: "1.45",
-                        margin: "0 0 12px 0",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {m.descripcion}
-                    </p>
-                  )}
+                  {/* País de procedencia */}
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "var(--muted)",
+                      lineHeight: "1.45",
+                      margin: "0 0 12px 0",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    <span>📍</span>
+                    <span>{m.pais_origen || "Francia"}</span>
+                  </p>
 
                   {/* Contador de perfumes vinculados */}
                   <div
@@ -944,29 +947,81 @@ export default function BrandsManagementPage({
                 </div>
               </div>
 
-              {/* Campo Descripción Editorial (Opcional) */}
+              {/* País de Procedencia de la Casa */}
               <div style={{ marginBottom: "18px" }}>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                  Reseña histórica o editorial <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+                  País de origen (Procedencia de la firma) *
                 </label>
-                <textarea
-                  rows={3}
-                  placeholder="Ej. Casa de alta perfumería francesa fundada en París célebre por..."
-                  value={descripcionForm}
-                  onChange={(e) => setDescripcionForm(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    fontSize: "12.5px",
-                    border: "1px solid var(--line)",
-                    borderRadius: "3px",
-                    background: "var(--white)",
-                    color: "var(--ink)",
-                    outline: "none",
-                    fontFamily: "inherit",
-                    resize: "vertical",
-                  }}
-                />
+                {!modoPaisPersonalizado ? (
+                  <select
+                    value={PAISES_ORIGEN_COMBO.includes(paisOrigenForm) ? paisOrigenForm : "__otro__"}
+                    onChange={(e) => {
+                      if (e.target.value === "__otro__") {
+                        setModoPaisPersonalizado(true);
+                        setPaisOrigenForm("");
+                      } else {
+                        setPaisOrigenForm(e.target.value);
+                      }
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      fontSize: "13.5px",
+                      border: "1px solid var(--line)",
+                      borderRadius: "3px",
+                      background: "var(--white)",
+                      color: "var(--ink)",
+                      outline: "none",
+                    }}
+                  >
+                    {PAISES_ORIGEN_COMBO.map((pais) => (
+                      <option key={pais} value={pais}>
+                        {pais}
+                      </option>
+                    ))}
+                    <option value="__otro__">+ Otro país (escribir personalizado)...</option>
+                  </select>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Escribe el país de procedencia (ej. Japón, Suiza, Omán)"
+                      value={paisOrigenForm}
+                      onChange={(e) => setPaisOrigenForm(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        fontSize: "13.5px",
+                        border: "1px solid var(--line)",
+                        borderRadius: "3px",
+                        background: "var(--white)",
+                        color: "var(--ink)",
+                        outline: "none",
+                        marginBottom: "6px",
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModoPaisPersonalizado(false);
+                        setPaisOrigenForm("Francia");
+                      }}
+                      style={{
+                        border: 0,
+                        background: "none",
+                        color: "var(--gold-deep)",
+                        fontSize: "11.5px",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                        padding: 0,
+                      }}
+                    >
+                      ← Elegir país de la lista
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Estado Activo */}
