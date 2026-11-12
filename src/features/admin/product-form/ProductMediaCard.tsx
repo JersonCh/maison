@@ -35,7 +35,7 @@ export function ProductMediaCard({
           <h2 className="admin-card-title">Galería de fotos</h2>
         </div>
         <span className="admin-card-subtitle">
-          Foto principal y vistas secundarias
+          Proporción recomendada: vertical 3:4 (ej. 900 × 1200 px). Las imágenes se optimizan automáticamente a WebP (&lt; 1 MB).
         </span>
       </div>
 
@@ -63,7 +63,7 @@ export function ProductMediaCard({
           </div>
           <div className="photo-slot-actions">
             <label className={`btn-upload-file ${subiendoSlot === 1 ? "uploading" : ""}`}>
-              {subiendoSlot === 1 ? "Subiendo..." : "Subir archivo"}
+              {subiendoSlot === 1 ? "Optimizando..." : "Subir archivo"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/avif"
@@ -115,7 +115,7 @@ export function ProductMediaCard({
           </div>
           <div className="photo-slot-actions">
             <label className={`btn-upload-file ${subiendoSlot === 2 ? "uploading" : ""}`}>
-              {subiendoSlot === 2 ? "Subiendo..." : "Subir archivo"}
+              {subiendoSlot === 2 ? "Optimizando..." : "Subir archivo"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/avif"
@@ -166,7 +166,7 @@ export function ProductMediaCard({
           </div>
           <div className="photo-slot-actions">
             <label className={`btn-upload-file ${subiendoSlot === 3 ? "uploading" : ""}`}>
-              {subiendoSlot === 3 ? "Subiendo..." : "Subir archivo"}
+              {subiendoSlot === 3 ? "Optimizando..." : "Subir archivo"}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/avif"

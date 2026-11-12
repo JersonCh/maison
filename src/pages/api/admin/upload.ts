@@ -3,7 +3,7 @@ import { slugify } from "@/lib/slug";
 
 export const prerender = false;
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // Límite de 5 MB por imagen
+const MAX_FILE_SIZE = 1.5 * 1024 * 1024; // Límite estricto de seguridad de 1.5 MB por imagen
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/jpg",
@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
         JSON.stringify({
-          error: `La imagen supera el límite de 5 MB (tamaño actual: ${(file.size / (1024 * 1024)).toFixed(2)} MB).`,
+          error: `La imagen supera el límite permitido de 1 MB (tamaño actual: ${(file.size / (1024 * 1024)).toFixed(2)} MB).`,
         }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );

@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import type { DatosFormularioProducto } from "@/types/database";
 import type { Gender, CommercialType } from "@/types/product";
 import { slugify } from "@/lib/slug";
+import { optimizarImagenParaWebP } from "@/lib/imageOptimization";
 import {
   TAMANOS_FRASCO_ESTANDAR,
   obtenerPrecioMinimoFrasco,
@@ -184,8 +185,16 @@ export default function ProductFormPage({
     setSubiendoSlot(slotNumero);
 
     try {
+      // Optimizar y convertir automáticamente a WebP de alta definición (< 1 MB)
+      const archivoOptimizado = await optimizarImagenParaWebP(archivo, {
+        maxAncho: 1200,
+        maxAlto: 1600,
+        calidadInicial: 0.85,
+        maxBytes: 1024 * 1024, // 1 MB máximo garantizado
+      });
+
       const formData = new FormData();
-      formData.append("file", archivo);
+      formData.append("file", archivoOptimizado);
 
       const res = await fetch("/api/admin/upload", {
         method: "POST",

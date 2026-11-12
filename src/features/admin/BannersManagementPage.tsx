@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { BannerAdminItem } from "@/lib/database/bannersAdmin";
 import Icon from "@/components/ui/Icon";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { optimizarImagenParaWebP } from "@/lib/imageOptimization";
 
 interface Props {
   onMostrarToast: (mensaje: string) => void;
@@ -104,8 +105,16 @@ export default function BannersManagementPage({ onMostrarToast }: Props) {
     setErrorModal(null);
 
     try {
+      // Optimizar banner automáticamente antes de enviar a R2 (< 1 MB)
+      const archivoOptimizado = await optimizarImagenParaWebP(file, {
+        maxAncho: destino === "desktop" ? 1920 : 1080,
+        maxAlto: destino === "desktop" ? 1080 : 1440,
+        calidadInicial: 0.85,
+        maxBytes: 1024 * 1024,
+      });
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", archivoOptimizado);
 
       const resp = await fetch("/api/admin/upload", {
         method: "POST",
