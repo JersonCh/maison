@@ -45,6 +45,7 @@ interface ProductGeneralCardProps {
   setDescripcion: (v: string) => void;
   onNavigateToBrands?: () => void;
   onReloadMetadata?: () => Promise<void>;
+  onMarcaCreada?: (marca: { id: number; nombre: string; tipo_comercial?: CommercialType; pais_origen?: string }) => Promise<void> | void;
 }
 
 export function ProductGeneralCard({
@@ -88,6 +89,7 @@ export function ProductGeneralCard({
   setDescripcion,
   onNavigateToBrands,
   onReloadMetadata,
+  onMarcaCreada,
 }: ProductGeneralCardProps) {
   const [modalNuevaMarcaAbierto, setModalNuevaMarcaAbierto] = useState(false);
   const [nombreNuevaMarca, setNombreNuevaMarca] = useState("");
@@ -117,11 +119,22 @@ export function ProductGeneralCard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al registrar la firma");
-      if (onReloadMetadata) {
+      const nuevoId = Number(data.id);
+      if (onMarcaCreada) {
+        await onMarcaCreada({
+          id: nuevoId,
+          nombre: nombreNuevaMarca.trim(),
+          tipo_comercial: lineaNuevaMarca,
+          pais_origen: paisNuevaMarca,
+        });
+      } else if (onReloadMetadata) {
         await onReloadMetadata();
       }
-      setMarcaId(data.id);
+      setMarcaId(nuevoId);
       setTipoComercial(lineaNuevaMarca);
+      if (setPaisOrigen) {
+        setPaisOrigen(paisNuevaMarca);
+      }
       setModalNuevaMarcaAbierto(false);
       setNombreNuevaMarca("");
       setPaisNuevaMarca("Francia");

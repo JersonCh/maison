@@ -64,13 +64,17 @@ export default function AdminDashboard({ }: Props) {
     }
   }, []);
 
-  // Cargar metadatos secundarios (familias olfativas)
+  // Cargar metadatos secundarios (familias olfativas y marcas)
   const cargarMetadatos = useCallback(async () => {
     try {
       const resp = await fetch("/api/admin/metadata");
       if (resp.ok) {
         const datos = await resp.json();
         if (datos.familias) setFamilias(datos.familias);
+        if (datos.marcas) {
+          setMarcas(datos.marcas);
+          setMarcasAdmin(datos.marcas);
+        }
       }
     } catch (error) {
       console.error("Error al cargar metadatos:", error);
@@ -365,7 +369,9 @@ export default function AdminDashboard({ }: Props) {
                 mostrarToast(mensaje);
                 cargarProductos();
               }}
-              onReloadMetadata={cargarMetadatos}
+              onReloadMetadata={async () => {
+                await Promise.all([cargarMarcas(), cargarMetadatos()]);
+              }}
               onOpenImportCsv={() => setMostrarModalCsv(true)}
               onNavigateToBrands={() => setSection("brands")}
             />

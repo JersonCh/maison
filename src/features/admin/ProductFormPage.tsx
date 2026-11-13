@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import type { DatosFormularioProducto } from "@/types/database";
+import React, { useState, useRef, useEffect } from "react";
+import type { DatosFormularioProducto, MarcaItem } from "@/types/database";
 import type { Gender, CommercialType } from "@/types/product";
 import { slugify } from "@/lib/slug";
 import { optimizarImagenParaWebP } from "@/lib/imageOptimization";
@@ -46,11 +46,49 @@ export default function ProductFormPage({
   const [copiado, setCopiado] = useState(false);
   const inputNombreRef = useRef<HTMLInputElement>(null);
   const [mensajeExitoTemporal, setMensajeExitoTemporal] = useState<string | null>(null);
+
+  // Lista local reactiva de casas de perfumería
+  const [listaMarcas, setListaMarcas] = useState<MarcaItem[]>(marcasDisponibles);
+
+  useEffect(() => {
+    if (marcasDisponibles && marcasDisponibles.length > 0) {
+      setListaMarcas(marcasDisponibles);
+      if (!marcaId && !esEdicion) {
+        setMarcaId(marcasDisponibles[0].id);
+      }
+    }
+  }, [marcasDisponibles]);
+
   const [marcaId, setMarcaId] = useState<number>(
     initialProduct?.marca_id || (marcasDisponibles.length > 0 ? marcasDisponibles[0].id : 0),
   );
   const [modoNuevaMarca, setModoNuevaMarca] = useState(false);
   const [nuevaMarca, setNuevaMarca] = useState("");
+
+  const handleMarcaCreada = async (nueva: {
+    id: number;
+    nombre: string;
+    tipo_comercial?: CommercialType;
+    pais_origen?: string;
+  }) => {
+    setListaMarcas((prev) => {
+      if (prev.some((m) => m.id === nueva.id)) return prev;
+      const item: MarcaItem = {
+        id: nueva.id,
+        nombre: nueva.nombre,
+        slug: slugify(nueva.nombre),
+        tipo_comercial: nueva.tipo_comercial || "disenador",
+        pais_origen: nueva.pais_origen || "Francia",
+      };
+      return [...prev, item].sort((a, b) => a.nombre.localeCompare(b.nombre));
+    });
+    setMarcaId(nueva.id);
+    if (nueva.tipo_comercial) setTipoComercial(nueva.tipo_comercial);
+    if (nueva.pais_origen) setPaisOrigen(nueva.pais_origen);
+    if (onReloadMetadata) {
+      await onReloadMetadata();
+    }
+  };
 
   const [tipoComercial, setTipoComercial] = useState<CommercialType>(
     initialProduct?.tipo_comercial || "disenador",
@@ -230,7 +268,7 @@ export default function ProductFormPage({
       return;
     }
 
-    if (!modoNuevaMarca && (!marcaId || !marcasDisponibles.some((m) => m.id === marcaId))) {
+    if (!modoNuevaMarca && (!marcaId || !listaMarcas.some((m) => m.id === marcaId))) {
       setErrorValidacion("Debes seleccionar una casa de perfumería (marca).");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -428,7 +466,7 @@ export default function ProductFormPage({
     setModoEditarSlug(false);
   };
 
-  const marcaActual = marcasDisponibles.find((m) => m.id === marcaId);
+  const marcaActual = listaMarcas.find((m) => m.id === marcaId);
 
   return (
     <div className="product-page-container">
@@ -495,7 +533,7 @@ export default function ProductFormPage({
             cancelarSlugEditado={cancelarSlugEditado}
             marcaId={marcaId}
             setMarcaId={setMarcaId}
-            marcasDisponibles={marcasDisponibles}
+            marcasDisponibles={listaMarcas}
             modoNuevaMarca={modoNuevaMarca}
             setModoNuevaMarca={setModoNuevaMarca}
             nuevaMarca={nuevaMarca}
@@ -518,6 +556,7 @@ export default function ProductFormPage({
             setDescripcion={setDescripcion}
             onNavigateToBrands={onNavigateToBrands}
             onReloadMetadata={onReloadMetadata}
+            onMarcaCreada={handleMarcaCreada}
           />
 
           {/* CARD 2: FORMATOS Y PRECIOS */}
