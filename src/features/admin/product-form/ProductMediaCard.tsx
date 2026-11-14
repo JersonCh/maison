@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface ProductMediaCardProps {
   fotoPortada: string;
@@ -14,6 +15,7 @@ interface ProductMediaCardProps {
     slotNumero: number,
     setter: (url: string) => void,
   ) => Promise<void>;
+  onEliminarArchivo?: (url: string, setter: (url: string) => void) => Promise<void>;
 }
 
 export function ProductMediaCard({
@@ -26,7 +28,38 @@ export function ProductMediaCard({
   subiendoSlot,
   errorSubida,
   manejarSubidaArchivo,
+  onEliminarArchivo,
 }: ProductMediaCardProps) {
+  const [slotAEliminar, setSlotAEliminar] = useState<{
+    titulo: string;
+    url: string;
+    setter: (url: string) => void;
+  } | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const solicitarEliminar = (
+    titulo: string,
+    url: string,
+    setter: (url: string) => void,
+  ) => {
+    setSlotAEliminar({ titulo, url, setter });
+  };
+
+  const confirmarEliminar = async () => {
+    if (!slotAEliminar) return;
+    setEliminando(true);
+    try {
+      if (onEliminarArchivo) {
+        await onEliminarArchivo(slotAEliminar.url, slotAEliminar.setter);
+      } else {
+        slotAEliminar.setter("");
+      }
+      setSlotAEliminar(null);
+    } finally {
+      setEliminando(false);
+    }
+  };
+
   return (
     <section className="admin-card">
       <div className="admin-card-header">
@@ -76,10 +109,10 @@ export function ProductMediaCard({
               <button
                 type="button"
                 className="btn-clear-photo"
-                onClick={() => setFotoPortada("")}
-                title="Limpiar campo"
+                onClick={() => solicitarEliminar("Portada principal", fotoPortada, setFotoPortada)}
+                title="Eliminar fotografía"
               >
-                Quitar
+                Eliminar
               </button>
             )}
           </div>
@@ -128,10 +161,10 @@ export function ProductMediaCard({
               <button
                 type="button"
                 className="btn-clear-photo"
-                onClick={() => setFotoCaja("")}
-                title="Limpiar campo"
+                onClick={() => solicitarEliminar("Caja o empaque", fotoCaja, setFotoCaja)}
+                title="Eliminar fotografía"
               >
-                Quitar
+                Eliminar
               </button>
             )}
           </div>
@@ -179,10 +212,10 @@ export function ProductMediaCard({
               <button
                 type="button"
                 className="btn-clear-photo"
-                onClick={() => setFotoDetalle("")}
-                title="Limpiar campo"
+                onClick={() => solicitarEliminar("Vista secundaria", fotoDetalle, setFotoDetalle)}
+                title="Eliminar fotografía"
               >
-                Quitar
+                Eliminar
               </button>
             )}
           </div>
@@ -196,6 +229,26 @@ export function ProductMediaCard({
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={Boolean(slotAEliminar)}
+        onClose={() => !eliminando && setSlotAEliminar(null)}
+        onConfirm={confirmarEliminar}
+        title="¿Eliminar fotografía?"
+        subtitle="Galería de Fotos"
+        message={
+          <>
+            ¿Realmente deseas eliminar la fotografía de{" "}
+            <strong>{slotAEliminar?.titulo.toLowerCase() || "esta posición"}</strong>?
+            <br />
+            Esta acción eliminará el archivo por completo y no se podrá recuperar.
+          </>
+        }
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={eliminando}
+      />
     </section>
   );
 }

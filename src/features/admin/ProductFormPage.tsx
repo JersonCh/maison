@@ -232,8 +232,15 @@ export default function ProductFormPage({
         maxBytes: 1024 * 1024, // 1 MB máximo garantizado
       });
 
+      const slotNombre = slotNumero === 1 ? "portada" : slotNumero === 2 ? "caja" : "detalle";
       const formData = new FormData();
       formData.append("file", archivoOptimizado);
+      if (nombre.trim()) {
+        formData.append("nombre_perfume", nombre.trim());
+      } else if (slug.trim() && slug !== "nuevo-perfume") {
+        formData.append("nombre_perfume", slug.trim());
+      }
+      formData.append("slot", slotNombre);
 
       const res = await fetch("/api/admin/upload", {
         method: "POST",
@@ -247,13 +254,34 @@ export default function ProductFormPage({
 
       setter(data.url);
     } catch (err: any) {
-      console.error("Error al subir archivo a R2:", err);
+      console.error("Error al subir archivo de imagen:", err);
       setErrorSubida(
         `Error en foto ${slotNumero}: ${err.message || "No se pudo subir la imagen."}`,
       );
     } finally {
       setSubiendoSlot(null);
       e.target.value = "";
+    }
+  };
+
+  const manejarEliminarArchivoFisico = async (url: string, setter: (url: string) => void) => {
+    if (!url) {
+      setter("");
+      return;
+    }
+
+    try {
+      if (url.includes("/api/images/")) {
+        await fetch("/api/admin/upload", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+      }
+    } catch (err) {
+      console.warn("No se pudo eliminar el archivo permanentemente:", err);
+    } finally {
+      setter("");
     }
   };
 
@@ -588,6 +616,7 @@ export default function ProductFormPage({
             subiendoSlot={subiendoSlot}
             errorSubida={errorSubida}
             manejarSubidaArchivo={manejarSubidaArchivo}
+            onEliminarArchivo={manejarEliminarArchivoFisico}
           />
         </div>
 
