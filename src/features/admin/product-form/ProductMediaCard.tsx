@@ -68,7 +68,7 @@ export function ProductMediaCard({
           <h2 className="admin-card-title">Galería de fotos</h2>
         </div>
         <span className="admin-card-subtitle">
-          Proporción recomendada: vertical 3:4 (ej. 900 × 1200 px). Las imágenes se optimizan automáticamente a WebP (&lt; 1 MB).
+          Proporción recomendada: vertical 3:4 (ej. 900 × 1200 px).
         </span>
       </div>
 
@@ -81,7 +81,7 @@ export function ProductMediaCard({
             <span className="photo-slot-title">1. Portada principal *</span>
             <span className="photo-slot-badge principal">Obligatoria</span>
           </div>
-          <div className="photo-slot-preview">
+          <div className={`photo-slot-preview ${fotoPortada ? "has-photo" : ""}`}>
             {fotoPortada ? (
               <img
                 src={fotoPortada}
@@ -91,20 +91,48 @@ export function ProductMediaCard({
                 }}
               />
             ) : (
-              <span className="photo-slot-empty">Sin imagen</span>
+              <label
+                htmlFor="input-file-slot-1"
+                className="photo-slot-empty-label"
+                title="Hacer clic para subir fotografía"
+              >
+                <svg
+                  className="photo-slot-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                  />
+                </svg>
+                <span className="photo-slot-empty">Sin fotografía (3:4)</span>
+                <span className="photo-slot-hint">Clic para seleccionar</span>
+              </label>
             )}
           </div>
           <div className="photo-slot-actions">
-            <label className={`btn-upload-file ${subiendoSlot === 1 ? "uploading" : ""}`}>
-              {subiendoSlot === 1 ? "Optimizando..." : "Subir archivo"}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/avif"
-                disabled={subiendoSlot !== null}
-                style={{ display: "none" }}
-                onChange={(e) => manejarSubidaArchivo(e, 1, setFotoPortada)}
-              />
+            <label
+              htmlFor="input-file-slot-1"
+              className={`btn-upload-file ${subiendoSlot === 1 ? "uploading" : ""}`}
+            >
+              {subiendoSlot === 1
+                ? "Optimizando..."
+                : fotoPortada
+                  ? "Cambiar archivo"
+                  : "Subir archivo"}
             </label>
+            <input
+              id="input-file-slot-1"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              disabled={subiendoSlot !== null}
+              style={{ display: "none" }}
+              onChange={(e) => manejarSubidaArchivo(e, 1, setFotoPortada)}
+            />
             {fotoPortada && (
               <button
                 type="button"
@@ -116,15 +144,6 @@ export function ProductMediaCard({
               </button>
             )}
           </div>
-          <div className="photo-slot-input">
-            <span className="photo-slot-url-label">URL de la imagen</span>
-            <input
-              required
-              placeholder="https://... o /api/images/..."
-              value={fotoPortada}
-              onChange={(e) => setFotoPortada(e.target.value)}
-            />
-          </div>
         </div>
 
         {/* Foto 2: Caja y Empaque (Opcional) */}
@@ -133,7 +152,7 @@ export function ProductMediaCard({
             <span className="photo-slot-title">2. Caja o empaque</span>
             <span className="photo-slot-badge">Opcional</span>
           </div>
-          <div className="photo-slot-preview">
+          <div className={`photo-slot-preview ${fotoCaja ? "has-photo" : ""}`}>
             {fotoCaja ? (
               <img
                 src={fotoCaja}
@@ -143,20 +162,48 @@ export function ProductMediaCard({
                 }}
               />
             ) : (
-              <span className="photo-slot-empty">Opcional (sin foto)</span>
+              <label
+                htmlFor="input-file-slot-2"
+                className="photo-slot-empty-label"
+                title="Hacer clic para subir fotografía"
+              >
+                <svg
+                  className="photo-slot-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                  />
+                </svg>
+                <span className="photo-slot-empty">Opcional (sin foto)</span>
+                <span className="photo-slot-hint">Clic para seleccionar</span>
+              </label>
             )}
           </div>
           <div className="photo-slot-actions">
-            <label className={`btn-upload-file ${subiendoSlot === 2 ? "uploading" : ""}`}>
-              {subiendoSlot === 2 ? "Optimizando..." : "Subir archivo"}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/avif"
-                disabled={subiendoSlot !== null}
-                style={{ display: "none" }}
-                onChange={(e) => manejarSubidaArchivo(e, 2, setFotoCaja)}
-              />
+            <label
+              htmlFor="input-file-slot-2"
+              className={`btn-upload-file ${subiendoSlot === 2 ? "uploading" : ""}`}
+            >
+              {subiendoSlot === 2
+                ? "Optimizando..."
+                : fotoCaja
+                  ? "Cambiar archivo"
+                  : "Subir archivo"}
             </label>
+            <input
+              id="input-file-slot-2"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              disabled={subiendoSlot !== null}
+              style={{ display: "none" }}
+              onChange={(e) => manejarSubidaArchivo(e, 2, setFotoCaja)}
+            />
             {fotoCaja && (
               <button
                 type="button"
@@ -168,14 +215,6 @@ export function ProductMediaCard({
               </button>
             )}
           </div>
-          <div className="photo-slot-input">
-            <span className="photo-slot-url-label">URL de la imagen</span>
-            <input
-              placeholder="https://... o /api/images/..."
-              value={fotoCaja}
-              onChange={(e) => setFotoCaja(e.target.value)}
-            />
-          </div>
         </div>
 
         {/* Foto 3: Detalle y Contexto (Opcional) */}
@@ -184,7 +223,7 @@ export function ProductMediaCard({
             <span className="photo-slot-title">3. Vista secundaria</span>
             <span className="photo-slot-badge">Opcional</span>
           </div>
-          <div className="photo-slot-preview">
+          <div className={`photo-slot-preview ${fotoDetalle ? "has-photo" : ""}`}>
             {fotoDetalle ? (
               <img
                 src={fotoDetalle}
@@ -194,20 +233,48 @@ export function ProductMediaCard({
                 }}
               />
             ) : (
-              <span className="photo-slot-empty">Opcional (sin foto)</span>
+              <label
+                htmlFor="input-file-slot-3"
+                className="photo-slot-empty-label"
+                title="Hacer clic para subir fotografía"
+              >
+                <svg
+                  className="photo-slot-icon"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                  />
+                </svg>
+                <span className="photo-slot-empty">Opcional (sin foto)</span>
+                <span className="photo-slot-hint">Clic para seleccionar</span>
+              </label>
             )}
           </div>
           <div className="photo-slot-actions">
-            <label className={`btn-upload-file ${subiendoSlot === 3 ? "uploading" : ""}`}>
-              {subiendoSlot === 3 ? "Optimizando..." : "Subir archivo"}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/avif"
-                disabled={subiendoSlot !== null}
-                style={{ display: "none" }}
-                onChange={(e) => manejarSubidaArchivo(e, 3, setFotoDetalle)}
-              />
+            <label
+              htmlFor="input-file-slot-3"
+              className={`btn-upload-file ${subiendoSlot === 3 ? "uploading" : ""}`}
+            >
+              {subiendoSlot === 3
+                ? "Optimizando..."
+                : fotoDetalle
+                  ? "Cambiar archivo"
+                  : "Subir archivo"}
             </label>
+            <input
+              id="input-file-slot-3"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              disabled={subiendoSlot !== null}
+              style={{ display: "none" }}
+              onChange={(e) => manejarSubidaArchivo(e, 3, setFotoDetalle)}
+            />
             {fotoDetalle && (
               <button
                 type="button"
@@ -218,14 +285,6 @@ export function ProductMediaCard({
                 Eliminar
               </button>
             )}
-          </div>
-          <div className="photo-slot-input">
-            <span className="photo-slot-url-label">URL de la imagen</span>
-            <input
-              placeholder="https://... o /api/images/..."
-              value={fotoDetalle}
-              onChange={(e) => setFotoDetalle(e.target.value)}
-            />
           </div>
         </div>
       </div>
