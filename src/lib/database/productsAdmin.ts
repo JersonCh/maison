@@ -261,12 +261,16 @@ export async function crearNuevoProductoEnDb(
 
   // 2. Asociar familia olfativa si existe
   if (familiaIdFinal) {
-    await db
-      .prepare(
-        "INSERT INTO producto_familias_olfativas (producto_id, familia_olfativa_id) VALUES (?, ?)",
-      )
-      .bind(productoId, familiaIdFinal)
-      .run();
+    try {
+      await db
+        .prepare(
+          "INSERT INTO producto_familias_olfativas (producto_id, familia_olfativa_id) VALUES (?, ?)",
+        )
+        .bind(productoId, familiaIdFinal)
+        .run();
+    } catch (err) {
+      console.warn("No se pudo asociar familia olfativa:", err);
+    }
   }
 
   // 3. Crear las variantes: frascos (50, 75, 100, 125, 150 y 200 ml) + decants opcionales
@@ -474,18 +478,22 @@ export async function actualizarProductoEnDb(
     .run();
 
   // 2. Actualizar relación de familia olfativa
-  await db
-    .prepare("DELETE FROM producto_familias_olfativas WHERE producto_id = ?")
-    .bind(productoId)
-    .run();
-
-  if (familiaIdFinal) {
+  try {
     await db
-      .prepare(
-        "INSERT INTO producto_familias_olfativas (producto_id, familia_olfativa_id) VALUES (?, ?)",
-      )
-      .bind(productoId, familiaIdFinal)
+      .prepare("DELETE FROM producto_familias_olfativas WHERE producto_id = ?")
+      .bind(productoId)
       .run();
+
+    if (familiaIdFinal) {
+      await db
+        .prepare(
+          "INSERT INTO producto_familias_olfativas (producto_id, familia_olfativa_id) VALUES (?, ?)",
+        )
+        .bind(productoId, familiaIdFinal)
+        .run();
+    }
+  } catch (err) {
+    console.warn("No se pudo actualizar familia olfativa:", err);
   }
 
   // 3. Actualizar variantes de frasco (50, 75, 100, 125, 150 y 200 ml)

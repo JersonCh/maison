@@ -341,6 +341,14 @@ export async function asegurarFamiliaOlfativa(
     return nueva?.id || null;
   }
 
-  return familiaId || null;
+  if (familiaId && !isNaN(Number(familiaId))) {
+    const existe = await db
+      .prepare("SELECT id FROM familias_olfativas WHERE id = ? LIMIT 1")
+      .bind(Number(familiaId))
+      .first<{ id: number }>();
+    if (existe) return existe.id;
+  }
+
+  return null;
 }
 

@@ -105,6 +105,13 @@ export default function AdminDashboard({ }: Props) {
     }
   }, [logged, cargarMarcas, cargarMetadatos, cargarProductos]);
 
+  // Recarga reactiva de productos cada vez que el usuario ingresa a la sección de catálogo
+  useEffect(() => {
+    if (logged && section === "products" && vistaProducto === "tabla") {
+      cargarProductos();
+    }
+  }, [section, vistaProducto, logged, cargarProductos]);
+
   // Manejadores de acciones del CRUD
   const manejarAbrirCreacion = () => {
     setProductoEnEdicion(null);
