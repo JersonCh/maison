@@ -32,7 +32,7 @@ export async function obtenerProductosParaAdmin(
         p.genero,
         p.concentracion,
         pf.familia_olfativa_id,
-        COALESCE(f.nombre, 'Composición Maison') AS familia_olfativa,
+        COALESCE(f.nombre, '') AS familia_olfativa,
         COALESCE(p.descripcion, '') AS descripcion,
         COALESCE(p.pais_origen, m.pais_origen, 'Francia') AS pais_origen,
         p.ocasion_uso,

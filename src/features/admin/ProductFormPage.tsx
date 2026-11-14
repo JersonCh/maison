@@ -99,7 +99,7 @@ export default function ProductFormPage({
   );
 
   const [familiaId, setFamiliaId] = useState<number | null>(
-    initialProduct?.familia_olfativa_id || familiasDisponibles[0]?.id || 1,
+    initialProduct?.familia_olfativa_id || null,
   );
   const [modoNuevaFamilia, setModoNuevaFamilia] = useState(false);
   const [nuevaFamilia, setNuevaFamilia] = useState("");
