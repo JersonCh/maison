@@ -273,7 +273,8 @@ export default function BrandsManagementPage({
           marginBottom: "28px",
         }}
       >
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroLinea("todas")}
           style={{
             padding: "16px 20px",
@@ -282,6 +283,8 @@ export default function BrandsManagementPage({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <span
@@ -299,9 +302,10 @@ export default function BrandsManagementPage({
           <div style={{ fontSize: "26px", fontWeight: 700, color: "var(--ink)", marginTop: "4px" }}>
             {metricas.total}
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroLinea("disenador")}
           style={{
             padding: "16px 20px",
@@ -310,6 +314,8 @@ export default function BrandsManagementPage({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -336,9 +342,10 @@ export default function BrandsManagementPage({
           <div style={{ fontSize: "26px", fontWeight: 700, color: "var(--gold-deep)", marginTop: "4px" }}>
             {metricas.disenador}
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroLinea("arabe")}
           style={{
             padding: "16px 20px",
@@ -347,6 +354,8 @@ export default function BrandsManagementPage({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -373,9 +382,10 @@ export default function BrandsManagementPage({
           <div style={{ fontSize: "26px", fontWeight: 700, color: "#2f4f35", marginTop: "4px" }}>
             {metricas.arabe}
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroLinea("nicho")}
           style={{
             padding: "16px 20px",
@@ -384,6 +394,8 @@ export default function BrandsManagementPage({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -410,7 +422,7 @@ export default function BrandsManagementPage({
           <div style={{ fontSize: "26px", fontWeight: 700, color: "#6b21a8", marginTop: "4px" }}>
             {metricas.nicho}
           </div>
-        </div>
+        </button>
       </div>
 
       {/* 3. BARRA DE HERRAMIENTAS: BÚSQUEDA Y PESTAÑAS */}
@@ -768,6 +780,8 @@ export default function BrandsManagementPage({
       {/* 5. MODAL DE CREACIÓN / EDICIÓN DE CASA DE PERFUMERÍA */}
       {modalMarcaAbierto && (
         <div
+          role="dialog"
+          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
@@ -775,18 +789,29 @@ export default function BrandsManagementPage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(5, 6, 5, 0.75)",
-            backdropFilter: "blur(5px)",
             padding: "20px",
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !guardando) {
-              setModalMarcaAbierto(false);
-            }
-          }}
         >
+          <button
+            type="button"
+            aria-label="Cerrar modal de casa de perfumería"
+            disabled={guardando}
+            onClick={() => setModalMarcaAbierto(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(5, 6, 5, 0.75)",
+              backdropFilter: "blur(5px)",
+              border: "none",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+            }}
+          />
           <div
             style={{
+              position: "relative",
+              zIndex: 1,
               width: "min(560px, 100%)",
               background: "var(--white)",
               borderRadius: "4px",
@@ -863,10 +888,14 @@ export default function BrandsManagementPage({
             <form onSubmit={handleGuardarMarca} style={{ padding: "24px 26px" }}>
               {/* Campo Nombre */}
               <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                <label
+                  htmlFor="input-nombre-firma"
+                  style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}
+                >
                   Nombre oficial de la firma *
                 </label>
                 <input
+                  id="input-nombre-firma"
                   type="text"
                   required
                   placeholder="Ej. Parfums de Marly, Tom Ford, Lattafa"
@@ -887,9 +916,9 @@ export default function BrandsManagementPage({
 
               {/* Selector de Línea Comercial */}
               <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}>
+                <span style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}>
                   Línea Comercial de la Casa *
-                </label>
+                </span>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
                   {(
                     [
@@ -912,7 +941,8 @@ export default function BrandsManagementPage({
                   ).map((opt) => {
                     const seleccionado = lineaForm === opt.id;
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={opt.id}
                         onClick={() => setLineaForm(opt.id)}
                         style={{
@@ -922,6 +952,8 @@ export default function BrandsManagementPage({
                           padding: "10px 12px",
                           cursor: "pointer",
                           transition: "all 0.15s ease",
+                          textAlign: "left",
+                          width: "100%",
                         }}
                       >
                         <strong
@@ -937,7 +969,7 @@ export default function BrandsManagementPage({
                         <span style={{ fontSize: "10.5px", color: "var(--muted)", lineHeight: "1.3", display: "block" }}>
                           {opt.subtitulo}
                         </span>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -945,11 +977,15 @@ export default function BrandsManagementPage({
 
               {/* País de Procedencia de la Casa */}
               <div style={{ marginBottom: "18px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                <label
+                  htmlFor={modoPaisPersonalizado ? "input-pais-personalizado" : "select-pais-origen"}
+                  style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}
+                >
                   País de origen (Procedencia de la firma) *
                 </label>
                 {!modoPaisPersonalizado ? (
                   <select
+                    id="select-pais-origen"
                     value={PAISES_ORIGEN_COMBO.includes(paisOrigenForm) ? paisOrigenForm : "__otro__"}
                     onChange={(e) => {
                       if (e.target.value === "__otro__") {
@@ -980,6 +1016,7 @@ export default function BrandsManagementPage({
                 ) : (
                   <div>
                     <input
+                      id="input-pais-personalizado"
                       type="text"
                       required
                       placeholder="Escribe el país de procedencia (ej. Japón, Suiza, Omán)"
@@ -996,7 +1033,6 @@ export default function BrandsManagementPage({
                         outline: "none",
                         marginBottom: "6px",
                       }}
-                      autoFocus
                     />
                     <button
                       type="button"
@@ -1064,6 +1100,8 @@ export default function BrandsManagementPage({
       {/* 6. MODAL DE ELIMINACIÓN Y REASIGNACIÓN (SOLUCIÓN DE ERRATAS) */}
       {marcaAEliminar && (
         <div
+          role="dialog"
+          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
@@ -1071,18 +1109,29 @@ export default function BrandsManagementPage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(5, 6, 5, 0.75)",
-            backdropFilter: "blur(5px)",
             padding: "20px",
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !eliminando) {
-              setMarcaAEliminar(null);
-            }
-          }}
         >
+          <button
+            type="button"
+            aria-label="Cerrar modal de eliminación"
+            disabled={eliminando}
+            onClick={() => setMarcaAEliminar(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(5, 6, 5, 0.75)",
+              backdropFilter: "blur(5px)",
+              border: "none",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+            }}
+          />
           <div
             style={{
+              position: "relative",
+              zIndex: 1,
               width: "min(520px, 100%)",
               background: "var(--white)",
               borderRadius: "4px",

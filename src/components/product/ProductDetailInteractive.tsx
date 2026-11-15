@@ -47,8 +47,8 @@ export default function ProductDetailInteractive({ product, phone, initialSize }
     product.variants.find((v) => v.size === selectedSize) ||
     product.variants.find(
       (v) =>
-        v.size.replace(/\s*\(decant\)/i, "").trim() ===
-        selectedSize.replace(/\s*\(decant\)/i, "").trim(),
+        v.size.replace(/\(decant\)/i, "").trim() ===
+        selectedSize.replace(/\(decant\)/i, "").trim(),
     ) ||
     defaultVariant || { size: "100 ml", price: 0 };
 
@@ -134,7 +134,7 @@ export default function ProductDetailInteractive({ product, phone, initialSize }
               <div className="variant-pills">
                 {frascos.map((v) => {
                   const isSelected = selectedSize === v.size;
-                  const displaySize = v.size.replace(/\s*\(decant\)/i, "").trim();
+                  const displaySize = v.size.replace(/\(decant\)/i, "").trim();
                   return (
                     <button
                       type="button"
@@ -163,7 +163,7 @@ export default function ProductDetailInteractive({ product, phone, initialSize }
               <div className="variant-pills">
                 {decants.map((v) => {
                   const isSelected = selectedSize === v.size;
-                  const cleanSize = v.size.replace(/\s*\(decant\)/i, "").trim();
+                  const cleanSize = v.size.replace(/\(decant\)/i, "").trim();
                   return (
                     <button
                       type="button"

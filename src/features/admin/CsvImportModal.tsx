@@ -108,7 +108,7 @@ function CsvImportModalContent({
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -259,15 +259,24 @@ function CsvImportModalContent({
         justifyContent: "center",
         overflowY: "auto",
         padding: "20px",
-        background: "rgba(5, 6, 5, 0.78)",
-        backdropFilter: "blur(6px)",
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !importando) {
-          onClose();
-        }
       }}
     >
+      <button
+        type="button"
+        aria-label="Cerrar importador de catálogo"
+        disabled={importando}
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(5, 6, 5, 0.78)",
+          backdropFilter: "blur(6px)",
+          border: "none",
+          padding: 0,
+          margin: 0,
+          cursor: "pointer",
+        }}
+      />
       <style>{`
         @keyframes spinModal {
           100% { transform: rotate(360deg); }
@@ -277,6 +286,8 @@ function CsvImportModalContent({
       <div
         className="csv-modal-card"
         style={{
+          position: "relative",
+          zIndex: 1,
           width: "min(1100px, 100%)",
           maxHeight: "92vh",
           display: "flex",

@@ -90,7 +90,7 @@ export function addToCart(id: number, size = "50 ml", qty = 1, productName = "Pe
     }
 
     const labelSize = finalSize.toLowerCase().includes("decant")
-        ? `Decant ${finalSize.replace(/\s*\(decant\)/i, "").trim()}`
+        ? `Decant ${finalSize.replace(/\(decant\)/i, "").trim()}`
         : finalSize;
     showToast(`${productName} (${labelSize}) se añadió al carrito`);
 }

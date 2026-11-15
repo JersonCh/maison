@@ -17,7 +17,7 @@ interface CsvUploadStepProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   isDragging: boolean;
   setIsDragging: (dragging: boolean) => void;
-  handleDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+  handleDrop: (e: React.DragEvent<HTMLElement>) => void;
   procesarArchivo: (file: File) => void;
   marcas: MarcaItem[];
   mostrarGuia: boolean;
@@ -36,8 +36,20 @@ export function CsvUploadStep({
 }: CsvUploadStepProps) {
   return (
     <div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            procesarArchivo(e.target.files[0]);
+          }
+        }}
+      />
       {/* ZONA DE CARGA ELEVADA */}
-      <div
+      <button
+        type="button"
         onDragOver={(e) => {
           e.preventDefault();
           setIsDragging(true);
@@ -46,6 +58,8 @@ export function CsvUploadStep({
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         style={{
+          width: "100%",
+          display: "block",
           border: isDragging ? "1.5px solid var(--gold)" : "1px solid var(--line)",
           background: isDragging ? "rgba(240, 212, 126, 0.08)" : "var(--ivory)",
           borderRadius: "4px",
@@ -56,18 +70,6 @@ export function CsvUploadStep({
           boxShadow: isDragging ? "0 8px 24px rgba(215, 173, 87, 0.15)" : "none",
         }}
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
-          style={{ display: "none" }}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => {
-            if (e.target.files && e.target.files.length > 0) {
-              procesarArchivo(e.target.files[0]);
-            }
-          }}
-        />
 
         <span
           style={{
@@ -124,7 +126,7 @@ export function CsvUploadStep({
           <span style={{ fontSize: "10px", letterSpacing: "0.12em", padding: "2px 8px", borderRadius: "2px", border: "1px solid var(--line)", background: "var(--white)", color: "var(--muted)", fontWeight: 600 }}>CSV</span>
           <span style={{ fontSize: "11px", color: "var(--muted)", marginLeft: "4px" }}>Cualquier versión o idioma</span>
         </div>
-      </div>
+      </button>
 
       {/* BLOQUE DE DESCARGA DE PLANTILLA OFICIAL ELEVADO */}
       <div

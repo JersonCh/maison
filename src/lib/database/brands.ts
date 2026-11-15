@@ -295,7 +295,7 @@ export async function asegurarMarca(
     return nueva?.id || 1;
   }
 
-  if (marcaId && !isNaN(Number(marcaId))) {
+  if (marcaId && !Number.isNaN(Number(marcaId))) {
     const idNum = Number(marcaId);
     const existente = await db
       .prepare("SELECT id FROM marcas WHERE id = ? LIMIT 1")
@@ -341,7 +341,7 @@ export async function asegurarFamiliaOlfativa(
     return nueva?.id || null;
   }
 
-  if (familiaId && !isNaN(Number(familiaId))) {
+  if (familiaId && !Number.isNaN(Number(familiaId))) {
     const existe = await db
       .prepare("SELECT id FROM familias_olfativas WHERE id = ? LIMIT 1")
       .bind(Number(familiaId))

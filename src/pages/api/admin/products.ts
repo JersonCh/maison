@@ -146,7 +146,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     const payload = await request.json();
     const id = Number(payload.id);
 
-    if (!id || isNaN(id)) {
+    if (!id || Number.isNaN(id)) {
       return new Response(
         JSON.stringify({ error: "El ID del producto a actualizar es inválido." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
@@ -244,7 +244,7 @@ export const DELETE: APIRoute = async ({ request, url, locals }) => {
       id = Number(cuerpo?.id);
     }
 
-    if (!id || isNaN(id)) {
+    if (!id || Number.isNaN(id)) {
       return new Response(
         JSON.stringify({ error: "ID de producto inválido para eliminación." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
