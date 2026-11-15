@@ -243,7 +243,7 @@ export default function AdminDashboard({ }: Props) {
               className={section === item[0] ? "active" : ""}
               key={item[0]}
               onClick={() => {
-                if (item[0] === "banners") {
+                if (item[0] === "banners" || item[0] === "settings") {
                   // Desactivado temporalmente a solicitud: permanece en la misma pantalla sin acción
                   return;
                 }
