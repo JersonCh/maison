@@ -304,125 +304,57 @@ export default function BrandsManagementPage({
           </div>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setFiltroLinea("disenador")}
-          style={{
-            padding: "16px 20px",
-            background: filtroLinea === "disenador" ? "rgba(240, 212, 126, 0.15)" : "var(--white)",
-            border: `1px solid ${filtroLinea === "disenador" ? "var(--gold-deep)" : "var(--line)"}`,
-            borderRadius: "4px",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            textAlign: "left",
-            width: "100%",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span
+        {(
+          [
+            { id: "disenador", label: "Diseñador", color: "var(--gold-deep)", border: "var(--gold-deep)", bg: "rgba(240, 212, 126, 0.15)", total: metricas.disenador },
+            { id: "arabe", label: "Árabes", color: "#2f4f35", border: "#466a4d", bg: "rgba(70, 106, 77, 0.08)", total: metricas.arabe },
+            { id: "nicho", label: "Nicho / Autor", color: "#6b21a8", border: "#7c3aed", bg: "rgba(147, 51, 234, 0.08)", total: metricas.nicho },
+          ] as const
+        ).map((item) => {
+          const sel = filtroLinea === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setFiltroLinea(item.id)}
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: "var(--gold-deep)",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "10.5px",
-                textTransform: "uppercase",
-                color: "var(--gold-deep)",
-                letterSpacing: "0.12em",
-                fontWeight: 600,
+                padding: "16px 20px",
+                background: sel ? item.bg : "var(--white)",
+                border: `1px solid ${sel ? item.border : "var(--line)"}`,
+                borderRadius: "4px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                textAlign: "left",
+                width: "100%",
               }}
             >
-              Diseñador
-            </span>
-          </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "var(--gold-deep)", marginTop: "4px" }}>
-            {metricas.disenador}
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFiltroLinea("arabe")}
-          style={{
-            padding: "16px 20px",
-            background: filtroLinea === "arabe" ? "rgba(70, 106, 77, 0.08)" : "var(--white)",
-            border: `1px solid ${filtroLinea === "arabe" ? "#466a4d" : "var(--line)"}`,
-            borderRadius: "4px",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            textAlign: "left",
-            width: "100%",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: "#2f4f35",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "10.5px",
-                textTransform: "uppercase",
-                color: "#2f4f35",
-                letterSpacing: "0.12em",
-                fontWeight: 600,
-              }}
-            >
-              Árabes
-            </span>
-          </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "#2f4f35", marginTop: "4px" }}>
-            {metricas.arabe}
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFiltroLinea("nicho")}
-          style={{
-            padding: "16px 20px",
-            background: filtroLinea === "nicho" ? "rgba(147, 51, 234, 0.08)" : "var(--white)",
-            border: `1px solid ${filtroLinea === "nicho" ? "#7c3aed" : "var(--line)"}`,
-            borderRadius: "4px",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            textAlign: "left",
-            width: "100%",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: "#6b21a8",
-              }}
-            />
-            <span
-              style={{
-                fontSize: "10.5px",
-                textTransform: "uppercase",
-                color: "#6b21a8",
-                letterSpacing: "0.12em",
-                fontWeight: 600,
-              }}
-            >
-              Nicho / Autor
-            </span>
-          </div>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "#6b21a8", marginTop: "4px" }}>
-            {metricas.nicho}
-          </div>
-        </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: item.color,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: "10.5px",
+                    textTransform: "uppercase",
+                    color: item.color,
+                    letterSpacing: "0.12em",
+                    fontWeight: 600,
+                  }}
+                >
+                  {item.label}
+                </span>
+              </div>
+              <div style={{ fontSize: "26px", fontWeight: 700, color: item.color, marginTop: "4px" }}>
+                {item.total}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* 3. BARRA DE HERRAMIENTAS: BÚSQUEDA Y PESTAÑAS */}
@@ -780,8 +712,6 @@ export default function BrandsManagementPage({
       {/* 5. MODAL DE CREACIÓN / EDICIÓN DE CASA DE PERFUMERÍA */}
       {modalMarcaAbierto && (
         <div
-          role="dialog"
-          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
@@ -1100,8 +1030,6 @@ export default function BrandsManagementPage({
       {/* 6. MODAL DE ELIMINACIÓN Y REASIGNACIÓN (SOLUCIÓN DE ERRATAS) */}
       {marcaAEliminar && (
         <div
-          role="dialog"
-          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
