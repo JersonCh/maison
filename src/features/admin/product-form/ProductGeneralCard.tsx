@@ -159,7 +159,7 @@ export function ProductGeneralCard({
       <div className="form-grid">
         <div className="full-field">
           <label>
-            Nombre del perfume *
+            <span>Nombre del perfume *</span>
             <input
               ref={inputNombreRef}
               required
@@ -232,7 +232,6 @@ export function ProductGeneralCard({
               <div className="permalink-edit-row">
                 <input
                   type="text"
-                  autoFocus
                   value={slugEditado}
                   onChange={(e) => setSlugEditado(e.target.value)}
                   placeholder="nuevo-slug"
@@ -377,7 +376,7 @@ export function ProductGeneralCard({
         {/* FILA: GÉNERO OLFATIVO Y CONCENTRACIÓN (SIMETRÍA ABSOLUTA) */}
         <div className="full-field" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
           <label style={{ margin: 0 }}>
-            Género olfativo *
+            <span>Género olfativo *</span>
             <select
               value={genero}
               onChange={(e) => setGenero(e.target.value as Gender)}
@@ -389,7 +388,7 @@ export function ProductGeneralCard({
           </label>
 
           <label style={{ margin: 0 }}>
-            Concentración *
+            <span>Concentración *</span>
             <select
               value={concentracion}
               onChange={(e) => setConcentracion(e.target.value)}
@@ -431,7 +430,6 @@ export function ProductGeneralCard({
                 placeholder="Escribe la ocasión recomendada (ej. Cenas románticas y veladas íntimas)"
                 value={ocasionUso}
                 onChange={(e) => setOcasionUso(e.target.value)}
-                autoFocus
               />
             )}
           </label>
@@ -450,7 +448,7 @@ export function ProductGeneralCard({
         </div>
 
         <label className="full-field">
-          Descripción y narrativa olfativa
+          <span>Descripción y narrativa olfativa</span>
           <textarea
             rows={4}
             placeholder="Describe la composición, acordes dominantes y la atmósfera del perfume..."
@@ -467,17 +465,36 @@ export function ProductGeneralCard({
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            background: "rgba(0, 0, 0, 0.45)",
-            backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: "20px",
           }}
-          onClick={() => !guardandoNuevaMarca && setModalNuevaMarcaAbierto(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && !guardandoNuevaMarca) {
+              setModalNuevaMarcaAbierto(false);
+            }
+          }}
         >
+          <button
+            type="button"
+            aria-label="Cerrar modal de nueva marca"
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.45)",
+              backdropFilter: "blur(2px)",
+              border: "none",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+            }}
+            onClick={() => !guardandoNuevaMarca && setModalNuevaMarcaAbierto(false)}
+          />
           <div
             style={{
+              position: "relative",
+              zIndex: 1,
               background: "var(--white)",
               border: "1px solid var(--line)",
               borderRadius: "6px",
@@ -486,7 +503,6 @@ export function ProductGeneralCard({
               boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
               overflow: "hidden",
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
@@ -560,6 +576,7 @@ export function ProductGeneralCard({
 
               <div style={{ marginBottom: "16px" }}>
                 <label
+                  htmlFor="input-nombre-nueva-marca"
                   style={{
                     display: "block",
                     fontSize: "11.5px",
@@ -573,12 +590,12 @@ export function ProductGeneralCard({
                   Nombre oficial de la firma *
                 </label>
                 <input
+                  id="input-nombre-nueva-marca"
                   type="text"
                   required
                   placeholder="Ej. Parfums de Marly, Tom Ford, Lattafa"
                   value={nombreNuevaMarca}
                   onChange={(e) => setNombreNuevaMarca(e.target.value)}
-                  autoFocus
                   style={{
                     width: "100%",
                     padding: "10px 12px",
@@ -592,7 +609,7 @@ export function ProductGeneralCard({
               </div>
 
               <div style={{ marginBottom: "20px" }}>
-                <label
+                <span
                   style={{
                     display: "block",
                     fontSize: "11.5px",
@@ -604,7 +621,7 @@ export function ProductGeneralCard({
                   }}
                 >
                   Línea Comercial de la Casa *
-                </label>
+                </span>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
                   {(
                     [
@@ -615,7 +632,8 @@ export function ProductGeneralCard({
                   ).map((opt) => {
                     const sel = lineaNuevaMarca === opt.id;
                     return (
-                      <div
+                      <button
+                        type="button"
                         key={opt.id}
                         onClick={() => setLineaNuevaMarca(opt.id)}
                         style={{
@@ -632,7 +650,7 @@ export function ProductGeneralCard({
                         }}
                       >
                         {opt.label}
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
@@ -640,6 +658,7 @@ export function ProductGeneralCard({
 
               <div style={{ marginBottom: "20px" }}>
                 <label
+                  htmlFor="select-pais-nueva-marca"
                   style={{
                     display: "block",
                     fontSize: "11.5px",
@@ -653,6 +672,7 @@ export function ProductGeneralCard({
                   País de origen (Procedencia de la firma) *
                 </label>
                 <select
+                  id="select-pais-nueva-marca"
                   value={paisNuevaMarca}
                   onChange={(e) => setPaisNuevaMarca(e.target.value)}
                   style={{

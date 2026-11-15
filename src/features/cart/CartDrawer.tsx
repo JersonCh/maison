@@ -33,11 +33,11 @@ export default function CartDrawer({ phone }: Props) {
     .map((item) => {
       const product = allProducts.find((p) => p.id === item.id);
       if (!product) return null;
-      const cleanTarget = item.size.replace(/\s*\(decant\)/i, "").trim();
+      const cleanTarget = item.size.replace(/\(decant\)/i, "").trim();
       const variant =
         product.variants.find((v) => v.size === item.size) ||
         product.variants.find(
-          (v) => v.size.replace(/\s*\(decant\)/i, "").trim() === cleanTarget,
+          (v) => v.size.replace(/\(decant\)/i, "").trim() === cleanTarget,
         ) ||
         product.variants[0];
       return {
@@ -92,11 +92,11 @@ export default function CartDrawer({ phone }: Props) {
                     <div className="cart-line-variant">
                       {line.size.toLowerCase().includes("decant") ? (
                         <span className="cart-decant-tag">
-                          <Icon name="decant" size={12} /> Decant {line.size.replace(/\s*\(decant\)/i, "").trim()}
+                          <Icon name="decant" size={12} /> Decant {line.size.replace(/\(decant\)/i, "").trim()}
                         </span>
                       ) : (
                         <span className="cart-bottle-tag">
-                          Frasco {line.size.replace(/\s*\(decant\)/i, "").trim()}
+                          Frasco {line.size.replace(/\(decant\)/i, "").trim()}
                         </span>
                       )}
                     </div>

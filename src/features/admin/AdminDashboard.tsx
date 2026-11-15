@@ -150,7 +150,7 @@ export default function AdminDashboard({ }: Props) {
     }
   };
 
-  const solicitarEliminarProducto = async (id: number, nombre: string) => {
+  const solicitarEliminarProducto = (id: number, nombre: string) => {
     setProductoAEliminar({ id, nombre });
   };
 
@@ -197,11 +197,11 @@ export default function AdminDashboard({ }: Props) {
           <h1>Bienvenido</h1>
           <p>Ingresa al panel de administración de Maison des Parfums.</p>
           <label>
-            Correo
+            <span>Correo</span>
             <input type="email" defaultValue="admin@maison.pe" />
           </label>
           <label>
-            Contraseña
+            <span>Contraseña</span>
             <input type="password" defaultValue="demo1234" />
           </label>
           <button type="submit" className="btn btn-gold full">

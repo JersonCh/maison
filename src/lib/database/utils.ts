@@ -4,12 +4,14 @@ import type { CommercialType } from "@/types/product";
  * Función utilitaria para normalizar títulos y generar slugs legibles y URL-friendly.
  */
 export function normalizarTextoParaSlug(texto: string): string {
-  return texto
+  let s = texto
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9]+/g, "-");
+  while (s.startsWith("-")) s = s.slice(1);
+  while (s.endsWith("-")) s = s.slice(0, -1);
+  return s;
 }
 
 /**

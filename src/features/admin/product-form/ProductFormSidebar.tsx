@@ -46,7 +46,11 @@ export function ProductFormSidebar({
         <h3 className="sidebar-card-title">Estado de Publicación</h3>
 
         <div className="sidebar-toggles">
-          <label className="check-row" style={{ cursor: "pointer" }}>
+          <label
+            className="check-row"
+            style={{ cursor: "pointer" }}
+            aria-label={activo ? "Visible en catálogo" : "Borrador (Oculto)"}
+          >
             <input
               type="checkbox"
               checked={activo}
@@ -65,7 +69,11 @@ export function ProductFormSidebar({
             </div>
           </label>
 
-          <label className="check-row" style={{ cursor: "pointer" }}>
+          <label
+            className="check-row"
+            style={{ cursor: "pointer" }}
+            aria-label="Selección Destacada"
+          >
             <input
               type="checkbox"
               checked={esDestacado}

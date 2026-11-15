@@ -123,7 +123,7 @@ export const PUT: APIRoute = async ({ request, locals }) => {
     const paisOrigen = payload?.pais_origen ? String(payload.pais_origen).trim() : undefined;
     const activo = payload?.activo !== undefined ? Boolean(payload.activo) : undefined;
 
-    if (!id || isNaN(id)) {
+    if (!id || Number.isNaN(id)) {
       return new Response(
         JSON.stringify({ error: "ID de casa de perfumería no válido." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
@@ -179,7 +179,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     const id = Number(payload?.id);
     const activo = Boolean(payload?.activo);
 
-    if (!id || isNaN(id)) {
+    if (!id || Number.isNaN(id)) {
       return new Response(
         JSON.stringify({ error: "ID de firma no válido." }),
         { status: 400, headers: { "Content-Type": "application/json" } },
@@ -234,7 +234,7 @@ export const DELETE: APIRoute = async ({ request, url, locals }) => {
       if (cuerpo?.reasignar_a) reasignarA = Number(cuerpo.reasignar_a);
     }
 
-    if (!id || isNaN(id)) {
+    if (!id || Number.isNaN(id)) {
       return new Response(
         JSON.stringify({ error: "ID de casa de perfumería no válido." }),
         { status: 400, headers: { "Content-Type": "application/json" } },

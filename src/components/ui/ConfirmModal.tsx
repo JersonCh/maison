@@ -58,17 +58,26 @@ export default function ConfirmModal({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(5, 6, 5, 0.75)",
-        backdropFilter: "blur(6px)",
         padding: "20px",
         animation: "fadeInConfirm 0.15s ease-out",
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isLoading) {
-          onClose();
-        }
-      }}
     >
+      <button
+        type="button"
+        aria-label="Cerrar modal"
+        disabled={isLoading}
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(5, 6, 5, 0.75)",
+          backdropFilter: "blur(6px)",
+          border: "none",
+          padding: 0,
+          margin: 0,
+          cursor: "pointer",
+        }}
+      />
       <style>{`
         @keyframes fadeInConfirm {
           from { opacity: 0; }
@@ -85,6 +94,8 @@ export default function ConfirmModal({
 
       <div
         style={{
+          position: "relative",
+          zIndex: 1,
           width: "min(480px, 100%)",
           background: "var(--white)",
           borderRadius: "4px",
