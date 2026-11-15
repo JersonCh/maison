@@ -8,7 +8,6 @@ export interface FilaCsvRaw {
   linea_comercial?: string;
   genero?: string;
   concentracion?: string;
-  pais_origen?: string;
   ocasion_uso?: string;
   precio_50ml?: string | number;
   precio_75ml?: string | number;
@@ -28,7 +27,7 @@ export interface FilaCsvProcesada {
   linea_comercial: CommercialType;
   genero: Gender;
   concentracion: string;
-  pais_origen: string;
+  pais_origen?: string;
   ocasion_uso: string;
   precio_50ml: number | null;
   precio_75ml: number | null;
@@ -314,7 +313,6 @@ export function procesarMatrizFilas(
   const idxLinea = cabeceras.findIndex((c) => c.includes("linea") || c.includes("tipo") || c.includes("gama"));
   const idxGenero = cabeceras.findIndex((c) => c.includes("genero") || c.includes("sexo"));
   const idxConcentracion = cabeceras.findIndex((c) => c.includes("concentracion"));
-  const idxPais = cabeceras.findIndex((c) => c.includes("pais") || c.includes("procedencia") || c.includes("origen"));
   const idxOcasion = cabeceras.findIndex((c) => c.includes("ocasion") || c.includes("uso"));
   const idxP50 = cabeceras.findIndex((c) => c === "precio_50ml" || c === "50ml" || c === "precio_50" || (c.includes("50") && !c.includes("150")));
   const idxP75 = cabeceras.findIndex((c) => c.includes("75"));
@@ -353,7 +351,6 @@ export function procesarMatrizFilas(
     const lineaRaw = idxLinea !== -1 ? col[idxLinea] || "" : "";
     const generoRaw = idxGenero !== -1 ? col[idxGenero] || "" : "";
     const concRaw = idxConcentracion !== -1 ? col[idxConcentracion] || "" : "";
-    const paisRaw = idxPais !== -1 ? col[idxPais] || "" : "";
     const ocasionRaw = idxOcasion !== -1 ? col[idxOcasion] || "" : "";
     const p50Raw = idxP50 !== -1 ? col[idxP50] || "" : "";
     const p75Raw = idxP75 !== -1 ? col[idxP75] || "" : "";
@@ -409,7 +406,7 @@ export function procesarMatrizFilas(
     const genero = normalizarGenero(generoRaw);
     const linea_comercial = normalizarLineaComercial(lineaRaw, marca);
     const concentracion = String(concRaw).trim() || "Eau de Parfum";
-    const pais_origen = String(paisRaw).trim() || (linea_comercial === "arabe" ? "Emiratos Árabes Unidos" : "Francia");
+    const pais_origen = linea_comercial === "arabe" ? "Emiratos Árabes Unidos" : "Francia";
     const ocasion_uso = String(ocasionRaw).trim() || "Uso distinguido y reuniones ejecutivas";
 
     // 3. Verificación de marca y detección de erratas (ej: Diioor -> Dior)

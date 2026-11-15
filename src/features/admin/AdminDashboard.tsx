@@ -380,8 +380,12 @@ export default function AdminDashboard({ }: Props) {
               onReloadMetadata={async () => {
                 await Promise.all([cargarMarcas(), cargarMetadatos()]);
               }}
-              onOpenImportCsv={() => setMostrarModalCsv(true)}
-              onNavigateToBrands={() => setSection("brands")}
+              onOpenImportCsv={() => {
+                // Inactivo temporalmente a solicitud
+              }}
+              onNavigateToBrands={() => {
+                // Inactivo temporalmente a solicitud
+              }}
             />
           ) : (
             <ProductTable
@@ -390,7 +394,9 @@ export default function AdminDashboard({ }: Props) {
               onToggleActive={manejarAlternarVisibilidad}
               onDelete={solicitarEliminarProducto}
               onAddNew={manejarAbrirCreacion}
-              onOpenImportCsv={() => setMostrarModalCsv(true)}
+              onOpenImportCsv={() => {
+                // Inactivo temporalmente a solicitud
+              }}
             />
           )
         )}
