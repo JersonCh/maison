@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { MarcaItem } from "@/types/database";
 import type { Gender, CommercialType } from "@/types/product";
 import { slugify } from "@/lib/slug";
@@ -97,6 +97,17 @@ export function ProductGeneralCard({
   const [paisNuevaMarca, setPaisNuevaMarca] = useState("Francia");
   const [guardandoNuevaMarca, setGuardandoNuevaMarca] = useState(false);
   const [errorNuevaMarca, setErrorNuevaMarca] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!modalNuevaMarcaAbierto) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !guardandoNuevaMarca) {
+        setModalNuevaMarcaAbierto(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalNuevaMarcaAbierto, guardandoNuevaMarca]);
 
   const handleCrearMarcaRapida = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -469,11 +480,6 @@ export function ProductGeneralCard({
             alignItems: "center",
             justifyContent: "center",
             padding: "20px",
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape" && !guardandoNuevaMarca) {
-              setModalNuevaMarcaAbierto(false);
-            }
           }}
         >
           <button
