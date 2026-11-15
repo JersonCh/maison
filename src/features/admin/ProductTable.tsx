@@ -7,7 +7,7 @@ interface Props {
   products: ProductoAdminItem[];
   onEdit: (product: ProductoAdminItem) => void;
   onToggleActive: (id: number, currentActive: boolean) => Promise<void>;
-  onDelete: (id: number, name: string) => Promise<void>;
+  onDelete: (id: number, name: string) => Promise<void> | void;
   onAddNew: () => void;
   onOpenImportCsv?: () => void;
 }

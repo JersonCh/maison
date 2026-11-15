@@ -40,7 +40,7 @@ export default function CommercialSettingsPage() {
         console.error("Error al cargar configuración:", error);
       }
     }
-    cargarConfiguracion();
+    void cargarConfiguracion();
   }, []);
 
   const guardarCambios = async () => {
@@ -132,7 +132,7 @@ export default function CommercialSettingsPage() {
               </>
             ) : (
               <>
-                <svg className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" focusable="false" className="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 Guardar cambios
@@ -161,7 +161,7 @@ export default function CommercialSettingsPage() {
               <span className="settings-switch-label">
                 {anuncioActivo ? "Barra activa" : "Barra desactivada"}
               </span>
-              <label className="toggle-switch">
+              <label className="toggle-switch" aria-label="Activar o desactivar barra de anuncios">
                 <input
                   type="checkbox"
                   checked={anuncioActivo}
@@ -233,7 +233,7 @@ export default function CommercialSettingsPage() {
             </div>
           ) : (
             <div className="settings-disabled-notice">
-              <svg className="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg aria-hidden="true" focusable="false" className="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.772M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
               </svg>
               <div>
@@ -303,7 +303,7 @@ export default function CommercialSettingsPage() {
               </label>
               <div className="input-with-icon-wrapper">
                 <span className="input-icon-prefix">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                   </svg>
                 </span>
@@ -328,7 +328,7 @@ export default function CommercialSettingsPage() {
               </label>
               <div className="input-with-icon-wrapper">
                 <span className="input-icon-prefix">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                 </span>
@@ -382,7 +382,7 @@ export default function CommercialSettingsPage() {
               <div className="social-channel-header">
                 <div className="social-brand-info">
                   <span className="social-icon-box instagram">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                       <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
                       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                       <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
@@ -426,7 +426,7 @@ export default function CommercialSettingsPage() {
               <div className="social-channel-header">
                 <div className="social-brand-info">
                   <span className="social-icon-box facebook">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" />
                     </svg>
                   </span>
@@ -468,7 +468,7 @@ export default function CommercialSettingsPage() {
               <div className="social-channel-header">
                 <div className="social-brand-info">
                   <span className="social-icon-box tiktok">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 3 15.68 6.34 6.34 0 0 0 9.35 22a6.33 6.33 0 0 0 6.33-6.32V8.9a8.16 8.16 0 0 0 4.75 1.51V6.96a4.85 4.85 0 0 1-.84-.27z" />
                     </svg>
                   </span>

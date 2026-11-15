@@ -100,7 +100,7 @@ export function ProductPricingCard({
                     checked={refActiva}
                     onChange={(e) => onToggleReferencia(refField, e.target.checked)}
                   />
-                  Precio tachado
+                  <span>Precio tachado</span>
                 </label>
               </div>
 
@@ -245,7 +245,7 @@ export function ProductPricingCard({
               }}
             >
               <label>
-                Precio Decant 3 ml (S/)
+                <span>Precio Decant 3 ml (S/)</span>
                 <input
                   type="number"
                   min="1"
@@ -261,7 +261,7 @@ export function ProductPricingCard({
               </label>
 
               <label>
-                Precio Decant 5 ml (S/)
+                <span>Precio Decant 5 ml (S/)</span>
                 <input
                   type="number"
                   min="1"
@@ -277,7 +277,7 @@ export function ProductPricingCard({
               </label>
 
               <label>
-                Precio Decant 10 ml (S/)
+                <span>Precio Decant 10 ml (S/)</span>
                 <input
                   type="number"
                   min="1"

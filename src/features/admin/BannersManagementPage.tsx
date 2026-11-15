@@ -57,7 +57,7 @@ export default function BannersManagementPage({ onMostrarToast }: Props) {
   };
 
   useEffect(() => {
-    cargarBanners();
+    void cargarBanners();
   }, []);
 
   // Métricas
@@ -834,19 +834,30 @@ export default function BannersManagementPage({ onMostrarToast }: Props) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(5, 6, 5, 0.78)",
-            backdropFilter: "blur(6px)",
             padding: "20px",
             overflowY: "auto",
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget && !guardando) {
-              setModalAbierto(false);
-            }
-          }}
         >
+          <button
+            type="button"
+            aria-label="Cerrar modal de banner"
+            disabled={guardando}
+            onClick={() => setModalAbierto(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(5, 6, 5, 0.78)",
+              backdropFilter: "blur(6px)",
+              border: "none",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+            }}
+          />
           <div
             style={{
+              position: "relative",
+              zIndex: 1,
               width: "min(760px, 100%)",
               maxHeight: "92vh",
               display: "flex",
@@ -1230,7 +1241,7 @@ export default function BannersManagementPage({ onMostrarToast }: Props) {
                           style={{ display: "none" }}
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleSubirArchivo(file, "desktop");
+                            if (file) void handleSubirArchivo(file, "desktop");
                           }}
                         />
 
@@ -1289,7 +1300,7 @@ export default function BannersManagementPage({ onMostrarToast }: Props) {
                           style={{ display: "none" }}
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleSubirArchivo(file, "mobile");
+                            if (file) void handleSubirArchivo(file, "mobile");
                           }}
                         />
 
@@ -1317,6 +1328,7 @@ export default function BannersManagementPage({ onMostrarToast }: Props) {
 
                 {/* Bloque 4: Publicación en Portada */}
                 <label
+                  aria-label="Publicar banner en portada"
                   style={{
                     display: "flex",
                     alignItems: "center",

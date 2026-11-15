@@ -8,7 +8,7 @@ function esVarianteDecant(v: ProductVariant): boolean {
   return Boolean(
     v.isDecant ||
     v.size.toLowerCase().includes("decant") ||
-    (parseFloat(v.size) <= 15 && parseFloat(v.size) > 0),
+    (Number.parseFloat(v.size) <= 15 && Number.parseFloat(v.size) > 0),
   );
 }
 
@@ -117,7 +117,7 @@ export default function CatalogBrowser({
       }
     }
     const ordenarPorMl = (a: string, b: string) =>
-      (parseFloat(a) || 0) - (parseFloat(b) || 0);
+      (Number.parseFloat(a) || 0) - (Number.parseFloat(b) || 0);
     return {
       frascoSizes: Array.from(frascos).sort(ordenarPorMl),
       decantSizes: Array.from(decants).sort(ordenarPorMl),
@@ -133,9 +133,9 @@ export default function CatalogBrowser({
     const paramTipo = params.get("tipo") || "";
     const paramFormato = params.get("formato") || "";
     const paramQuery = params.get("q") || "";
-    const paramPage = parseInt(params.get("pagina") || params.get("page") || "1", 10);
+    const paramPage = Number.parseInt(params.get("pagina") || params.get("page") || "1", 10);
     const paramSize = params.get("presentacion") || "";
-    const paramMaxPrice = parseInt(params.get("precio_max") || "", 10);
+    const paramMaxPrice = Number.parseInt(params.get("precio_max") || "", 10);
 
     if (paramGender) setGender(paramGender);
     if (paramBrand) setBrand(paramBrand);
@@ -145,9 +145,9 @@ export default function CatalogBrowser({
       setSearchInput(paramQuery);
       setSearch(paramQuery);
     }
-    if (!isNaN(paramPage) && paramPage >= 1) setCurrentPage(paramPage);
+    if (!Number.isNaN(paramPage) && paramPage >= 1) setCurrentPage(paramPage);
     if (paramSize) setSelectedSize(paramSize);
-    if (!isNaN(paramMaxPrice) && paramMaxPrice > 0) setMaxPrice(paramMaxPrice);
+    if (!Number.isNaN(paramMaxPrice) && paramMaxPrice > 0) setMaxPrice(paramMaxPrice);
   }, []);
 
   // 5. Sincronizar URL suavemente y actualizar enlace activo en cabecera
@@ -195,7 +195,7 @@ export default function CatalogBrowser({
     if (tipo) {
       prods = prods.filter((p) => p.commercialType === tipo);
     }
-    return [...new Set(prods.map((p) => p.brand))].sort();
+    return [...new Set(prods.map((p) => p.brand))].sort((a, b) => a.localeCompare(b));
   }, [initialProducts, tipo]);
 
   // Si cambia la línea comercial y la marca seleccionada no pertenece a ella, resetear marca
@@ -444,8 +444,9 @@ export default function CatalogBrowser({
 
           {/* Filtro Género */}
           <div className="filter-group">
-            <label>Género</label>
+            <label htmlFor="filter-gender">Género</label>
             <select
+              id="filter-gender"
               value={gender}
               onChange={(e) => {
                 setGender(e.target.value);
@@ -461,8 +462,9 @@ export default function CatalogBrowser({
 
           {/* Filtro Línea / Gama Comercial */}
           <div className="filter-group">
-            <label>Línea / Gama</label>
+            <label htmlFor="filter-linea">Línea / Gama</label>
             <select
+              id="filter-linea"
               value={tipo}
               onChange={(e) => {
                 setTipo(e.target.value);
@@ -478,8 +480,9 @@ export default function CatalogBrowser({
 
           {/* Filtro Formato de compra */}
           <div className="filter-group">
-            <label>Formato de compra</label>
+            <label htmlFor="filter-formato">Formato de compra</label>
             <select
+              id="filter-formato"
               value={formato}
               onChange={(e) => {
                 setFormato(e.target.value);
@@ -494,8 +497,9 @@ export default function CatalogBrowser({
 
           {/* Filtro Marca */}
           <div className="filter-group">
-            <label>Marca</label>
+            <label htmlFor="filter-brand">Marca</label>
             <select
+              id="filter-brand"
               value={brand}
               onChange={(e) => {
                 setBrand(e.target.value);
@@ -592,7 +596,7 @@ export default function CatalogBrowser({
                           setCurrentPage(1);
                         }}
                       >
-                        {s.replace(/\s*\(decant\)/i, "").trim()}
+                        {s.replace(/\(decant\)/i, "").trim()}
                       </button>
                     ))}
                   </div>

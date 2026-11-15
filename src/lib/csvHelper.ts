@@ -178,13 +178,13 @@ export function normalizarLineaComercial(val?: unknown, marca?: string): Commerc
 export function normalizarPrecio(val?: unknown): number | null {
   if (val === undefined || val === null || val === "") return null;
   if (typeof val === "number") {
-    return isNaN(val) || val < 0 ? null : Math.round(val * 100) / 100;
+    return Number.isNaN(val) || val < 0 ? null : Math.round(val * 100) / 100;
   }
   const str = String(val).trim();
   if (!str) return null;
   const limpio = str.replace(/[^\d.,]/g, "").replace(",", ".");
-  const num = parseFloat(limpio);
-  return isNaN(num) || num < 0 ? null : Math.round(num * 100) / 100;
+  const num = Number.parseFloat(limpio);
+  return Number.isNaN(num) || num < 0 ? null : Math.round(num * 100) / 100;
 }
 
 /**
@@ -210,7 +210,7 @@ export function parsearLineasCsv(texto: string, delimitador: string): string[][]
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(fila)) !== null) {
-      let valor = match[1] !== undefined ? match[1].replace(/""/g, '"') : match[2];
+      let valor = match[1] !== undefined ? match[1].replaceAll('""', '"') : match[2];
       valores.push(valor !== undefined ? valor.trim() : "");
       if (regex.lastIndex === fila.length && fila.endsWith(delimitador)) {
         valores.push("");
@@ -566,7 +566,7 @@ export function descargarPlantillaCsv(): void {
 
   const csvLineas = [
     encabezados.join(","),
-    ...filasEjemplo.map((fila) => fila.map((campo) => `"${campo.replace(/"/g, '""')}"`).join(",")),
+    ...filasEjemplo.map((fila) => fila.map((campo) => `"${campo.replaceAll('"', '""')}"`).join(",")),
   ];
 
   const contenidoBlob = "\uFEFF" + csvLineas.join("\r\n");

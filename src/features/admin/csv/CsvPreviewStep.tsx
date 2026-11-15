@@ -124,7 +124,8 @@ export function CsvPreviewStep({
           marginBottom: "20px",
         }}
       >
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroVista("todos")}
           style={{
             padding: "12px 16px",
@@ -133,6 +134,8 @@ export function CsvPreviewStep({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <span style={{ fontSize: "11px", textTransform: "uppercase", color: "var(--muted)", letterSpacing: "0.08em", fontWeight: 600 }}>
@@ -141,9 +144,10 @@ export function CsvPreviewStep({
           <div style={{ fontSize: "22px", fontWeight: 700, color: "var(--ink)", marginTop: "2px" }}>
             {resumen.total}
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroVista("validos")}
           style={{
             padding: "12px 16px",
@@ -152,6 +156,8 @@ export function CsvPreviewStep({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
@@ -163,9 +169,10 @@ export function CsvPreviewStep({
           <div style={{ fontSize: "22px", fontWeight: 700, color: "#2f4f35", marginTop: "2px" }}>
             {resumen.validos}
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroVista("duplicados")}
           style={{
             padding: "12px 16px",
@@ -174,6 +181,8 @@ export function CsvPreviewStep({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
@@ -185,9 +194,10 @@ export function CsvPreviewStep({
           <div style={{ fontSize: "22px", fontWeight: 700, color: "var(--gold-deep)", marginTop: "2px" }}>
             {resumen.duplicados}
           </div>
-        </div>
+        </button>
 
-        <div
+        <button
+          type="button"
           onClick={() => setFiltroVista("errores")}
           style={{
             padding: "12px 16px",
@@ -196,6 +206,8 @@ export function CsvPreviewStep({
             borderRadius: "4px",
             cursor: "pointer",
             transition: "all 0.2s ease",
+            textAlign: "left",
+            width: "100%",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
@@ -207,7 +219,7 @@ export function CsvPreviewStep({
           <div style={{ fontSize: "22px", fontWeight: 700, color: "#991b1b", marginTop: "2px" }}>
             {resumen.errores}
           </div>
-        </div>
+        </button>
       </div>
 
       {/* CONFIGURACIÓN DE DUPLICADOS */}

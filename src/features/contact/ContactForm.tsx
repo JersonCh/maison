@@ -27,7 +27,7 @@ export default function ContactForm({ phone }: Props) {
       <p>Déjanos tu consulta</p>
 
       <label>
-        Nombre
+        <span>Nombre</span>
         <input
           required
           placeholder="Tu nombre"
@@ -37,7 +37,7 @@ export default function ContactForm({ phone }: Props) {
       </label>
 
       <label>
-        Correo o teléfono
+        <span>Correo o teléfono</span>
         <input
           required
           placeholder="Tu contacto"
@@ -47,7 +47,7 @@ export default function ContactForm({ phone }: Props) {
       </label>
 
       <label>
-        ¿Qué estás buscando?
+        <span>¿Qué estás buscando?</span>
         <select value={type} onChange={(e) => setType(e.target.value)}>
           <option>Recomendación personalizada</option>
           <option>Consultar un producto</option>
@@ -56,7 +56,7 @@ export default function ContactForm({ phone }: Props) {
       </label>
 
       <label>
-        Mensaje
+        <span>Mensaje</span>
         <textarea
           rows={4}
           placeholder="Cuéntanos qué tipo de fragancia te gusta..."

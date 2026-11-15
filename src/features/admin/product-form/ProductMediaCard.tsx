@@ -97,6 +97,8 @@ export function ProductMediaCard({
                 title="Hacer clic para subir fotografía"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   className="photo-slot-icon"
                   fill="none"
                   stroke="currentColor"
@@ -168,6 +170,8 @@ export function ProductMediaCard({
                 title="Hacer clic para subir fotografía"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   className="photo-slot-icon"
                   fill="none"
                   stroke="currentColor"
@@ -239,6 +243,8 @@ export function ProductMediaCard({
                 title="Hacer clic para subir fotografía"
               >
                 <svg
+                  aria-hidden="true"
+                  focusable="false"
                   className="photo-slot-icon"
                   fill="none"
                   stroke="currentColor"
