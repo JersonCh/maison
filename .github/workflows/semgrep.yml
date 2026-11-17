@@ -23,14 +23,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run Semgrep scan
-        run: semgrep scan --config auto --sarif --output semgrep.sarif
+        run: |
+          semgrep scan --config auto --text
+          semgrep scan --config auto --sarif --output semgrep.sarif
         continue-on-error: true
 
       - name: Upload SARIF to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@48abda3a05eaf79312446164964823d229b9b782 # v3.28.11
         with:
           sarif_file: semgrep.sarif
         if: always()

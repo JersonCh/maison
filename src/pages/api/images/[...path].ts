@@ -37,7 +37,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
       headers,
     });
   } catch (error: any) {
-    console.error(`Error al servir imagen R2 [${path}]:`, error);
+    console.error("Error al servir imagen R2:", path, error);
     return new Response("Error al recuperar la imagen", { status: 500 });
   }
 };
