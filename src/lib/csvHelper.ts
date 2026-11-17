@@ -205,7 +205,10 @@ export function parsearLineasCsv(texto: string, delimitador: string): string[][]
   const filasRaw = texto.split(/\r?\n/).filter((l) => l.trim().length > 0);
 
   for (const fila of filasRaw) {
-    const regex = new RegExp(`(?:^|${delimitador})(?:"([^"]*(?:""[^"]*)*)"|([^"${delimitador}]*))`, "g");
+    const regex =
+      delimitador === ";"
+        ? /(?:^|;)(?:"([^"]*(?:""[^"]*)*)"|([^";]*))/g
+        : /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
     const valores: string[] = [];
     let match: RegExpExecArray | null;
 

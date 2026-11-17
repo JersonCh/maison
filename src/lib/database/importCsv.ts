@@ -251,7 +251,7 @@ export async function importarProductosCsvEnDb(
           await db.prepare("DELETE FROM productos WHERE id = ?").bind(nuevoId).run();
         } catch { }
       }
-      console.error(`Error al procesar fila #${fila.filaNumero} (${fila.nombre}):`, err);
+      console.error("Error al procesar fila:", fila.filaNumero, fila.nombre, err);
       let mensajeError = err.message || "Error al registrar la fragancia.";
       if (
         mensajeError.includes("D1_ERROR") ||
