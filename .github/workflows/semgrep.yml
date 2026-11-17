@@ -32,7 +32,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload SARIF to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@48abda3a05eaf79312446164964823d229b9b782 # v3.28.11
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
         if: always()
