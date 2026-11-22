@@ -21,34 +21,30 @@ export default function BrandMetrics({
       id: "todas" as FiltroLinea,
       label: "Total Casas",
       count: metricas.total,
-      activeClass: "bg-[var(--ivory)] border-[var(--gold)]",
-      dotColor: "",
+      hasDot: false,
     },
     {
       id: "disenador" as FiltroLinea,
       label: "Diseñador",
       count: metricas.disenador,
-      activeClass: "bg-amber-50/60 border-[var(--gold-deep)] text-[var(--gold-deep)]",
-      dotColor: "bg-[var(--gold-deep)]",
+      hasDot: true,
     },
     {
       id: "arabe" as FiltroLinea,
       label: "Árabes",
       count: metricas.arabe,
-      activeClass: "bg-emerald-50/60 border-emerald-700 text-emerald-800",
-      dotColor: "bg-emerald-800",
+      hasDot: true,
     },
     {
       id: "nicho" as FiltroLinea,
       label: "Nicho / Autor",
       count: metricas.nicho,
-      activeClass: "bg-purple-50/60 border-purple-600 text-purple-900",
-      dotColor: "bg-purple-800",
+      hasDot: true,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-7">
+    <div className="brands-metrics-grid">
       {items.map((item) => {
         const isSelected = filtroLinea === item.id;
         return (
@@ -56,23 +52,17 @@ export default function BrandMetrics({
             key={item.id}
             type="button"
             onClick={() => onSelectFiltro(item.id)}
-            className={`p-4 md:py-4 md:px-5 rounded border transition-all text-left cursor-pointer ${
-              isSelected
-                ? item.activeClass
-                : "bg-white border-[var(--line)] hover:border-neutral-300"
-            }`}
+            className={`brand-metric-card brand-metric-card--${item.id}${isSelected ? " is-active" : ""}`}
           >
-            <div className="flex items-center gap-1.5">
-              {item.dotColor && (
-                <span className={`w-2 h-2 rounded-full ${item.dotColor}`} />
-              )}
-              <span className="text-[10.5px] uppercase tracking-wider font-semibold text-[var(--muted)]">
-                {item.label}
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-[var(--ink)] mt-1">
-              {item.count}
-            </div>
+            {item.hasDot ? (
+              <div className="brand-metric-header">
+                <span className="brand-metric-dot" />
+                <span className="brand-metric-label">{item.label}</span>
+              </div>
+            ) : (
+              <span className="brand-metric-label">{item.label}</span>
+            )}
+            <div className="brand-metric-count">{item.count}</div>
           </button>
         );
       })}

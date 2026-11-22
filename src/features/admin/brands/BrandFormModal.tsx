@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import type { MarcaAdminItem } from "@/types/database";
 import type { CommercialType } from "@/types/product";
 import Icon from "@/components/ui/Icon";
@@ -41,57 +41,60 @@ export default function BrandFormModal({
   guardando,
   error,
 }: BrandFormModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !guardando) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, guardando, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
-      {/* Backdrop con botón nativo accesible */}
+    <div className="brand-modal-overlay">
       <button
         type="button"
         aria-label="Cerrar modal de casa de perfumería"
         disabled={guardando}
         onClick={onClose}
-        className="fixed inset-0 bg-black/75 backdrop-blur-xs border-none cursor-pointer"
+        className="brand-modal-backdrop"
       />
 
-      {/* Contenedor del Modal */}
-      <div className="relative z-10 w-full max-w-[560px] bg-white rounded shadow-2xl overflow-hidden border border-[var(--line)]">
-        {/* Cabecera */}
-        <div className="px-6 py-5 bg-[var(--ivory)] border-b border-[var(--line)] flex items-center justify-between">
+      <div className="brand-modal-dialog">
+        {/* Cabecera del modal */}
+        <div className="brand-modal-head">
           <div>
-            <span className="text-[10.5px] uppercase tracking-wider font-semibold text-[var(--gold-deep)] block">
-              {marcaEnEdicion ? "Edición de Firma" : "Registro de Firma"}
-            </span>
-            <h3 className="font-serif text-xl text-[var(--ink)] font-normal m-0 mt-0.5">
-              {marcaEnEdicion ? `Editar "${marcaEnEdicion.nombre}"` : "Nueva Casa de Perfumería"}
-            </h3>
+            <small className="brand-modal-eyebrow">
+              {marcaEnEdicion ? "Modificar Registro" : "Nuevo Registro"}
+            </small>
+            <h2 className="brand-modal-title">
+              {marcaEnEdicion
+                ? `Editar Casa: ${marcaEnEdicion.nombre}`
+                : "Registrar Casa de Perfumería"}
+            </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={guardando}
-            className="text-[var(--muted)] hover:text-[var(--ink)] cursor-pointer p-1"
+            className="brand-modal-close"
             aria-label="Cerrar formulario"
           >
             <Icon name="close" size={16} />
           </button>
         </div>
 
-        {/* Mensaje de error si existe */}
-        {error && (
-          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-xs leading-relaxed">
-            {error}
-          </div>
-        )}
+        {error && <div className="brand-modal-error">{error}</div>}
 
         {/* Formulario */}
-        <form onSubmit={onSave} className="p-6">
+        <form onSubmit={onSave} className="brand-modal-body">
           {/* Campo Nombre */}
-          <div className="mb-4.5">
-            <label
-              htmlFor="input-nombre-firma"
-              className="block text-xs font-semibold text-[var(--ink)] mb-1.5"
-            >
+          <div className="brand-field">
+            <label htmlFor="input-nombre-firma" className="brand-label">
               Nombre oficial de la firma *
             </label>
             <input
@@ -101,21 +104,33 @@ export default function BrandFormModal({
               placeholder="Ej. Parfums de Marly, Tom Ford, Lattafa"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full px-3 py-2.5 text-sm border border-[var(--line)] rounded bg-white text-[var(--ink)] outline-none focus:border-[var(--gold)]"
+              className="brand-input"
             />
           </div>
 
           {/* Selector de Línea Comercial */}
-          <div className="mb-4.5">
-            <span className="block text-xs font-semibold text-[var(--ink)] mb-2">
+          <div className="brand-field">
+            <span className="brand-label brand-label--group">
               Línea Comercial de la Casa *
             </span>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="brand-line-grid">
               {(
                 [
-                  { id: "disenador", titulo: "Diseñador", subtitulo: "Lujo comercial y moda global" },
-                  { id: "arabe", titulo: "Árabe", subtitulo: "Tradición y fijación oriental" },
-                  { id: "nicho", titulo: "Nicho / Autor", subtitulo: "Exclusiva de autor" },
+                  {
+                    id: "disenador",
+                    titulo: "Diseñador",
+                    subtitulo: "Lujo comercial y moda global",
+                  },
+                  {
+                    id: "arabe",
+                    titulo: "Árabe",
+                    subtitulo: "Tradición y fijación oriental",
+                  },
+                  {
+                    id: "nicho",
+                    titulo: "Nicho / Autor",
+                    subtitulo: "Exclusiva de autor",
+                  },
                 ] as const
               ).map((opt) => {
                 const seleccionado = linea === opt.id;
@@ -124,20 +139,12 @@ export default function BrandFormModal({
                     type="button"
                     key={opt.id}
                     onClick={() => setLinea(opt.id)}
-                    className={`p-2.5 rounded border transition-all text-left cursor-pointer ${
-                      seleccionado
-                        ? "bg-[var(--ivory)] border-[var(--gold)]"
-                        : "bg-white border-[var(--line)] hover:border-neutral-300"
-                    }`}
+                    className={`brand-line-option${seleccionado ? " is-selected" : ""}`}
                   >
-                    <strong
-                      className={`text-xs block mb-0.5 ${
-                        seleccionado ? "text-[var(--gold-deep)]" : "text-[var(--ink)]"
-                      }`}
-                    >
+                    <strong className="brand-line-option-title">
                       {opt.titulo}
                     </strong>
-                    <span className="text-[10px] text-[var(--muted)] leading-tight block">
+                    <span className="brand-line-option-sub">
                       {opt.subtitulo}
                     </span>
                   </button>
@@ -147,17 +154,25 @@ export default function BrandFormModal({
           </div>
 
           {/* País de Procedencia de la Casa */}
-          <div className="mb-4.5">
+          <div className="brand-field">
             <label
-              htmlFor={modoPaisPersonalizado ? "input-pais-personalizado" : "select-pais-origen"}
-              className="block text-xs font-semibold text-[var(--ink)] mb-1.5"
+              htmlFor={
+                modoPaisPersonalizado
+                  ? "input-pais-personalizado"
+                  : "select-pais-origen"
+              }
+              className="brand-label"
             >
               País de origen (Procedencia de la firma) *
             </label>
             {!modoPaisPersonalizado ? (
               <select
                 id="select-pais-origen"
-                value={PAISES_ORIGEN_COMBO.includes(paisOrigen) ? paisOrigen : "__otro__"}
+                value={
+                  PAISES_ORIGEN_COMBO.includes(paisOrigen)
+                    ? paisOrigen
+                    : "__otro__"
+                }
                 onChange={(e) => {
                   if (e.target.value === "__otro__") {
                     setModoPaisPersonalizado(true);
@@ -166,14 +181,16 @@ export default function BrandFormModal({
                     setPaisOrigen(e.target.value);
                   }
                 }}
-                className="w-full px-3 py-2.5 text-sm border border-[var(--line)] rounded bg-white text-[var(--ink)] outline-none focus:border-[var(--gold)]"
+                className="brand-select"
               >
                 {PAISES_ORIGEN_COMBO.map((pais) => (
                   <option key={pais} value={pais}>
                     {pais}
                   </option>
                 ))}
-                <option value="__otro__">+ Otro país (escribir personalizado)...</option>
+                <option value="__otro__">
+                  + Otro país (escribir personalizado)...
+                </option>
               </select>
             ) : (
               <div>
@@ -184,7 +201,7 @@ export default function BrandFormModal({
                   placeholder="Escribe el país de procedencia (ej. Japón, Suiza, Omán)"
                   value={paisOrigen}
                   onChange={(e) => setPaisOrigen(e.target.value)}
-                  className="w-full px-3 py-2.5 text-sm border border-[var(--line)] rounded bg-white text-[var(--ink)] outline-none focus:border-[var(--gold)] mb-1.5"
+                  className="brand-input brand-input--custom-country"
                 />
                 <button
                   type="button"
@@ -192,7 +209,7 @@ export default function BrandFormModal({
                     setModoPaisPersonalizado(false);
                     setPaisOrigen("Francia");
                   }}
-                  className="text-xs text-[var(--gold-deep)] underline cursor-pointer hover:text-amber-800"
+                  className="brand-country-back"
                 >
                   ← Elegir país de la lista
                 </button>
@@ -200,26 +217,30 @@ export default function BrandFormModal({
             )}
           </div>
 
-          {/* Interruptor de Visibilidad */}
-          <div className="mb-6">
-            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          {/* Estado Activo */}
+          <div className="brand-field--checkbox">
+            <label
+              htmlFor="checkbox-activo-marca"
+              className="brand-checkbox-label"
+            >
               <input
+                id="checkbox-activo-marca"
                 type="checkbox"
                 checked={activo}
                 onChange={(e) => setActivo(e.target.checked)}
-                className="w-4 h-4 accent-[var(--gold)] cursor-pointer"
               />
-              <span className="text-xs text-[var(--ink)]">
-                Firma activa y visible en los filtros de la tienda pública
+              <span>
+                <strong>Activa para venta en tienda</strong> (visible en
+                selectores y filtros del catálogo)
               </span>
             </label>
           </div>
 
-          {/* Botones de acción */}
-          <div className="flex justify-end gap-2.5 border-t border-[var(--line)] pt-4.5">
+          {/* Botones de acción del modal */}
+          <div className="brand-modal-actions">
             <button
               type="button"
-              className="btn btn-outline"
+              className="btn btn-outline brand-modal-cancel"
               onClick={onClose}
               disabled={guardando}
             >
@@ -228,10 +249,14 @@ export default function BrandFormModal({
 
             <button
               type="submit"
-              className="btn btn-gold min-w-[150px]"
+              className="btn btn-gold brand-modal-submit"
               disabled={guardando}
             >
-              {guardando ? "Guardando..." : marcaEnEdicion ? "Guardar cambios" : "Registrar firma"}
+              {guardando
+                ? "Guardando..."
+                : marcaEnEdicion
+                  ? "Guardar cambios"
+                  : "Registrar firma"}
             </button>
           </div>
         </form>

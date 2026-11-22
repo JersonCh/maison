@@ -74,7 +74,6 @@ export default function AdminDashboard({ }: Props) {
         if (datos.familias) setFamilias(datos.familias);
         if (datos.marcas) {
           setMarcas(datos.marcas);
-          setMarcasAdmin(datos.marcas);
         }
       }
     } catch (error) {
@@ -112,6 +111,13 @@ export default function AdminDashboard({ }: Props) {
       cargarProductos();
     }
   }, [section, vistaProducto, logged, cargarProductos]);
+
+  // Recarga reactiva de marcas cada vez que el usuario ingresa a Casas de Perfumería
+  useEffect(() => {
+    if (logged && section === "brands") {
+      void cargarMarcas();
+    }
+  }, [section, logged, cargarMarcas]);
 
   // Manejadores de acciones del CRUD
   const manejarAbrirCreacion = () => {

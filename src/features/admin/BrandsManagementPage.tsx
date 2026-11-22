@@ -20,7 +20,6 @@ export default function BrandsManagementPage({
   marcas,
   onRecargarMarcas,
   onMostrarToast,
-  onFiltrarPorMarcaEnCatalogo,
 }: Props) {
   const [busqueda, setBusqueda] = useState("");
   const [filtroLinea, setFiltroLinea] = useState<FiltroLinea>("todas");
@@ -42,7 +41,7 @@ export default function BrandsManagementPage({
   const [marcaDestinoId, setMarcaDestinoId] = useState<number | "">("");
   const [eliminando, setEliminando] = useState(false);
 
-  // Métricas calculadas
+  // Métricas
   const metricas = useMemo(() => {
     const total = marcas.length;
     const disenador = marcas.filter((m) => m.tipo_comercial === "disenador").length;
@@ -51,7 +50,7 @@ export default function BrandsManagementPage({
     return { total, disenador, arabe, nicho };
   }, [marcas]);
 
-  // Filtrado reactivo de marcas
+  // Filtrado de marcas
   const marcasFiltradas = useMemo(() => {
     return marcas.filter((m) => {
       const coincideBusqueda =
@@ -65,7 +64,7 @@ export default function BrandsManagementPage({
     });
   }, [marcas, busqueda, filtroLinea]);
 
-  // Manejo de creación
+  // Abrir modal de creación
   const handleAbrirCrear = () => {
     setMarcaEnEdicion(null);
     setNombreForm("");
@@ -78,7 +77,7 @@ export default function BrandsManagementPage({
     setModalMarcaAbierto(true);
   };
 
-  // Manejo de edición
+  // Abrir modal de edición
   const handleAbrirEditar = (m: MarcaAdminItem) => {
     setMarcaEnEdicion(m);
     setNombreForm(m.nombre);
@@ -92,7 +91,7 @@ export default function BrandsManagementPage({
     setModalMarcaAbierto(true);
   };
 
-  // Guardar marca
+  // Guardar marca (crear o editar)
   const handleGuardarMarca = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nombreForm.trim()) {
@@ -104,11 +103,14 @@ export default function BrandsManagementPage({
     setErrorModal(null);
 
     try {
+      const esEdicion = Boolean(marcaEnEdicion);
       const url = "/api/admin/brands";
-      const method = marcaEnEdicion ? "PUT" : "POST";
-      const body = {
+      const method = esEdicion ? "PUT" : "POST";
+
+      const payload = {
         id: marcaEnEdicion?.id,
         nombre: nombreForm.trim(),
+        slug: slugForm.trim() || undefined,
         tipo_comercial: lineaForm,
         pais_origen: paisOrigenForm.trim() || "Francia",
         activo: activoForm,
@@ -117,27 +119,20 @@ export default function BrandsManagementPage({
       const resp = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
 
       const data = await resp.json();
 
       if (!resp.ok) {
-        setErrorModal(data.error || "Ocurrió un error al guardar la firma.");
-        setGuardando(false);
-        return;
+        throw new Error(data.error || "Error al procesar la solicitud.");
       }
-
-      onMostrarToast(
-        marcaEnEdicion
-          ? `Firma "${nombreForm}" actualizada correctamente.`
-          : `Casa de perfumería "${nombreForm}" registrada en catálogo.`
-      );
 
       setModalMarcaAbierto(false);
       await onRecargarMarcas();
-    } catch {
-      setErrorModal("Error de red al intentar contactar con el servidor.");
+      onMostrarToast(data.mensaje || "Operación realizada con éxito.");
+    } catch (err: any) {
+      setErrorModal(err.message || "Error al comunicarse con el servidor.");
     } finally {
       setGuardando(false);
     }
@@ -145,41 +140,37 @@ export default function BrandsManagementPage({
 
   // Alternar estado activo / pausado
   const handleAlternarEstado = async (m: MarcaAdminItem) => {
+    const nuevoEstado = !m.activo;
     try {
       const resp = await fetch("/api/admin/brands", {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: m.id,
-          nombre: m.nombre,
-          tipo_comercial: m.tipo_comercial,
-          pais_origen: m.pais_origen,
-          activo: !m.activo,
-        }),
+        body: JSON.stringify({ id: m.id, activo: nuevoEstado }),
       });
 
+      const data = await resp.json();
       if (!resp.ok) {
-        onMostrarToast("No se pudo cambiar el estado de la firma.");
-        return;
+        throw new Error(data.error || "No se pudo actualizar el estado.");
       }
 
-      onMostrarToast(
-        !m.activo
-          ? `✓ Firma "${m.nombre}" activada en el catálogo.`
-          : `⏸ Firma "${m.nombre}" pausada en el catálogo.`
-      );
       await onRecargarMarcas();
-    } catch {
-      onMostrarToast("Error de conexión al actualizar estado.");
+      onMostrarToast(
+        nuevoEstado
+          ? `✓ Casa "${m.nombre}" activada en el catálogo.`
+          : `Casa "${m.nombre}" puesta en pausa.`
+      );
+    } catch (err: any) {
+      onMostrarToast(`⚠ ${err.message || "Error de conexión."}`);
     }
   };
 
-  // Confirmar eliminación o reasignación
+  // Confirmar eliminación o transferencia
   const handleConfirmarEliminar = async () => {
     if (!marcaAEliminar) return;
 
-    if (marcaAEliminar.total_productos > 0 && !marcaDestinoId) {
-      onMostrarToast("Selecciona una firma de destino para reasignar los perfumes.");
+    const totalProductos = Number(marcaAEliminar.total_productos ?? 0);
+    if (totalProductos > 0 && !marcaDestinoId) {
+      onMostrarToast("⚠ Debes seleccionar una firma de destino para transferir sus fragancias.");
       return;
     }
 
@@ -191,138 +182,97 @@ export default function BrandsManagementPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: marcaAEliminar.id,
-          marca_destino_id: marcaDestinoId || undefined,
+          reasignar_a: marcaDestinoId ? Number(marcaDestinoId) : undefined,
         }),
       });
 
       const data = await resp.json();
 
       if (!resp.ok) {
-        onMostrarToast(data.error || "Error al retirar la firma.");
-        setEliminando(false);
-        return;
+        throw new Error(data.error || "Error al retirar la firma del catálogo.");
       }
 
-      onMostrarToast(
-        data.productos_reasignados > 0
-          ? `✓ Firma retirada. Se reasignaron ${data.productos_reasignados} perfumes correctamente.`
-          : `✓ Firma "${marcaAEliminar.nombre}" retirada del catálogo.`
-      );
-
       setMarcaAEliminar(null);
+      setMarcaDestinoId("");
       await onRecargarMarcas();
-    } catch {
-      onMostrarToast("Error de conexión al eliminar la firma.");
+      onMostrarToast(data.mensaje || "Casa de perfumería retirada con éxito.");
+    } catch (err: any) {
+      onMostrarToast(`⚠ ${err.message || "Error al procesar la solicitud."}`);
     } finally {
       setEliminando(false);
     }
   };
 
+  const tabs = [
+    { id: "todas" as FiltroLinea, label: `Todas (${metricas.total})` },
+    { id: "disenador" as FiltroLinea, label: `Diseñador (${metricas.disenador})` },
+    { id: "arabe" as FiltroLinea, label: `Árabe (${metricas.arabe})` },
+    { id: "nicho" as FiltroLinea, label: `Nicho (${metricas.nicho})` },
+  ];
+
   return (
-    <div className="w-full">
-      {/* 1. Encabezado */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-5 border-b border-[var(--line)]">
-        <div>
-          <span className="text-[10.5px] uppercase tracking-widest font-semibold text-[var(--gold-deep)] block mb-1">
-            Gestión de Casas de Perfumería
-          </span>
-          <h1 className="font-serif text-2xl text-[var(--ink)] font-normal m-0 tracking-tight">
-            Firmas Oficiales del Catálogo
-          </h1>
-          <p className="text-xs text-[var(--muted)] mt-1 mb-0">
-            Administra las firmas, su línea comercial (Diseñador, Árabe o Nicho) y país de procedencia.
-          </p>
-        </div>
+    <div className="brands-page-container">
+      {/* 1. BARRA SUPERIOR DE ACCIONES */}
+      <div className="brands-top-bar">
+        <p className="brands-top-desc">
+          Gestión de marcas y clasificación por líneas comerciales del catálogo oficial.
+        </p>
 
         <button
           type="button"
-          className="btn btn-gold flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+          className="btn btn-gold brands-create-btn"
           onClick={handleAbrirCrear}
         >
-          <Icon name="plus" size={15} />
-          <span>Registrar nueva firma</span>
+          <Icon name="plus" size={14} />
+          Nueva Casa de Perfumería
         </button>
-      </header>
+      </div>
 
-      {/* 2. Tarjetas de Métricas */}
+      {/* 2. TARJETAS DE MÉTRICAS */}
       <BrandMetrics
         metricas={metricas}
         filtroLinea={filtroLinea}
         onSelectFiltro={setFiltroLinea}
       />
 
-      {/* 3. Barra de herramientas: Búsqueda y Pestañas */}
-      <div className="bg-white border border-[var(--line)] rounded p-3 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
-        {/* Buscador */}
-        <div className="relative flex-1 min-w-[260px]">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none">
+      {/* 3. BARRA DE HERRAMIENTAS: BÚSQUEDA Y PESTAÑAS */}
+      <div className="brands-toolbar">
+        <div className="brands-search-wrap">
+          <span className="brands-search-icon">
             <Icon name="search" size={15} />
           </span>
           <input
-            type="text"
-            placeholder="Buscar por nombre oficial o slug de la firma..."
+            type="search"
+            placeholder="Buscar por nombre de casa..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs border border-[var(--line)] rounded bg-[var(--ivory)] text-[var(--ink)] outline-none focus:border-[var(--gold)]"
+            className="brands-search-input"
           />
-          {busqueda && (
-            <button
-              type="button"
-              onClick={() => setBusqueda("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--ink)] cursor-pointer text-sm p-1"
-              aria-label="Limpiar búsqueda"
-            >
-              ✕
-            </button>
-          )}
         </div>
 
-        {/* Pestañas de Filtro */}
-        <div className="flex items-center gap-1 overflow-x-auto">
-          {(
-            [
-              { id: "todas", label: "Todas" },
-              { id: "disenador", label: "Diseñador" },
-              { id: "arabe", label: "Árabes" },
-              { id: "nicho", label: "Nicho / Autor" },
-            ] as const
-          ).map((tab) => {
-            const isSelected = filtroLinea === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setFiltroLinea(tab.id)}
-                className={`px-3 py-1.5 rounded text-xs transition-colors cursor-pointer whitespace-nowrap ${
-                  isSelected
-                    ? "bg-[var(--gold)] text-white font-semibold"
-                    : "bg-transparent text-[var(--muted)] hover:text-[var(--ink)]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className="brands-tabs">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFiltroLinea(tab.id)}
+              className={`brands-tab-btn${filtroLinea === tab.id ? " is-active" : ""}`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* 4. Cuadrícula de Casas de Perfumería */}
+      {/* 4. GRID DE TARJETAS DE CASAS DE PERFUMERÍA */}
       {marcasFiltradas.length === 0 ? (
-        <div className="p-12 text-center bg-white border border-[var(--line)] rounded">
-          <div className="w-12 h-12 rounded-full bg-[var(--ivory)] border border-[var(--line)] flex items-center justify-center text-[var(--gold-deep)] mx-auto mb-3.5">
-            <Icon name="search" size={20} />
-          </div>
-          <h3 className="font-serif text-lg text-[var(--ink)] font-normal m-0 mb-1.5">
-            No se encontraron firmas registradas
-          </h3>
-          <p className="text-xs text-[var(--muted)] m-0 mb-4 max-w-md mx-auto">
-            {busqueda
-              ? `No hay casas que coincidan con "${busqueda}". Prueba con otro término.`
-              : "No hay casas registradas en esta línea comercial."}
+        <div className="brands-empty">
+          <p>
+            No se encontraron casas de perfumería que coincidan con la búsqueda o filtro.
           </p>
           <button
             type="button"
-            className="btn btn-outline text-xs cursor-pointer"
+            className="btn btn-outline brands-empty-btn"
             onClick={() => {
               setBusqueda("");
               setFiltroLinea("todas");
@@ -332,7 +282,7 @@ export default function BrandsManagementPage({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="brands-grid">
           {marcasFiltradas.map((m) => (
             <BrandCard
               key={m.id}
@@ -348,7 +298,7 @@ export default function BrandsManagementPage({
         </div>
       )}
 
-      {/* 5. Modal de Creación / Edición */}
+      {/* 5. MODAL DE CREACIÓN / EDICIÓN DE CASA DE PERFUMERÍA */}
       <BrandFormModal
         isOpen={modalMarcaAbierto}
         onClose={() => setModalMarcaAbierto(false)}
@@ -368,7 +318,7 @@ export default function BrandsManagementPage({
         error={errorModal}
       />
 
-      {/* 6. Modal de Eliminación y Reasignación */}
+      {/* 6. MODAL DE ELIMINACIÓN Y REASIGNACIÓN */}
       <BrandDeleteModal
         marcaAEliminar={marcaAEliminar}
         marcas={marcas}
