@@ -38,10 +38,10 @@ export default function BrandCard({
           </span>
         </div>
 
-        {/* País de procedencia */}
-        <p className="brand-card-origin">
-          Origen: {marca.pais_origen || "Francia"}
-        </p>
+        {/* País de procedencia (solo si tiene valor asignado) */}
+        {marca.pais_origen?.trim() ? (
+          <p className="brand-card-origin">Origen: {marca.pais_origen}</p>
+        ) : null}
 
         {/* Contador de perfumes vinculados */}
         <div

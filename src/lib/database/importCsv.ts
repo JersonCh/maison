@@ -1,4 +1,5 @@
 import type { FilaCsvProcesada } from "@/lib/csvHelper";
+import { TAMANOS_FRASCO_ESTANDAR } from "@/lib/frascos";
 import { asegurarMarca } from "./brands";
 import { generarSlugUnico } from "./productsAdmin";
 
@@ -40,25 +41,18 @@ export async function importarProductosCsvEnDb(
 
       if (fila.idProductoExistente && modoDuplicados === "actualizar") {
         const id = fila.idProductoExistente;
-        const tamanosFrasco = [
-          { ml: 50, precio: fila.precio_50ml },
-          { ml: 75, precio: fila.precio_75ml },
-          { ml: 100, precio: fila.precio_100ml },
-          { ml: 125, precio: fila.precio_125ml },
-          { ml: 150, precio: fila.precio_150ml },
-          { ml: 200, precio: fila.precio_200ml },
-        ];
 
-        for (const item of tamanosFrasco) {
-          if (item.precio && item.precio > 0) {
-            const pCent = Math.round(item.precio * 100);
+        for (const { ml, field } of TAMANOS_FRASCO_ESTANDAR) {
+          const precio = fila[field];
+          if (precio && precio > 0) {
+            const pCent = Math.round(precio * 100);
             const res = await db
               .prepare(
                 `UPDATE variantes_producto 
                  SET precio_centimos = ?, tipo_presentacion = 'frasco', activo = 1, updated_at = CURRENT_TIMESTAMP 
                  WHERE producto_id = ? AND tamano_ml = ? AND tipo_presentacion = 'frasco'`,
               )
-              .bind(pCent, id, item.ml)
+              .bind(pCent, id, ml)
               .run();
 
             if (res.meta.changes === 0) {
@@ -68,7 +62,7 @@ export async function importarProductosCsvEnDb(
                     producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
                   ) VALUES (?, ?, ?, ?, 0, 0, 'venta_regular', 'frasco', 1)`,
                 )
-                .bind(id, `MDP-${id}-${item.ml}ML`, item.ml, pCent)
+                .bind(id, `MDP-${id}-${ml}ML`, ml, pCent)
                 .run();
             }
           }
@@ -144,22 +138,14 @@ export async function importarProductosCsvEnDb(
       }
       nuevoId = prodFila.id;
 
-      // 3. Crear variantes de frascos (50, 75, 100, 125, 150 o 200 ml)
+      // 3. Crear variantes de frascos configuradas + decants
       const batchVariantes: any[] = [];
       let predeterminadaAsignada = false;
 
-      const tamanosFrascoNuevos = [
-        { ml: 50, precio: fila.precio_50ml },
-        { ml: 75, precio: fila.precio_75ml },
-        { ml: 100, precio: fila.precio_100ml },
-        { ml: 125, precio: fila.precio_125ml },
-        { ml: 150, precio: fila.precio_150ml },
-        { ml: 200, precio: fila.precio_200ml },
-      ];
-
-      for (const item of tamanosFrascoNuevos) {
-        if (item.precio && item.precio > 0) {
-          const pCent = Math.round(item.precio * 100);
+      for (const { ml, field } of TAMANOS_FRASCO_ESTANDAR) {
+        const precio = fila[field];
+        if (precio && precio > 0) {
+          const pCent = Math.round(precio * 100);
           const esPred = !predeterminadaAsignada ? 1 : 0;
           predeterminadaAsignada = true;
           batchVariantes.push(
@@ -169,7 +155,7 @@ export async function importarProductosCsvEnDb(
                   producto_id, sku, tamano_ml, precio_centimos, es_predeterminada, controla_stock, modalidad_disponibilidad, tipo_presentacion, activo
                 ) VALUES (?, ?, ?, ?, ?, 0, 'venta_regular', 'frasco', 1)`,
               )
-              .bind(nuevoId, `MDP-${nuevoId}-${item.ml}ML`, item.ml, pCent, esPred),
+              .bind(nuevoId, `MDP-${nuevoId}-${ml}ML`, ml, pCent, esPred),
           );
         }
       }

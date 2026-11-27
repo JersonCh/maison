@@ -153,7 +153,7 @@ export default function BrandFormModal({
             </div>
           </div>
 
-          {/* País de Procedencia de la Casa */}
+          {/* País de Procedencia de la Casa (Opcional) */}
           <div className="brand-field">
             <label
               htmlFor={
@@ -163,15 +163,17 @@ export default function BrandFormModal({
               }
               className="brand-label"
             >
-              País de origen (Procedencia de la firma) *
+              País de origen (Opcional)
             </label>
             {!modoPaisPersonalizado ? (
               <select
                 id="select-pais-origen"
                 value={
-                  PAISES_ORIGEN_COMBO.includes(paisOrigen)
-                    ? paisOrigen
-                    : "__otro__"
+                  !paisOrigen
+                    ? ""
+                    : PAISES_ORIGEN_COMBO.includes(paisOrigen)
+                      ? paisOrigen
+                      : "__otro__"
                 }
                 onChange={(e) => {
                   if (e.target.value === "__otro__") {
@@ -183,6 +185,7 @@ export default function BrandFormModal({
                 }}
                 className="brand-select"
               >
+                <option value="">— Sin especificar —</option>
                 {PAISES_ORIGEN_COMBO.map((pais) => (
                   <option key={pais} value={pais}>
                     {pais}
@@ -197,7 +200,6 @@ export default function BrandFormModal({
                 <input
                   id="input-pais-personalizado"
                   type="text"
-                  required
                   placeholder="Escribe el país de procedencia (ej. Japón, Suiza, Omán)"
                   value={paisOrigen}
                   onChange={(e) => setPaisOrigen(e.target.value)}
@@ -207,7 +209,7 @@ export default function BrandFormModal({
                   type="button"
                   onClick={() => {
                     setModoPaisPersonalizado(false);
-                    setPaisOrigen("Francia");
+                    setPaisOrigen("");
                   }}
                   className="brand-country-back"
                 >

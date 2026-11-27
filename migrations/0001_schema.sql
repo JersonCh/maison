@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS marcas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
-    pais_origen TEXT NOT NULL DEFAULT 'Francia',
+    pais_origen TEXT,
     tipo_comercial TEXT DEFAULT 'disenador' CHECK(tipo_comercial IN ('disenador', 'arabe', 'nicho')),
     logo_key TEXT,
     activo INTEGER NOT NULL DEFAULT 1 CHECK(activo IN (0, 1)),

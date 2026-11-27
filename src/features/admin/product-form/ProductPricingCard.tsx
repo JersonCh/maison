@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   TAMANOS_FRASCO_ESTANDAR,
   type CampoPrecioFrasco,
@@ -38,6 +38,20 @@ export function ProductPricingCard({
   precioDecant10ml,
   setPrecioDecant10ml,
 }: ProductPricingCardProps) {
+  const [mostrarTodosTamanos, setMostrarTodosTamanos] = useState(false);
+
+  const tamanosVisibles = TAMANOS_FRASCO_ESTANDAR.filter(({ field, refField, frecuente }) => {
+    if (mostrarTodosTamanos || frecuente) return true;
+    const tienePrecio = Number(preciosFrascos[field] || 0) > 0;
+    const tieneRef = Boolean(referenciasHabilitadas[refField]) || Number(preciosReferencia[refField] || 0) > 0;
+    return tienePrecio || tieneRef;
+  });
+
+  const hayTamanosOcultos = tamanosVisibles.length < TAMANOS_FRASCO_ESTANDAR.length;
+  const tamanosAdicionalesTexto = TAMANOS_FRASCO_ESTANDAR.filter((t) => !t.frecuente)
+    .map((t) => `${t.ml}`)
+    .join(", ");
+
   return (
     <section className="admin-card">
       <div className="admin-card-header">
@@ -51,7 +65,7 @@ export function ProductPricingCard({
       </div>
 
       <div className="form-grid">
-        {TAMANOS_FRASCO_ESTANDAR.map(({ ml, field, refField, placeholder }) => {
+        {tamanosVisibles.map(({ ml, field, refField, placeholder }) => {
           const refActiva = Boolean(referenciasHabilitadas[refField]);
           const precioNormal = Number(preciosFrascos[field] || 0);
           const refVal = Number(preciosReferencia[refField] || 0);
@@ -201,6 +215,21 @@ export function ProductPricingCard({
             </div>
           );
         })}
+
+        {(hayTamanosOcultos || mostrarTodosTamanos) && (
+          <div style={{ gridColumn: "1 / -1", marginBottom: "12px" }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ fontSize: "12.5px", padding: "8px 14px" }}
+              onClick={() => setMostrarTodosTamanos((prev) => !prev)}
+            >
+              {mostrarTodosTamanos
+                ? "Ocultar tamaños adicionales"
+                : `+ Mostrar otros tamaños disponibles (${tamanosAdicionalesTexto} ml)`}
+            </button>
+          </div>
+        )}
 
         {/* Box destacado de Decants */}
         <div

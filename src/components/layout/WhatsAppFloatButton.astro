@@ -1,0 +1,60 @@
+---
+import { normalizarTelefonoWhatsApp } from "@/features/whatsapp/whatsapp";
+
+interface Props {
+  phone?: string;
+  pathname?: string;
+  pageTitle?: string;
+}
+
+const { phone, pathname = "/", pageTitle = "" } = Astro.props;
+
+function construirMensajeContextual(ruta: string, titulo: string): string {
+  if (ruta.startsWith("/perfumes/")) {
+    const nombreLimpio = titulo.replace(/\s*\|\s*Maison des Parfums.*$/i, "").trim();
+    if (nombreLimpio) {
+      return `Hola Maison des Parfums, estoy viendo la fragancia ${nombreLimpio} y quisiera asesoría sobre disponibilidad o aroma.`;
+    }
+    return "Hola Maison des Parfums, estoy viendo una fragancia en su catálogo y quisiera asesoría.";
+  }
+
+  if (ruta.startsWith("/envios")) {
+    return "Hola Maison des Parfums, tengo una consulta sobre envíos y tiempos de entrega.";
+  }
+
+  if (ruta.startsWith("/contacto")) {
+    return "Hola Maison des Parfums, quisiera consultar sobre atención en su sede oficial en Tacna.";
+  }
+
+  return "Hola Maison des Parfums, quisiera asesoría personalizada para elegir una fragancia.";
+}
+
+const telefonoNormalizado = normalizarTelefonoWhatsApp(phone);
+const mensaje = construirMensajeContextual(pathname, pageTitle);
+const whatsappHref = `https://wa.me/${telefonoNormalizado}?text=${encodeURIComponent(mensaje)}`;
+---
+
+<a
+  href={whatsappHref}
+  target="_blank"
+  rel="noopener noreferrer"
+  class="whatsapp-float-btn"
+  aria-label="Asesoría personalizada por WhatsApp"
+>
+  <span class="whatsapp-float-tooltip" aria-hidden="true">
+    Asesoría por WhatsApp
+  </span>
+  <svg
+    class="whatsapp-float-icon"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
+    <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1" />
+  </svg>
+</a>

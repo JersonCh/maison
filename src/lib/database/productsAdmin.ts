@@ -5,7 +5,11 @@ import type {
 import type { Gender } from "@/types/product";
 import { asegurarMarca, asegurarFamiliaOlfativa } from "./brands";
 import { normalizarTextoParaSlug, normalizarTipoComercial } from "./utils";
-import { TAMANOS_FRASCO_ESTANDAR } from "@/lib/frascos";
+import {
+  TAMANOS_FRASCO_ESTANDAR,
+  type CampoPrecioFrasco,
+  type CampoPrecioReferenciaFrasco,
+} from "@/lib/frascos";
 
 function resolverPrecioRefCentimos(precioNum: number, refVal?: number | null): number | null {
   const refNum = Number(refVal || 0);
@@ -102,12 +106,14 @@ export async function obtenerProductosParaAdmin(
         ? Math.round(v.precio_referencia_centimos / 100)
         : null;
 
-    const v50 = buscarFrasco(50);
-    const v75 = buscarFrasco(75);
-    const v100 = buscarFrasco(100);
-    const v125 = buscarFrasco(125);
-    const v150 = buscarFrasco(150);
-    const v200 = buscarFrasco(200);
+    const preciosFrascos = {} as Record<CampoPrecioFrasco, number | null>;
+    const preciosRefFrascos = {} as Record<CampoPrecioReferenciaFrasco, number | null>;
+    for (const { ml, field, refField } of TAMANOS_FRASCO_ESTANDAR) {
+      const vFrasco = buscarFrasco(ml);
+      preciosFrascos[field] = precioDe(vFrasco);
+      preciosRefFrascos[refField] = refDe(vFrasco);
+    }
+
     const vDecant3 = vars.find((v) => Math.round(v.tamano_ml) === 3);
     const vDecant5 = vars.find((v) => Math.round(v.tamano_ml) === 5);
     const vDecant10 = vars.find((v) => Math.round(v.tamano_ml) === 10);
@@ -138,18 +144,8 @@ export async function obtenerProductosParaAdmin(
       es_destacado: Boolean(p.es_destacado),
       activo: p.estado === "publicado",
       estado: p.estado,
-      precio_50ml: precioDe(v50),
-      precio_75ml: precioDe(v75),
-      precio_100ml: precioDe(v100),
-      precio_125ml: precioDe(v125),
-      precio_150ml: precioDe(v150),
-      precio_200ml: precioDe(v200),
-      precio_referencia_50ml: refDe(v50),
-      precio_referencia_75ml: refDe(v75),
-      precio_referencia_100ml: refDe(v100),
-      precio_referencia_125ml: refDe(v125),
-      precio_referencia_150ml: refDe(v150),
-      precio_referencia_200ml: refDe(v200),
+      ...preciosFrascos,
+      ...preciosRefFrascos,
       imagenes: fotosRegistradas,
     };
   });

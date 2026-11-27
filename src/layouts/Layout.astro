@@ -2,6 +2,7 @@
 import Announcement from "@/components/layout/Announcement.astro";
 import Header from "@/components/layout/Header.astro";
 import Footer from "@/components/layout/Footer.astro";
+import WhatsAppFloatButton from "@/components/layout/WhatsAppFloatButton.astro";
 import CartDrawer from "@/features/cart/CartDrawer";
 import SearchModal from "@/features/search/SearchModal";
 import MobileDrawer from "@/components/layout/MobileDrawer";
@@ -136,6 +137,11 @@ const storeSchema = {
           <CartDrawer client:idle phone={whatsappPhone} />
           <SearchModal client:idle />
           <MobileDrawer client:idle />
+          <WhatsAppFloatButton
+            phone={whatsappPhone}
+            pathname={Astro.url.pathname}
+            pageTitle={title}
+          />
         </>
       )}
     </div>

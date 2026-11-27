@@ -372,10 +372,26 @@ export function ProductGeneralCard({
               <span style={{ fontSize: "11.5px", fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--ink)" }}>
                 Línea / Gama Comercial *
               </span>
+              {Boolean(marcaId) && (
+                <span style={{ fontSize: "11px", color: "var(--muted)", fontWeight: 500 }}>
+                  Definida por la marca
+                </span>
+              )}
             </div>
             <select
               value={tipoComercial}
+              disabled={Boolean(marcaId)}
               onChange={(e) => setTipoComercial(e.target.value as CommercialType)}
+              style={
+                marcaId
+                  ? { backgroundColor: "#f7f4ee", color: "var(--ink)", cursor: "not-allowed", opacity: 0.85 }
+                  : undefined
+              }
+              title={
+                marcaId
+                  ? "La línea comercial se hereda automáticamente de la casa de perfumería seleccionada"
+                  : undefined
+              }
             >
               <option value="disenador">Diseñador (Grandes firmas internacionales)</option>
               <option value="arabe">Árabes (Tradición y fijación oriental)</option>

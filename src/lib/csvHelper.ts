@@ -1,26 +1,21 @@
 import * as XLSX from "xlsx";
 import type { Gender, CommercialType } from "@/types/product";
 import type { MarcaItem, ProductoAdminItem } from "@/types/database";
+import { TAMANOS_FRASCO_ESTANDAR, type CampoPrecioFrasco } from "@/lib/frascos";
 
-export interface FilaCsvRaw {
+export interface FilaCsvRaw extends Partial<Record<CampoPrecioFrasco, string | number>> {
   marca: string;
   nombre: string;
   linea_comercial?: string;
   genero?: string;
   concentracion?: string;
   ocasion_uso?: string;
-  precio_50ml?: string | number;
-  precio_75ml?: string | number;
-  precio_100ml?: string | number;
-  precio_125ml?: string | number;
-  precio_150ml?: string | number;
-  precio_200ml?: string | number;
   precio_decant_3ml?: string | number;
   precio_decant_5ml?: string | number;
   precio_decant_10ml?: string | number;
 }
 
-export interface FilaCsvProcesada {
+export interface FilaCsvProcesada extends Record<CampoPrecioFrasco, number | null> {
   filaNumero: number;
   marca: string;
   nombre: string;
@@ -29,12 +24,6 @@ export interface FilaCsvProcesada {
   concentracion: string;
   pais_origen?: string;
   ocasion_uso: string;
-  precio_50ml: number | null;
-  precio_75ml: number | null;
-  precio_100ml: number | null;
-  precio_125ml: number | null;
-  precio_150ml: number | null;
-  precio_200ml: number | null;
   tiene_decants: boolean;
   precio_decant_3ml?: number | null;
   precio_decant_5ml?: number | null;
@@ -273,6 +262,36 @@ export function parsearArchivoExcel(buffer: ArrayBuffer): string[][] {
   );
 }
 
+function buscarIndiceColumnaFrasco(cabeceras: string[], ml: number): number {
+  const mlStr = String(ml);
+  return cabeceras.findIndex((c) => {
+    if (c.includes("decant") || c.includes("dec_")) return false;
+    if (c === `precio_${mlStr}ml` || c === `${mlStr}ml` || c === `precio_${mlStr}`) {
+      return true;
+    }
+    const tokens = c.split(/[^a-z0-9]+/).filter(Boolean);
+    return tokens.includes(mlStr) || tokens.includes(`${mlStr}ml`);
+  });
+}
+
+function buscarIndiceColumnaDecant(cabeceras: string[], ml: number): number {
+  const mlStr = String(ml);
+  return cabeceras.findIndex((c) => {
+    if (
+      c === `precio_decant_${mlStr}ml` ||
+      c === `decant_${mlStr}ml` ||
+      c === `decant_${mlStr}` ||
+      c === `dec_${mlStr}` ||
+      c === `${mlStr}ml`
+    ) {
+      return true;
+    }
+    if (!c.includes("decant") && !c.includes("dec_")) return false;
+    const tokens = c.split(/[^a-z0-9]+/).filter(Boolean);
+    return tokens.includes(mlStr) || tokens.includes(`${mlStr}ml`);
+  });
+}
+
 /**
  * Función núcleo que procesa cualquier matriz de celdas (provenga de Excel o CSV),
  * validando reglas de negocio, detectando duplicados y aplicando corrección inteligente de marcas.
@@ -317,15 +336,13 @@ export function procesarMatrizFilas(
   const idxGenero = cabeceras.findIndex((c) => c.includes("genero") || c.includes("sexo"));
   const idxConcentracion = cabeceras.findIndex((c) => c.includes("concentracion"));
   const idxOcasion = cabeceras.findIndex((c) => c.includes("ocasion") || c.includes("uso"));
-  const idxP50 = cabeceras.findIndex((c) => c === "precio_50ml" || c === "50ml" || c === "precio_50" || (c.includes("50") && !c.includes("150")));
-  const idxP75 = cabeceras.findIndex((c) => c.includes("75"));
-  const idxP100 = cabeceras.findIndex((c) => c.includes("100"));
-  const idxP125 = cabeceras.findIndex((c) => c.includes("125"));
-  const idxP150 = cabeceras.findIndex((c) => c.includes("150"));
-  const idxP200 = cabeceras.findIndex((c) => c.includes("200"));
-  const idxDec3 = cabeceras.findIndex((c) => c.includes("decant_3") || c.includes("dec_3") || c.includes("3ml"));
-  const idxDec5 = cabeceras.findIndex((c) => c.includes("decant_5") || c.includes("dec_5") || c.includes("5ml"));
-  const idxDec10 = cabeceras.findIndex((c) => c.includes("decant_10") || c.includes("dec_10") || c.includes("10ml"));
+  const indicesFrascos = TAMANOS_FRASCO_ESTANDAR.map(({ ml, field }) => ({
+    field,
+    idx: buscarIndiceColumnaFrasco(cabeceras, ml),
+  }));
+  const idxDec3 = buscarIndiceColumnaDecant(cabeceras, 3);
+  const idxDec5 = buscarIndiceColumnaDecant(cabeceras, 5);
+  const idxDec10 = buscarIndiceColumnaDecant(cabeceras, 10);
 
   // Mapa de productos existentes en la base de datos para detección de duplicados
   const mapaProductosExistentes = new Map<string, number>();
@@ -355,12 +372,6 @@ export function procesarMatrizFilas(
     const generoRaw = idxGenero !== -1 ? col[idxGenero] || "" : "";
     const concRaw = idxConcentracion !== -1 ? col[idxConcentracion] || "" : "";
     const ocasionRaw = idxOcasion !== -1 ? col[idxOcasion] || "" : "";
-    const p50Raw = idxP50 !== -1 ? col[idxP50] || "" : "";
-    const p75Raw = idxP75 !== -1 ? col[idxP75] || "" : "";
-    const p100Raw = idxP100 !== -1 ? col[idxP100] || "" : "";
-    const p125Raw = idxP125 !== -1 ? col[idxP125] || "" : "";
-    const p150Raw = idxP150 !== -1 ? col[idxP150] || "" : "";
-    const p200Raw = idxP200 !== -1 ? col[idxP200] || "" : "";
     const dec3Raw = idxDec3 !== -1 ? col[idxDec3] || "" : "";
     const dec5Raw = idxDec5 !== -1 ? col[idxDec5] || "" : "";
     const dec10Raw = idxDec10 !== -1 ? col[idxDec10] || "" : "";
@@ -376,24 +387,20 @@ export function procesarMatrizFilas(
       errores.push("Falta el nombre del Perfume.");
     }
 
-    const precio50 = normalizarPrecio(p50Raw);
-    const precio75 = normalizarPrecio(p75Raw);
-    const precio100 = normalizarPrecio(p100Raw);
-    const precio125 = normalizarPrecio(p125Raw);
-    const precio150 = normalizarPrecio(p150Raw);
-    const precio200 = normalizarPrecio(p200Raw);
-
-    const tiene50 = precio50 !== null && precio50 > 0;
-    const tiene75 = precio75 !== null && precio75 > 0;
-    const tiene100 = precio100 !== null && precio100 > 0;
-    const tiene125 = precio125 !== null && precio125 > 0;
-    const tiene150 = precio150 !== null && precio150 > 0;
-    const tiene200 = precio200 !== null && precio200 > 0;
-
-    const tieneFrasco = tiene50 || tiene75 || tiene100 || tiene125 || tiene150 || tiene200;
+    const preciosFrascos = {} as Record<CampoPrecioFrasco, number | null>;
+    let tieneFrasco = false;
+    for (const { field, idx } of indicesFrascos) {
+      const raw = idx !== -1 ? col[idx] || "" : "";
+      const precio = normalizarPrecio(raw);
+      const valido = precio !== null && precio > 0;
+      preciosFrascos[field] = valido ? precio : null;
+      if (valido) {
+        tieneFrasco = true;
+      }
+    }
 
     if (!tieneFrasco) {
-      errores.push("Debes ingresar al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).");
+      errores.push("Debes ingresar el precio de al menos una presentación de frasco.");
     }
 
     const pDec3 = normalizarPrecio(dec3Raw);
@@ -459,12 +466,7 @@ export function procesarMatrizFilas(
       concentracion,
       pais_origen,
       ocasion_uso,
-      precio_50ml: tiene50 ? precio50 : null,
-      precio_75ml: tiene75 ? precio75 : null,
-      precio_100ml: tiene100 ? precio100 : null,
-      precio_125ml: tiene125 ? precio125 : null,
-      precio_150ml: tiene150 ? precio150 : null,
-      precio_200ml: tiene200 ? precio200 : null,
+      ...preciosFrascos,
       tiene_decants: tieneDecants,
       precio_decant_3ml: pDec3,
       precio_decant_5ml: pDec5,
@@ -547,24 +549,19 @@ export function descargarPlantillaCsv(): void {
     "genero",
     "concentracion",
     "ocasion_uso",
-    "precio_50ml",
-    "precio_75ml",
-    "precio_100ml",
-    "precio_125ml",
-    "precio_150ml",
-    "precio_200ml",
+    ...TAMANOS_FRASCO_ESTANDAR.map((t) => t.field),
     "precio_decant_3ml",
     "precio_decant_5ml",
     "precio_decant_10ml",
   ];
 
   const filasEjemplo = [
-    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Noche y eventos de gala", "", "", "920", "", "", "", "50", "75", "135"],
-    ["Parfums de Marly", "Layton", "nicho", "Unisex", "Eau de Parfum", "Otoño e invierno", "", "980", "", "1350", "", "", "65", "95", "175"],
-    ["Jean Paul Gaultier", "Le Male Elixir", "disenador", "Hombre", "Parfum", "Noche y fiesta", "", "520", "", "680", "", "", "35", "55", "95"],
-    ["Bleu de Chanel", "Eau de Parfum", "disenador", "Hombre", "Eau de Parfum", "Versatilidad total", "580", "", "740", "", "920", "", "", "", ""],
-    ["Giorgio Armani", "Acqua Di Gio", "disenador", "Hombre", "Eau de Toilette", "Verano y frescura", "", "", "560", "", "", "820", "", "", ""],
-    ["Lattafa", "Khamrah", "arabe", "Unisex", "Eau de Parfum", "Noche e invierno", "", "", "280", "", "", "", "25", "35", "60"],
+    ["Dior", "Sauvage Elixir", "disenador", "Hombre", "Parfum", "Noche y eventos de gala", "", "", "", "", "", "920", "", "", "", "", "", "", "", "", "50", "75", "135"],
+    ["Parfums de Marly", "Layton", "nicho", "Unisex", "Eau de Parfum", "Otoño e invierno", "", "", "980", "", "", "", "", "", "", "1350", "", "", "", "", "65", "95", "175"],
+    ["Armaf", "Club de Nuit Intense", "arabe", "Hombre", "Eau de Toilette", "Versatilidad diaria", "", "", "", "", "", "", "220", "", "", "", "", "", "", "", "20", "30", "55"],
+    ["Bleu de Chanel", "Eau de Parfum", "disenador", "Hombre", "Eau de Parfum", "Versatilidad total", "580", "", "", "", "", "740", "", "", "", "", "920", "", "", "", "", "", ""],
+    ["Giorgio Armani", "Acqua Di Gio", "disenador", "Hombre", "Eau de Toilette", "Verano y frescura", "", "", "", "", "", "560", "", "", "", "", "", "820", "", "", "", "", ""],
+    ["Tom Ford", "Oud Wood", "nicho", "Unisex", "Eau de Parfum", "Noche y firma", "890", "", "", "", "", "1250", "", "", "", "", "", "", "", "2400", "70", "110", "200"],
   ];
 
   const csvLineas = [

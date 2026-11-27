@@ -1,4 +1,5 @@
 import React from "react";
+import { TAMANOS_FRASCO_ESTANDAR } from "@/lib/frascos";
 import type { MarcaItem, FilaCsvProcesada, FiltroVistaPreview } from "./types";
 import {
   FileTextIcon,
@@ -422,14 +423,10 @@ export function CsvPreviewStep({
                     </td>
                     <td style={{ padding: "9px 12px" }}>{f.genero}</td>
                     <td style={{ padding: "9px 12px" }}>
-                      {[
-                        f.precio_50ml && f.precio_50ml > 0 ? `50ml: S/ ${f.precio_50ml}` : null,
-                        f.precio_75ml && f.precio_75ml > 0 ? `75ml: S/ ${f.precio_75ml}` : null,
-                        f.precio_100ml && f.precio_100ml > 0 ? `100ml: S/ ${f.precio_100ml}` : null,
-                        f.precio_125ml && f.precio_125ml > 0 ? `125ml: S/ ${f.precio_125ml}` : null,
-                        f.precio_150ml && f.precio_150ml > 0 ? `150ml: S/ ${f.precio_150ml}` : null,
-                        f.precio_200ml && f.precio_200ml > 0 ? `200ml: S/ ${f.precio_200ml}` : null,
-                      ]
+                      {TAMANOS_FRASCO_ESTANDAR.map(({ ml, field }) => {
+                        const val = f[field];
+                        return val && val > 0 ? `${ml}ml: S/ ${val}` : null;
+                      })
                         .filter(Boolean)
                         .map((texto, i) => (
                           <div key={i} style={{ fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap" }}>

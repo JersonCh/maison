@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const nombre = String(payload?.nombre || "").trim();
     const slug = payload?.slug ? String(payload.slug).trim() : undefined;
     const tipoComercial = (payload?.tipo_comercial || "disenador") as CommercialType;
-    const paisOrigen = String(payload?.pais_origen || "Francia").trim();
+    const paisOrigen = payload?.pais_origen ? String(payload.pais_origen).trim() : undefined;
 
     if (!nombre) {
       return new Response(

@@ -386,9 +386,7 @@ export default function AdminDashboard({ }: Props) {
               onReloadMetadata={async () => {
                 await Promise.all([cargarMarcas(), cargarMetadatos()]);
               }}
-              onOpenImportCsv={() => {
-                // Inactivo temporalmente a solicitud
-              }}
+              onOpenImportCsv={() => setMostrarModalCsv(true)}
               onNavigateToBrands={() => {
                 // Inactivo temporalmente a solicitud
               }}
@@ -400,9 +398,7 @@ export default function AdminDashboard({ }: Props) {
               onToggleActive={manejarAlternarVisibilidad}
               onDelete={solicitarEliminarProducto}
               onAddNew={manejarAbrirCreacion}
-              onOpenImportCsv={() => {
-                // Inactivo temporalmente a solicitud
-              }}
+              onOpenImportCsv={() => setMostrarModalCsv(true)}
             />
           )
         )}
