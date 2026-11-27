@@ -13,13 +13,13 @@ export async function obtenerMarcasDisponibles(
   db: D1Database,
 ): Promise<MarcaItem[]> {
   const { results } = await db
-    .prepare("SELECT id, nombre, slug, tipo_comercial, COALESCE(pais_origen, 'Francia') AS pais_origen FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
+    .prepare("SELECT id, nombre, slug, tipo_comercial, pais_origen FROM marcas WHERE activo = 1 ORDER BY nombre ASC")
     .all<any>();
   return results.map((r) => ({
     id: r.id,
     nombre: r.nombre,
     slug: r.slug,
-    pais_origen: r.pais_origen || "Francia",
+    pais_origen: r.pais_origen ?? null,
     tipo_comercial: normalizarTipoComercial(r.tipo_comercial),
   }));
 }
@@ -37,7 +37,7 @@ export async function obtenerMarcasAdmin(
         m.id, 
         m.nombre, 
         m.slug, 
-        COALESCE(m.pais_origen, 'Francia') AS pais_origen, 
+        m.pais_origen, 
         m.tipo_comercial, 
         m.activo, 
         m.created_at,
@@ -54,7 +54,7 @@ export async function obtenerMarcasAdmin(
     id: r.id,
     nombre: r.nombre,
     slug: r.slug,
-    pais_origen: r.pais_origen || "Francia",
+    pais_origen: r.pais_origen ?? null,
     tipo_comercial: normalizarTipoComercial(r.tipo_comercial),
     activo: Boolean(r.activo),
     total_productos: Number(r.total_productos) || 0,
@@ -81,7 +81,7 @@ export async function crearMarcaAdmin(
   const slugBase = datos.slug?.trim() || nombreLimpio;
   const slug = normalizarTextoParaSlug(slugBase);
   const tipoComercial = normalizarTipoComercial(datos.tipo_comercial);
-  const paisOrigen = datos.pais_origen?.trim() || "Francia";
+  const paisOrigen = datos.pais_origen?.trim() || null;
 
   const existente = await db
     .prepare("SELECT id, nombre FROM marcas WHERE LOWER(nombre) = LOWER(?) OR slug = ? LIMIT 1")
@@ -125,7 +125,7 @@ export async function actualizarMarcaAdmin(
   const slugBase = datos.slug?.trim() || nombreLimpio;
   const slug = normalizarTextoParaSlug(slugBase);
   const tipoComercial = normalizarTipoComercial(datos.tipo_comercial);
-  const paisOrigen = datos.pais_origen?.trim() || "Francia";
+  const paisOrigen = datos.pais_origen?.trim() || null;
   const activo = datos.activo !== undefined ? (datos.activo ? 1 : 0) : 1;
 
   const colision = await db
@@ -270,7 +270,7 @@ export async function asegurarMarca(
     const nombreLimpio = nuevaMarcaNombre.trim();
     const slug = normalizarTextoParaSlug(nombreLimpio);
     const tipoFinal = normalizarTipoComercial(tipoComercial);
-    const paisFinal = paisOrigen?.trim() || "Francia";
+    const paisFinal = paisOrigen?.trim() || null;
 
     // Verificar si ya existe por nombre o slug
     const existente = await db

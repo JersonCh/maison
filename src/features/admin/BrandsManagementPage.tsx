@@ -30,7 +30,7 @@ export default function BrandsManagementPage({
   const [nombreForm, setNombreForm] = useState("");
   const [slugForm, setSlugForm] = useState("");
   const [lineaForm, setLineaForm] = useState<CommercialType>("disenador");
-  const [paisOrigenForm, setPaisOrigenForm] = useState("Francia");
+  const [paisOrigenForm, setPaisOrigenForm] = useState("");
   const [modoPaisPersonalizado, setModoPaisPersonalizado] = useState(false);
   const [activoForm, setActivoForm] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -70,7 +70,7 @@ export default function BrandsManagementPage({
     setNombreForm("");
     setSlugForm("");
     setLineaForm("disenador");
-    setPaisOrigenForm("Francia");
+    setPaisOrigenForm("");
     setModoPaisPersonalizado(false);
     setActivoForm(true);
     setErrorModal(null);
@@ -83,9 +83,9 @@ export default function BrandsManagementPage({
     setNombreForm(m.nombre);
     setSlugForm(m.slug);
     setLineaForm(m.tipo_comercial);
-    const pais = m.pais_origen || "Francia";
+    const pais = m.pais_origen?.trim() || "";
     setPaisOrigenForm(pais);
-    setModoPaisPersonalizado(!PAISES_ORIGEN_COMBO.includes(pais));
+    setModoPaisPersonalizado(Boolean(pais) && !PAISES_ORIGEN_COMBO.includes(pais));
     setActivoForm(m.activo);
     setErrorModal(null);
     setModalMarcaAbierto(true);
@@ -112,7 +112,7 @@ export default function BrandsManagementPage({
         nombre: nombreForm.trim(),
         slug: slugForm.trim() || undefined,
         tipo_comercial: lineaForm,
-        pais_origen: paisOrigenForm.trim() || "Francia",
+        pais_origen: paisOrigenForm.trim() || null,
         activo: activoForm,
       };
 

@@ -21,6 +21,16 @@ interface ProductFormSidebarProps {
   slug: string;
 }
 
+function obtenerTextoBotonGuardar(
+  guardando: boolean,
+  esEdicion: boolean,
+  activo: boolean,
+): string {
+  if (guardando) return "Guardando cambios...";
+  if (esEdicion) return "✓ Guardar cambios";
+  return activo ? "✓ Publicar fragancia" : "Guardar como borrador";
+}
+
 export function ProductFormSidebar({
   activo,
   setActivo,
@@ -39,55 +49,79 @@ export function ProductFormSidebar({
   tipoComercial,
   slug,
 }: ProductFormSidebarProps) {
+  const textoBotonGuardar = obtenerTextoBotonGuardar(guardando, esEdicion, activo);
+
   return (
     <aside className="product-page-sidebar">
       {/* CARD ESTADO Y PUBLICACIÓN */}
       <section className="admin-card sidebar-sticky-card">
         <h3 className="sidebar-card-title">Estado de Publicación</h3>
 
-        <div className="sidebar-toggles">
+        <div className="sidebar-toggles" style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "18px" }}>
           <label
-            className="check-row"
-            style={{ cursor: "pointer" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              cursor: "pointer",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1px solid var(--border, #e7e2d8)",
+              background: activo ? "rgba(215, 173, 87, 0.06)" : "transparent",
+            }}
             aria-label={activo ? "Visible en catálogo" : "Borrador (Oculto)"}
           >
-            <input
-              type="checkbox"
-              checked={activo}
-              onChange={(e) => setActivo(e.target.checked)}
-            />
-            <span />
             <div>
-              <strong style={{ display: "block", fontSize: "13px" }}>
+              <strong style={{ display: "block", fontSize: "13px", color: "var(--ink)" }}>
                 {activo ? "Visible en catálogo" : "Borrador (Oculto)"}
               </strong>
-              <small style={{ color: "var(--muted)", fontSize: "11px" }}>
+              <small style={{ color: "var(--muted)", fontSize: "11px", lineHeight: 1.35, display: "block", marginTop: "2px" }}>
                 {activo
                   ? "Los clientes pueden comprarlo en tienda y WhatsApp."
                   : "No aparecerá en el catálogo público."}
               </small>
             </div>
+            <span className="toggle-switch" style={{ flexShrink: 0 }}>
+              <input
+                type="checkbox"
+                checked={activo}
+                onChange={(e) => setActivo(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </span>
           </label>
 
           <label
-            className="check-row"
-            style={{ cursor: "pointer" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              cursor: "pointer",
+              padding: "10px 12px",
+              borderRadius: "8px",
+              border: "1px solid var(--border, #e7e2d8)",
+              background: esDestacado ? "rgba(215, 173, 87, 0.06)" : "transparent",
+            }}
             aria-label="Selección Destacada"
           >
-            <input
-              type="checkbox"
-              checked={esDestacado}
-              onChange={(e) => setEsDestacado(e.target.checked)}
-            />
-            <span />
             <div>
-              <strong style={{ display: "block", fontSize: "13px" }}>
+              <strong style={{ display: "block", fontSize: "13px", color: "var(--ink)" }}>
                 Selección Destacada
               </strong>
-              <small style={{ color: "var(--muted)", fontSize: "11px" }}>
+              <small style={{ color: "var(--muted)", fontSize: "11px", lineHeight: 1.35, display: "block", marginTop: "2px" }}>
                 Mostrar en la portada de la tienda.
               </small>
             </div>
+            <span className="toggle-switch" style={{ flexShrink: 0 }}>
+              <input
+                type="checkbox"
+                checked={esDestacado}
+                onChange={(e) => setEsDestacado(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </span>
           </label>
         </div>
 
@@ -99,11 +133,7 @@ export function ProductFormSidebar({
             onClick={() => onSave(false)}
             disabled={guardando}
           >
-            {guardando
-              ? "Guardando cambios..."
-              : esEdicion
-                ? "✓ Guardar cambios"
-                : "✓ Publicar fragancia"}
+            {textoBotonGuardar}
           </button>
           {!esEdicion && (
             <button

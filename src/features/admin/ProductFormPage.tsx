@@ -50,20 +50,33 @@ export default function ProductFormPage({
   // Lista local reactiva de casas de perfumería
   const [listaMarcas, setListaMarcas] = useState<MarcaItem[]>(marcasDisponibles);
 
-  useEffect(() => {
-    if (marcasDisponibles && marcasDisponibles.length > 0) {
-      setListaMarcas(marcasDisponibles);
-      if (!marcaId && !esEdicion) {
-        setMarcaId(marcasDisponibles[0].id);
-      }
-    }
-  }, [marcasDisponibles]);
-
   const [marcaId, setMarcaId] = useState<number>(
     initialProduct?.marca_id || (marcasDisponibles.length > 0 ? marcasDisponibles[0].id : 0),
   );
   const [modoNuevaMarca, setModoNuevaMarca] = useState(false);
   const [nuevaMarca, setNuevaMarca] = useState("");
+
+  const [tipoComercial, setTipoComercial] = useState<CommercialType>(
+    initialProduct?.tipo_comercial ||
+      marcasDisponibles.find((m) => m.id === (initialProduct?.marca_id || marcasDisponibles[0]?.id))?.tipo_comercial ||
+      "disenador",
+  );
+
+  useEffect(() => {
+    if (marcasDisponibles && marcasDisponibles.length > 0) {
+      setListaMarcas(marcasDisponibles);
+      if (!marcaId && !esEdicion) {
+        const primera = marcasDisponibles[0];
+        setMarcaId(primera.id);
+        if (primera.tipo_comercial) {
+          setTipoComercial(primera.tipo_comercial);
+        }
+        if (primera.pais_origen) {
+          setPaisOrigen(primera.pais_origen);
+        }
+      }
+    }
+  }, [marcasDisponibles]);
 
   const handleMarcaCreada = async (nueva: {
     id: number;
@@ -78,7 +91,7 @@ export default function ProductFormPage({
         nombre: nueva.nombre,
         slug: slugify(nueva.nombre),
         tipo_comercial: nueva.tipo_comercial || "disenador",
-        pais_origen: nueva.pais_origen || "Francia",
+        pais_origen: nueva.pais_origen || "",
       };
       return [...prev, item].sort((a, b) => a.nombre.localeCompare(b.nombre));
     });
@@ -89,10 +102,6 @@ export default function ProductFormPage({
       await onReloadMetadata();
     }
   };
-
-  const [tipoComercial, setTipoComercial] = useState<CommercialType>(
-    initialProduct?.tipo_comercial || "disenador",
-  );
   const [genero, setGenero] = useState<Gender>(initialProduct?.genero || "Unisex");
   const [concentracion, setConcentracion] = useState(
     initialProduct?.concentracion || "Eau de Parfum",
@@ -314,7 +323,7 @@ export default function ProductFormPage({
 
     if (!tieneAlgunFrasco) {
       setErrorValidacion(
-        "Debes ingresar el precio de al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).",
+        "Debes ingresar el precio de al menos una presentación de frasco.",
       );
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;

@@ -25,7 +25,7 @@ function validarDatosProducto(datos: DatosFormularioProducto): string | null {
   );
 
   if (!tieneAlgunFrasco) {
-    return "Debes ingresar al menos una presentación de frasco (50, 75, 100, 125, 150 o 200 ml).";
+    return "Debes ingresar el precio para al menos una presentación de frasco.";
   }
 
   for (const { ml, field, refField } of TAMANOS_FRASCO_ESTANDAR) {
